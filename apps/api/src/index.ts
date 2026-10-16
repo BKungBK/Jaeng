@@ -1,0 +1,20 @@
+import { createApp } from './app';
+import { loadEnv } from './env';
+
+const env = loadEnv();
+
+// PostgREST answers its root only when it can reach the database, so this works
+// before any migration exists.
+async function checkDb(): Promise<boolean> {
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/`, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    signal: AbortSignal.timeout(3000),
+  });
+  return res.ok;
+}
+
+createApp({ checkDb, anonKey: env.SUPABASE_ANON_KEY }).listen({ hostname: '0.0.0.0', port: 3000 });
+console.log('api listening on :3000');

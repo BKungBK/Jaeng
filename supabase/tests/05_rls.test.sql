@@ -18,11 +18,11 @@ returning id as b_pending \gset
 
 -- Visitors
 select tests.as_anon();
-select is((select count(*)::int from public.reports), 0, 'anon reads no rows from reports');
+select throws_ok($$select count(*) from public.reports$$, '42501', null, 'anon cannot read reports');
 select is((select count(*)::int from public.public_reports), 1, 'anon reads approved reports through the view');
 select is((select count(*)::int from public.categories), 8, 'anon reads categories');
 select lives_ok($$select public.reports_in_bbox(97, 5, 106, 21)$$, 'anon can call reports_in_bbox');
-select is((select count(*)::int from public.profiles), 0, 'anon reads no profiles');
+select throws_ok($$select count(*) from public.profiles$$, '42501', null, 'anon cannot read profiles');
 select throws_ok(
   $$insert into public.confirmations (report_id, user_id) select id, id from public.reports limit 1$$,
   '42501', null, 'anon cannot write confirmations');

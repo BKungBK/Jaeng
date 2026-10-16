@@ -1,6 +1,9 @@
 begin;
 select plan(14);
 
+-- Start from an empty map; the demo seed comes back when the transaction rolls back.
+delete from public.reports;
+
 select tests.create_user('a@x.test') as a \gset
 select tests.create_user('b@x.test') as b \gset
 

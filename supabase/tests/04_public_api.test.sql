@@ -1,6 +1,10 @@
 begin;
 select plan(17);
 
+-- Start from an empty map; the demo seed comes back when the transaction rolls back.
+delete from public.reports;
+delete from public.tags;
+
 select tests.create_user('author@x.test') as author \gset
 
 -- One report per status, all in Bangkok, plus one level-3 report in Chiang Mai.

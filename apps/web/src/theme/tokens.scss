@@ -1,0 +1,66 @@
+// Design tokens for แจ้ง. Values from spec 3.11 and docs/prototype/thai-map-v2.html.
+// Danger levels: --s0 ทั่วไป, --s1 ควรระวัง, --s2 อันตราย, --s3 วิกฤต.
+
+:root {
+  --bg: #fbf7f2;
+  --surf: #ffffff;
+  --ink: #2b2a33;
+  --ink2: #6b6878;
+  --pri: #3f6fa8;
+  --onpri: #ffffff;
+  --line: #e8e0d5;
+  --land: #f3ebdd;
+  --block: #faf5ec;
+  --road: #ffffff;
+  --water: #cfe3f0;
+  --sea: #4fb3ea;
+  --s0: #8fd3b6;
+  --s1: #f6d983;
+  --s2: #f4a582;
+  --s3: #e57373;
+  --sh: 0 8px 28px rgba(60, 50, 40, 0.18);
+}
+
+@mixin dark-tokens {
+  --bg: #23212b;
+  --surf: #2e2b38;
+  --ink: #f3eff7;
+  --ink2: #b7b2c4;
+  --pri: #9cc0ee;
+  --onpri: #1d1b24;
+  --line: #433f52;
+  --land: #383444;
+  --block: #403b4e;
+  --road: #4c475c;
+  --water: #34506b;
+  --sea: #2f6f9f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark-tokens;
+}
+
+// Map the tokens onto Ionic so every Ionic component follows them.
+:root {
+  --ion-background-color: var(--bg);
+  --ion-text-color: var(--ink);
+  --ion-color-primary: var(--pri);
+  --ion-color-primary-contrast: var(--onpri);
+  --ion-toolbar-background: var(--surf);
+  --ion-item-background: var(--surf);
+  --ion-border-color: var(--line);
+  --ion-font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.brand {
+  font-family: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+}

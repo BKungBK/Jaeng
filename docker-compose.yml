@@ -1,0 +1,50 @@
+# Dev stack for แจ้ง. Supabase itself is started by the Supabase CLI (scripts/dev-up.sh).
+# Containers can't use WSL's DNS resolver from the Docker bridge, hence the explicit dns entries.
+
+x-dns: &dns
+  dns:
+    - 1.1.1.1
+    - 8.8.8.8
+
+services:
+  caddy:
+    image: caddy:2
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+      - web
+    networks: [supabase]
+
+  api:
+    image: oven/bun:1
+    <<: *dns
+    working_dir: /app
+    env_file: .env
+    volumes:
+      - ./apps/api:/app
+      - ./packages:/packages
+    # bun --watch can't see file changes on /mnt/d, so nodemon polls (-L).
+    command: sh -c "bun install && bunx nodemon -L --watch src --ext ts --exec 'bun src/index.ts'"
+    networks: [supabase]
+
+  web:
+    image: node:22
+    <<: *dns
+    working_dir: /app
+    volumes:
+      - ./apps/web:/app
+      - ./packages:/packages
+      - web_node_modules:/app/node_modules
+    command: sh -c "npm ci && npx ng serve"
+    networks: [supabase]
+
+volumes:
+  web_node_modules:
+
+networks:
+  supabase:
+    name: supabase_network_jaeng
+    external: true

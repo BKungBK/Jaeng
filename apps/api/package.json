@@ -1,0 +1,16 @@
+{
+  "name": "@jaeng/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "elysia": "^1.4.30"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.3"
+  }
+}

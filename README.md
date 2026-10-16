@@ -17,7 +17,28 @@ Angular + Ionic + Capacitor (APK สำหรับ Android) · Elysia (Bun) · 
 
 ## เริ่มใช้งาน
 
-ยังไม่มีโค้ด ขั้นตอนติดตั้งดูได้ที่หัวข้อ 8 ของเอกสารออกแบบ
+ทุกคำสั่งรันใน WSL (Ubuntu) ที่โฟลเดอร์ `/mnt/d/Project/Jaeng` และต้องใช้ Node ของ Linux ใน WSL ไม่ใช่ Node ของ Windows
+
+ติดตั้งครั้งแรก:
+
+1. Node 22 ของ Linux ไว้ที่ `~/.local/node` และเพิ่ม `export PATH="$HOME/.local/node/bin:$PATH"` ใน `~/.bashrc`
+2. Docker Compose v2+ เป็น CLI plugin ที่ `~/.docker/cli-plugins/docker-compose` (หรือติดตั้งด้วย `sudo apt install docker-compose-v2`)
+3. `npm install` เพื่อติดตั้ง Supabase CLI ในโปรเจ็กต์
+4. `bash scripts/check-tools.sh` ต้องขึ้น ✓ ทุกบรรทัด
+
+รันทุกวัน:
+
+```bash
+bash scripts/dev-up.sh
+```
+
+แอปอยู่ที่ http://localhost:8000 · Supabase Studio อยู่ที่ http://localhost:54323 · Mailpit (อีเมล OTP) อยู่ที่ http://localhost:54324
+
+```bash
+bash scripts/dev-down.sh
+```
+
+รายละเอียดเพิ่มเติมดูที่หัวข้อ 8 ของเอกสารออกแบบ
 
 ## โฟลเดอร์อื่น
 

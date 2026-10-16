@@ -7,4 +7,5 @@ dist/
 supabase/.branches/
 supabase/.temp/
 *.log
+.superpowers/
 .DS_Store

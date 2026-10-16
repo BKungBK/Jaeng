@@ -1,0 +1,10 @@
+{
+  "name": "jaeng",
+  "private": true,
+  "scripts": {
+    "sb": "supabase"
+  },
+  "devDependencies": {
+    "supabase": "^2.121.0"
+  }
+}

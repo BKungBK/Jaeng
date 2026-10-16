@@ -38,6 +38,20 @@ bash scripts/dev-up.sh
 bash scripts/dev-down.sh
 ```
 
+ล้างฐานข้อมูลแล้วใส่ข้อมูลเดโม 40 เรื่องใหม่:
+
+```bash
+bash scripts/reset-db.sh
+```
+
+รันเทสต์ทั้งหมด:
+
+```bash
+bash scripts/test.sh
+```
+
+บัญชีเดโม: `admin@jaeng.local` (แอดมิน), `reporter@jaeng.local` และ `neighbor1@jaeng.local` ถึง `neighbor40@jaeng.local` ทุกบัญชีใช้รหัสผ่าน `DEMO_PASSWORD` ใน `.env`
+
 รายละเอียดเพิ่มเติมดูที่หัวข้อ 8 ของเอกสารออกแบบ
 
 ## โฟลเดอร์อื่น

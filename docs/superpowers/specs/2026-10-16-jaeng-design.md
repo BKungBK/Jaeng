@@ -385,9 +385,9 @@
 
 | ส่วน | เลือก | เหตุผล |
 |---|---|---|
-| Frontend | Angular (standalone components + signals) **เวอร์ชันล่าสุดที่ Ionic 8 รองรับอย่างเป็นทางการ** (ดู peer dependency ของ `@ionic/angular` ก่อนสร้างโปรเจ็กต์) + Ionic 8 | **ตัดสินแล้ว** Ionic ให้ bottom sheet, modal และ FAB ที่ดูเป็นแอปมือถือ |
+| Frontend | **Angular 22 + Ionic 9** (zoneless, standalone components + signals, เทสต์ด้วย Vitest) ตามที่ starter ทางการของ Ionic จับคู่ให้ (อัปเดต 2026-10-17 จากเดิมที่เขียนว่า Ionic 8) | **ตัดสินแล้ว** Ionic ให้ bottom sheet, modal และ FAB ที่ดูเป็นแอปมือถือ |
 | PWA | `@angular/pwa` | ติดตั้งลงหน้าจอได้ (service worker ทำงานเฉพาะ production build จึงต้องเดโม PWA ด้วย build ที่ Caddy เสิร์ฟ ไม่ใช่ `ng serve`) และกล้องใช้ได้ผ่าน `<input type="file" capture>` |
-| แอป Android | **Capacitor** (เวอร์ชันที่เข้ากับ Ionic 8) + `@capacitor/android`, `@capacitor/geolocation`, `@capacitor/camera`, `@capacitor/preferences` | **ตัดสินแล้ว**: ต้องการ APK ใช้โค้ด Angular ชุดเดิมทั้งหมด GPS และกล้องเรียกผ่าน plugin native จึงใช้ได้แม้เซิร์ฟเวอร์เป็น http |
+| แอป Android | **Capacitor 8** (มาพร้อม starter ของ Ionic 9) + `@capacitor/android`, `@capacitor/geolocation`, `@capacitor/camera`, `@capacitor/preferences` | **ตัดสินแล้ว**: ต้องการ APK ใช้โค้ด Angular ชุดเดิมทั้งหมด GPS และกล้องเรียกผ่าน plugin native จึงใช้ได้แม้เซิร์ฟเวอร์เป็น http |
 | ฟอนต์ | `@fontsource/prompt` และ `@fontsource/ibm-plex-sans-thai` (เสิร์ฟในเครื่อง) | ไม่ต้องใช้เน็ตตอนเดโม |
 | ค้นหาสถานที่ | Nominatim (OSM) ผ่าน API ของเรา (ใส่ cache และ User-Agent ตามกติกา) | ฟรี ถ้าไม่มีเน็ต ช่องค้นหาจะค้นได้แค่เรื่องที่แจ้งและชื่ออำเภอ/จังหวัดในเครื่อง |
 | ชื่อพื้นที่อัตโนมัติ | point-in-polygon ในเครื่องกับขอบเขตอำเภอ (OCHA COD-AB ADM2) ใน PostGIS | ตั้งหัวข้อเป็น "{หมวด} {อำเภอ} {จังหวัด}" ได้โดยไม่ต้องใช้เน็ต |
@@ -623,7 +623,8 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 
 ### 8.1 ติดตั้งครั้งแรก (ใน WSL Ubuntu)
 
-1. Docker Compose plugin (ตอนนี้ยังไม่มี): ดูก่อนด้วย `dpkg -l | grep -E 'docker|containerd'` ว่า Docker มาจากแพ็กเกจไหน ถ้าเป็น `docker.io` ของ Ubuntu ให้ติดตั้ง `docker-compose-v2` ถ้าเป็น `docker-ce` ของ Docker ให้ติดตั้ง `docker-compose-plugin` อย่าผสมสองแบบ
+0. **Node ของ Linux ใน WSL** (ทำแล้ว 2026-10-17): Node 22 ที่ `~/.local/node` ห้ามใช้ Node ของ Windows ที่ WSL เรียกข้ามมา `scripts/check-tools.sh` ตรวจจุดนี้ให้
+1. Docker Compose plugin (ทำแล้ว 2026-10-17: ติดตั้ง Compose v5 แบบผู้ใช้ที่ `~/.docker/cli-plugins` เพราะ sudo ต้องใช้รหัสผ่าน วิธีเดิมใช้แทนได้): ดูก่อนด้วย `dpkg -l | grep -E 'docker|containerd'` ว่า Docker มาจากแพ็กเกจไหน ถ้าเป็น `docker.io` ของ Ubuntu ให้ติดตั้ง `docker-compose-v2` ถ้าเป็น `docker-ce` ของ Docker ให้ติดตั้ง `docker-compose-plugin` อย่าผสมสองแบบ
 2. Supabase CLI: ใช้ผ่าน `npx supabase` โดยใส่ไว้เป็น devDependency ที่ `package.json` ระดับราก ไม่ติดตั้ง global
 3. Bun: ไม่จำเป็นต้องมีบนเครื่อง เพราะ API รันใน image `oven/bun` แต่ติดตั้งไว้ใช้คำสั่ง `bun` ตรงๆ ได้ถ้าต้องการ
 4. `supabase init` แล้วแก้ `supabase/config.toml`:
@@ -760,6 +761,8 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 | HTML marker เยอะแล้วกระตุก | จำกัด 150 จุดในจอ หรือเปลี่ยนลำแสงเป็น WebGL custom layer |
 | เปิดเว็บบนมือถือผ่าน `http://<IP ใน LAN>` แล้ว GPS, service worker และการติดตั้ง PWA ไม่ทำงาน (เพราะไม่ใช่ secure context) | ใช้ APK เป็นหลักบนมือถือ (GPS ผ่าน plugin native) ส่วนเว็บบนมือถือใช้ได้แต่ต้องปักตำแหน่งเอง |
 | มือถือเชื่อมเซิร์ฟเวอร์ไม่ได้ (mirrored networking/firewall/Wi-Fi แยกวงแบบ guest) | หน้าตั้งค่าเซิร์ฟเวอร์มีปุ่มทดสอบ และ README มีขั้นตรวจทีละจุด ถ้าจำเป็นใช้ tunnel ชั่วคราว (หัวข้อ 9.2) โดยมีแค่ข้อมูลตัวอย่าง |
+| container บน Docker bridge ใช้ DNS ของ WSL (`10.255.255.254`) ไม่ได้ | ตอนนี้ใส่ `dns: 1.1.1.1, 8.8.8.8` ราย container ทางแก้ถาวร: ใส่ `"dns"` ใน `/etc/docker/daemon.json` (ต้องใช้ sudo) |
+| เทสต์เว็บบน `/mnt/d` ช้าจน Vitest worker timeout | รันผ่าน `scripts/test.sh` ซึ่งรันเทสต์เว็บใน container `web` (node_modules อยู่บน volume ของ Linux) |
 | Build Android ใน Docker ช้าหรือกินแรม | cache Gradle ใน volume และ build ตอนที่ไม่ได้รัน `ng serve` |
 | Thai กับ pg_trgm ตัดคำได้ไม่ดี | `ILIKE` ยังค้นถูกต้อง ส่วนการจัดอันดับความคล้ายภาษาไทยไม่แม่น ซึ่งรับได้ที่ขนาดข้อมูลเดโม |
 | Supabase CLI เปลี่ยนรูปแบบคีย์ (anon → publishable) | อ่านจาก `supabase status -o env` ทุกครั้ง ไม่ฮาร์ดโค้ด |

@@ -390,7 +390,7 @@
 | แอป Android | **Capacitor** (เวอร์ชันที่เข้ากับ Ionic 8) + `@capacitor/android`, `@capacitor/geolocation`, `@capacitor/camera`, `@capacitor/preferences` | **ตัดสินแล้ว**: ต้องการ APK ใช้โค้ด Angular ชุดเดิมทั้งหมด GPS และกล้องเรียกผ่าน plugin native จึงใช้ได้แม้เซิร์ฟเวอร์เป็น http |
 | ฟอนต์ | `@fontsource/prompt` และ `@fontsource/ibm-plex-sans-thai` (เสิร์ฟในเครื่อง) | ไม่ต้องใช้เน็ตตอนเดโม |
 | ค้นหาสถานที่ | Nominatim (OSM) ผ่าน API ของเรา (ใส่ cache และ User-Agent ตามกติกา) | ฟรี ถ้าไม่มีเน็ต ช่องค้นหาจะค้นได้แค่เรื่องที่แจ้งและชื่ออำเภอ/จังหวัดในเครื่อง |
-| ชื่อพื้นที่อัตโนมัติ | point-in-polygon ในเครื่องกับขอบเขตอำเภอ (geoBoundaries ADM2) ใน PostGIS | ตั้งหัวข้อเป็น "{หมวด} {อำเภอ} {จังหวัด}" ได้โดยไม่ต้องใช้เน็ต |
+| ชื่อพื้นที่อัตโนมัติ | point-in-polygon ในเครื่องกับขอบเขตอำเภอ (OCHA COD-AB ADM2) ใน PostGIS | ตั้งหัวข้อเป็น "{หมวด} {อำเภอ} {จังหวัด}" ได้โดยไม่ต้องใช้เน็ต |
 | แผนที่ | **MapLibre GL JS v5** (มี globe projection) | ฟรี โอเพนซอร์ส ซูมจากโลกถึงระดับถนนได้ในตัวเดียว |
 | ไทล์แผนที่ปกติ | **OpenFreeMap** สไตล์ `positron` ปรับสีให้เข้าโทน | ฟรี ไม่ต้องมีคีย์ ข้อมูลจาก OpenStreetMap แผนสำรองดูหัวข้อ 11 |
 | ภาพประกอบแผนที่ไทย | **เลเยอร์เวกเตอร์ใน MapLibre** สร้างจาก GeoJSON ขอบเขตจังหวัด | ซูมแล้วคม และปรับ opacity ตาม zoom ได้ ดูหัวข้อ 4.4 |
@@ -445,9 +445,9 @@ Jaeng/
 
 ข้อมูลภูมิศาสตร์:
 
-- ขอบเขตประเทศและจังหวัดจาก geoBoundaries (ADM0/ADM1 ของไทย, ไลเซนส์ CC BY 4.0) ลดความละเอียดด้วย mapshaper แล้วเก็บเป็นไฟล์ static ใน `apps/web/src/assets/geo/`
+- ขอบเขตประเทศ จังหวัด และอำเภอจาก **OCHA COD-AB ของไทย** (ชุดข้อมูล `cod-ab-tha` บน HDX ไลเซนส์ CC BY-IGO) เพราะมีชื่อภาษาไทย (`ADM1_TH`, `ADM2_TH`) ซึ่ง geoBoundaries ไม่มี ลดความละเอียดด้วย mapshaper แล้วเก็บเป็นไฟล์ใน `supabase/data/` (ใช้สร้างตาราง `admin_areas`) และ `apps/web/src/assets/geo/` (ใช้วาดภาพประกอบ)
 - ภาคต่างๆ จับคู่ด้วยตารางจังหวัด → ภาค
-- ต้องใส่เครดิตแหล่งข้อมูลในหน้า `/about` และมุมแผนที่ (OSM, OpenFreeMap, geoBoundaries)
+- ต้องใส่เครดิตแหล่งข้อมูลในหน้า `/about` และมุมแผนที่ (OSM, OpenFreeMap, OCHA COD-AB)
 
 ---
 
@@ -505,7 +505,7 @@ Jaeng/
 
 **`flags`** (รายงานเนื้อหา): `id`, `target_type` (`report`/`comment`), `target_id`, `reporter_id`, `reason` (`spam`/`false`/`personal_attack`/`privacy`/`other`), `note`, `status` (`open`/`dismissed`/`actioned`), `created_at`
 
-**`admin_areas`**: `id`, `level` (1 = จังหวัด, 2 = อำเภอ), `name_th`, `name_en`, `province_th`, `region`, `geom geography(MultiPolygon)` นำเข้าจาก geoBoundaries ด้วยสคริปต์ ใช้หา `place_name` และใช้กับตัวเลขกำลังใจรายจังหวัด
+**`admin_areas`**: `id`, `level` (1 = จังหวัด, 2 = อำเภอ), `name_th`, `name_en`, `province_th`, `region`, `geom geography(MultiPolygon)` นำเข้าจาก OCHA COD-AB ด้วยสคริปต์ ใช้หา `place_name` และใช้กับตัวเลขกำลังใจรายจังหวัด
 
 **`moderation_log`**: `id`, `admin_id`, `action`, `target_type`, `target_id`, `detail jsonb`, `created_at`
 
@@ -547,6 +547,7 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 | Method | Path | ทำอะไร | สิทธิ์ |
 |---|---|---|---|
 | GET | `/api/health` | ตรวจว่า API กับ DB ทำงาน | ทุกคน |
+| GET | `/api/config` | คืน `{ supabaseAnonKey }` ให้เว็บและ APK ใช้สร้าง client (APK จึงต้องรู้แค่ที่อยู่เซิร์ฟเวอร์อย่างเดียว) | ทุกคน |
 | POST | `/api/photos` | อัปโหลดรูป 1 รูป (multipart) แล้วคืน `photo_id` | สมาชิก |
 | POST | `/api/reports/check-duplicate` | `{lng, lat, category}` → เรื่องใกล้เคียง | สมาชิก |
 | POST | `/api/reports` | สร้างเรื่อง (`photo_ids`, category, lng/lat, ช่องเสริม) → `pending_review` | สมาชิก |

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>แจ้งแสง · ต้นแบบแผนที่ไทย</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FBF7F2;--surf:#fff;--ink:#2B2A33;--ink2:#6B6878;--pri:#3F6FA8;--onpri:#fff;--line:#E8E0D5;--land:#F3EBDD;--block:#FAF5EC;--road:#fff;--water:#CFE3F0;--s0:#8FD3B6;--s1:#F6D983;--s2:#F4A582;--s3:#E57373;--sea:#4FB3EA;--sh:0 8px 28px rgba(60,50,40,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#23212B;--surf:#2E2B38;--ink:#F3EFF7;--ink2:#B7B2C4;--pri:#9CC0EE;--onpri:#1d1b24;--line:#433F52;--land:#383444;--block:#403B4E;--road:#4C475C;--water:#34506B;--sea:#2F6F9F}}
+:root[data-theme="dark"]{--bg:#23212B;--surf:#2E2B38;--ink:#F3EFF7;--ink2:#B7B2C4;--pri:#9CC0EE;--onpri:#1d1b24;--line:#433F52;--land:#383444;--block:#403B4E;--road:#4C475C;--water:#34506B;--sea:#2F6F9F}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.6 'IBM Plex Sans Thai',system-ui,sans-serif;overflow:hidden}
+h1,h2,.btn{font-family:'Prompt','IBM Plex Sans Thai',system-ui,sans-serif}
+h1{font-size:19px;margin:0;line-height:1.3}h2{font-size:19px;margin:10px 0 4px;line-height:1.35}
+small,.sub{color:var(--ink2);font-size:13px}
+.top{position:fixed;z-index:5;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;pointer-events:none}
+.top>*{pointer-events:auto}
+.card{background:var(--surf);border-radius:18px;box-shadow:var(--sh)}
+.brand{padding:8px 14px}.chips{display:flex;gap:6px;flex-wrap:wrap;padding:6px}
+.chip{min-height:44px;border:0;border-radius:14px;padding:0 12px;background:color-mix(in srgb,var(--c) 55%,var(--surf));color:var(--ink);font:500 14px 'IBM Plex Sans Thai',sans-serif;cursor:pointer}
+.chip[aria-pressed="false"]{opacity:.4;text-decoration:line-through}
+.chip:focus-visible,.btn:focus-visible,.disc:focus-visible,.cl:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.btn{min-height:44px;min-width:44px;border-radius:14px;border:1px solid var(--line);background:var(--surf);color:var(--ink);padding:0 14px;font-weight:500;font-size:15px;cursor:pointer}
+.btn.pri{background:var(--pri);color:var(--onpri);border-color:transparent}
+.stage{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;background:var(--sea)}
+.stage svg{position:absolute;inset:0;width:100%;height:100%}
+.land{fill:var(--land)}.blk{fill:var(--block)}.rd{stroke:var(--road);fill:none}.rv{stroke:var(--water);fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+.tx{font:600 26px 'Prompt',sans-serif;fill:#2B2A33;paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round;text-anchor:middle}
+.em{font-size:44px;text-anchor:middle}
+.cloud{animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translateX(50px)}}
+.layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pin,.cl{position:absolute;left:0;top:0;width:0;height:0;will-change:transform}
+.ring{position:absolute;left:-36px;top:-36px;width:72px;height:72px;box-sizing:border-box;border-radius:50%;border:3px solid var(--c);animation:pulse var(--d) ease-out infinite}
+.ring.two{animation-delay:calc(var(--d) / 2)}
+@keyframes pulse{from{transform:scale(.3,.14);opacity:.85}to{transform:scale(1.5,.68);opacity:0}}
+.base{position:absolute;left:-7px;top:-7px;width:14px;height:14px;border-radius:50%;background:var(--c);border:2px solid #fff}
+.stand{position:absolute;left:-30px;bottom:0;width:60px;height:var(--h)}
+.beam{position:absolute;inset:0;background:linear-gradient(to top,var(--c),transparent 95%);opacity:.8;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%)}
+.disc,.cl b{position:absolute;box-sizing:border-box;border-radius:50%;background:var(--surf);border:3px solid var(--c);display:grid;place-items:center;cursor:pointer;pointer-events:auto;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}
+.disc{left:3px;top:-30px;width:54px;height:54px;font-size:24px;line-height:1}
+.cl b{left:-26px;top:-26px;width:52px;height:52px;font:600 18px 'Prompt',sans-serif;color:var(--ink)}
+.sym{position:absolute;right:-8px;bottom:-4px;font-size:12px;font-style:normal;font-weight:600;background:var(--c);color:#2B2A33;border-radius:9px;min-width:18px;height:18px;line-height:18px;text-align:center}
+.lbl{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;background:var(--surf);color:var(--ink);padding:0 8px;border-radius:10px;font:400 12px/20px 'IBM Plex Sans Thai',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.st-claimed .beam{opacity:.28}.st-claimed .disc{border-style:dashed}.st-claimed .ring{display:none}
+.st-done .beam,.st-done .ring{display:none}.st-done .disc{--c:var(--s0);opacity:.8}.st-done .base{--c:var(--s0)}
+.zoom{position:fixed;z-index:5;right:12px;top:50%;transform:translateY(-50%);display:grid;gap:8px}
+.tip{position:fixed;z-index:6;pointer-events:none;background:var(--surf);border-radius:16px;box-shadow:var(--sh);padding:8px 12px;max-width:230px;font-size:14px;opacity:0;transition:opacity .15s}
+.tip.on{opacity:1}
+.sheet{position:fixed;z-index:7;background:var(--surf);box-shadow:var(--sh);left:0;right:0;bottom:0;max-height:64vh;overflow:auto;border-radius:24px 24px 0 0;padding:16px 18px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .35s cubic-bezier(.3,.7,.2,1)}
+.sheet.on{transform:none}
+@media (min-width:820px){.sheet{left:auto;right:16px;top:96px;bottom:16px;width:380px;max-height:none;border-radius:24px;transform:translateX(120%)}}
+.photo{height:140px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 50%,var(--surf)),var(--land));display:grid;place-items:center;font-size:56px;position:relative}
+.photo small{position:absolute;left:10px;bottom:8px;background:var(--surf);border-radius:10px;padding:0 8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.tag{display:inline-block;border-radius:12px;padding:0 10px;font-size:13px;background:color-mix(in srgb,var(--c) 55%,var(--surf))}.tag.n{background:var(--land)}
+.cm{border-top:1px solid var(--line);padding:8px 0;font-size:14px}
+.close{position:absolute;right:10px;top:10px;width:44px;padding:0}
+.hint{position:fixed;z-index:4;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:8px 14px;max-width:320px}
+.toast{position:fixed;z-index:9;left:50%;top:calc(76px + env(safe-area-inset-top,0px));transform:translate(-50%,-20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:14px;opacity:0;transition:.3s;pointer-events:none;font-size:14px}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:819px){.hint{bottom:auto;top:calc(78px + env(safe-area-inset-top,0px));left:12px;max-width:none}.zoom{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:none}}
+@media (prefers-reduced-motion:reduce){.ring,.cloud{animation:none}.ring{opacity:.5}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="card brand"><h1>แจ้งแสง</h1><div class="sub">ชื่อชั่วคราว · ทุกเรื่องคือสัญญาณไฟ</div></div>
+  <div class="card chips" id="chips" role="group" aria-label="กรองตามระดับอันตราย"></div>
+</div>
+<div class="stage" id="stage"><svg id="svg" aria-hidden="true"></svg></div>
+<div class="layer" id="pl"></div>
+<div class="zoom"><button class="btn card" id="zin" aria-label="ซูมเข้า">＋</button><button class="btn card" id="zout" aria-label="ซูมออก">－</button><button class="btn card" id="me2" aria-label="ไปที่ตำแหน่งของฉัน">📍</button></div>
+<div class="card hint sub" id="lod"></div>
+<div class="tip" id="tip" role="tooltip"></div>
+<aside class="sheet" id="sheet" aria-live="polite"></aside>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const $=id=>document.getElementById(id),W=840,H=1510;
+const P=(lo,la)=>[(lo-97.2)*100,(20.6-la)*100];
+const L=[[99.88,20.43],[100.4,20.27],[100.6,20],[101,19.8],[101.2,19.45],[101.05,19],[100.95,18.4],[101.15,17.9],[101.6,17.85],[102.1,18.05],[102.7,17.88],[103.1,18.3],[103.6,18.4],[104.2,17.85],[104.78,17.4],[104.72,16.55],[105.15,16.05],[105.55,15.35],[105.62,14.45],[105.1,14.4],[104.4,14.4],[103.6,14.35],[102.95,14.25],[102.55,14.15],[102.45,13.65],[102.35,13.4],[102.4,12.75],[102.3,12.25],[102.65,12],[102.95,11.65],[102.55,12.15],[101.95,12.6],[101.35,12.65],[100.9,12.75],[100.88,13.25],[100.6,13.5],[100.35,13.45],[100.05,13.3],[100.05,12.9],[99.95,12.5],[99.8,11.8],[99.5,10.9],[99.25,10.35],[99.35,9.5],[99.75,9],[100.05,8.45],[100.3,7.8],[100.55,7.25],[101.05,6.95],[101.55,6.85],[101.95,6.5],[102.1,6.25],[101.7,5.8],[101.1,5.75],[100.85,6.2],[100.4,6.45],[100.1,6.5],[99.7,6.55],[99.6,7.1],[99.3,7.7],[98.8,8.15],[98.4,8.6],[98.3,9.2],[98.45,9.9],[98.6,10.4],[98.7,10.9],[98.75,11.35],[99.15,11.75],[99.45,12.2],[99.2,12.75],[99.1,13.2],[98.85,13.55],[98.65,14.1],[98.4,14.65],[98.45,15.3],[98.65,15.9],[98.55,16.6],[98.2,17.2],[97.85,17.75],[97.6,18.15],[97.35,18.55],[97.65,19.05],[97.95,19.6],[98.35,19.75],[98.85,20],[99.35,20.1],[99.7,20.35]];
+const d='M'+L.map(p=>P(...p).join(' ')).join('L')+'Z';
+const isan=[[101.35,18.8],[106,18.8],[106,14],[101.9,14],[101.55,15],[101.35,16.2]].map(p=>P(...p).join(',')).join(' ');
+const T=(lo,la,t,c='tx')=>{const[x,y]=P(lo,la);return `<text x="${x}" y="${y}" class="${c}">${t}</text>`};
+const labels=[[98.9,18.55,'เชียงใหม่'],[100.3,16.6,'พิษณุโลก'],[100.1,15.5,'นครสวรรค์'],[100.5,13.2,'กรุงเทพฯ'],[102.8,16.1,'ขอนแก่น'],[102.1,14.7,'นครราชสีมา'],[104.9,15,'อุบลราชธานี'],[99.3,8.9,'สุราษฎร์ธานี'],[100.5,6.75,'สงขลา'],[98.35,7.4,'ภูเก็ต']];
+const emo=[[99.2,19.4,'⛰️'],[98.1,18.4,'⛰️'],[98.95,18.85,'🛕'],[100.9,17.9,'🐘'],[103.3,17.2,'🐉'],[105,15.9,'🛕'],[98,8.5,'🏝️'],[101.4,11.5,'⛵'],[100.9,9.6,'🚢'],[98.9,7.3,'⛵'],[100.2,14.2,'🚂']];
+const clouds=[[97.6,13,1],[104.4,11,.9],[97.8,6.6,1],[103.6,7.4,.8]];
+$('svg').innerHTML=`<defs><path id="th" d="${d}"/><clipPath id="lc"><use href="#th"/></clipPath>
+<pattern id="pb" width="16" height="16" patternUnits="userSpaceOnUse"><rect x="1.5" y="1.5" width="13" height="13" rx="2" class="blk"/></pattern>
+<pattern id="pr" width="160" height="160" patternUnits="userSpaceOnUse"><path d="M0 0H160M0 0V160" class="rd" stroke-width="5"/></pattern><filter id="bl"><feGaussianBlur stdDeviation="6"/></filter></defs>
+<g id="gf"><use href="#th" class="land"/><g clip-path="url(#lc)"><rect width="${W}" height="${H}" fill="url(#pb)"/><rect width="${W}" height="${H}" fill="url(#pr)"/><path class="rv" d="M${[[100.15,16],[100.2,15],[100.45,14.2],[100.55,13.7],[100.58,13.4]].map(p=>P(...p).join(' ')).join('L')}"/></g><ellipse class="land" cx="${P(98.35,7.95)[0]}" cy="${P(98.35,7.95)[1]}" rx="9" ry="24"/></g>
+<g id="gi"><use href="#th" fill="#7B5430" transform="translate(0,24)"/><use href="#th" fill="#946636" transform="translate(0,16)"/><use href="#th" fill="#AB7B42" transform="translate(0,8)"/>
+<use href="#th" fill="#79B83C" stroke="#F3E3B0" stroke-width="6"/><polygon points="${isan}" clip-path="url(#lc)" fill="#F5A04A"/>
+<g clip-path="url(#lc)" fill="#4E8F2A" opacity=".45"><circle cx="${P(99,19.2)[0]}" cy="${P(99,19.2)[1]}" r="70"/><circle cx="${P(98.8,8.3)[0]}" cy="${P(98.8,8.3)[1]}" r="45"/></g>
+<ellipse cx="${P(98.35,7.95)[0]}" cy="${P(98.35,7.95)[1]}" rx="9" ry="24" fill="#79B83C" stroke="#F3E3B0" stroke-width="4"/>
+${labels.map(l=>T(...l)).join('')}${emo.map(e=>T(e[0],e[1],e[2],'em')).join('')}
+${clouds.map(c=>`<ellipse class="cloud" cx="${P(c[0],c[1])[0]}" cy="${P(c[0],c[1])[1]}" rx="${70*c[2]}" ry="${26*c[2]}" fill="#fff" opacity=".9" filter="url(#bl)"/>`).join('')}</g>`;
+const LV=[{n:'ทั่วไป',c:'--s0',s:'●',d:'3s'},{n:'ควรระวัง',c:'--s1',s:'▲',d:'2.4s'},{n:'อันตราย',c:'--s2',s:'◆',d:'1.6s'},{n:'วิกฤต',c:'--s3',s:'⚠',d:'1s'}];
+const R=[
+{id:1,g:[100.52,13.78],ic:'🕳️',cat:'ถนน',lv:2,t:'หลุมลึกกลางถนนหน้าตลาด',d:12,n:23,st:'open',x0:'หลุมกว้างราวครึ่งเมตร มีมอเตอร์ไซค์ล้มไปแล้วสองคัน'},
+{id:2,g:[100.66,13.7],ic:'💡',cat:'ไฟส่องสว่าง',lv:1,t:'ไฟถนนดับทั้งซอย',d:5,n:9,st:'open',x0:'ดับมาเกือบสัปดาห์ ช่วงค่ำมืดมาก'},
+{id:3,g:[100.36,13.9],ic:'💧',cat:'น้ำ/ท่อ',lv:1,t:'ท่อระบายตัน น้ำเอ่อล้น',d:3,n:6,st:'open',x0:'ฝนตกครั้งไรน้ำก็ท่วมหน้าบ้านหลายหลัง'},
+{id:4,g:[100.82,13.55],ic:'🌳',cat:'ต้นไม้',lv:3,t:'กิ่งไม้ใหญ่หักพาดสายไฟ',d:1,n:31,st:'open',x0:'กิ่งหักพาดสายไฟ ห้ามเข้าใกล้ และควรแจ้งการไฟฟ้า'},
+{id:5,g:[98.99,18.79],ic:'🗑️',cat:'ขยะ',lv:0,t:'ขยะกองใหญ่ริมคลอง',d:20,n:14,st:'open',x0:'มีคนมาทิ้งเพิ่มทุกวัน เริ่มมีกลิ่น'},
+{id:6,g:[99.2,18.62],ic:'⚠️',cat:'จุดเสี่ยง',lv:2,t:'ทางม้าลายลบเลือน หน้าโรงเรียน',d:30,n:40,st:'open',x0:'เด็กข้ามถนนช่วงเช้า รถไม่ค่อยชะลอ'},
+{id:7,g:[102.83,16.44],ic:'🌊',cat:'น้ำท่วม',lv:2,t:'น้ำท่วมขังสูง รถผ่านไม่ได้',d:2,n:17,st:'claimed',x0:'มีคนแจ้งว่าน้ำลดแล้ว กำลังรอผู้ดูแลตรวจสอบ'},
+{id:8,g:[100.26,16.82],ic:'🕳️',cat:'ถนน',lv:0,t:'ทางเท้าแตก กระเบื้องหลุด',d:8,n:4,st:'done',x0:'ซ่อมเรียบร้อยแล้ว ผู้ดูแลตรวจสอบแล้ว'},
+{id:9,g:[98.38,7.89],ic:'💡',cat:'ไฟส่องสว่าง',lv:1,t:'ไฟจราจรกะพริบตลอด',d:4,n:11,st:'open',x0:'สัญญาณไฟสี่แยกกะพริบเหลืองทั้งสองฝั่ง'},
+{id:10,g:[100.47,7],ic:'🗑️',cat:'ขยะ',lv:1,t:'ถังขยะล้น กลิ่นเหม็น',d:6,n:7,st:'open',x0:'รถขยะไม่มาเก็บหลายวัน'},
+{id:11,g:[104.86,15.24],ic:'🕳️',cat:'ถนน',lv:1,t:'ถนนทรุดตัวหลังฝนตก',d:9,n:12,st:'open',x0:'ผิวถนนทรุดเป็นแนวยาว รถบรรทุกวิ่งผ่านบ่อย'},
+{id:12,g:[101.28,12.68],ic:'💧',cat:'น้ำ/ท่อ',lv:0,t:'น้ำประปาไม่ไหลช่วงเช้า',d:3,n:5,st:'open',x0:'ไม่ไหลช่วงตีห้าถึงเจ็ดโมงเช้า'},
+{id:13,g:[102.1,14.97],ic:'⚠️',cat:'จุดเสี่ยง',lv:2,t:'สะพานลอยราวกั้นหลวม',d:15,n:19,st:'open',x0:'ราวกั้นหลวมคลอน เด็กนักเรียนใช้ข้ามทุกวัน'}];
+R.forEach(r=>[r.X,r.Y]=P(...r.g));
+const CM=['เจอเหมือนกันเลยครับ ผ่านทุกวัน','ขอบคุณที่แจ้ง จะได้มีคนเห็นสักที'],ST={open:'ยังไม่ได้แก้',claimed:'รอตรวจว่าแก้แล้ว',done:'แก้แล้ว'};
+const on=[1,1,1,1],mine=new Set(),tip=$('tip'),stage=$('stage'),svg=$('svg');
+let sw,sh,fit,s,mx=W/2,my=H/2,items=[],mode='';
+function size(){sw=stage.clientWidth;sh=stage.clientHeight;fit=Math.min(sw/(W+60),sh/(H+60))}
+size();s=fit;
+$('chips').innerHTML=LV.map((l,i)=>`<button class="chip" style="--c:var(${l.c})" aria-pressed="true" data-i="${i}">${l.s} ${l.n}</button>`).join('');
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const i=+b.dataset.i;on[i]=!on[i];b.setAttribute('aria-pressed',!!on[i]);mode='';frame()};
+function pinH(r){const l=LV[r.lv];return `<div class="pin st-${r.st}" style="--c:var(${l.c});--d:${l.d};--h:${60+Math.min(r.n,40)*3}px"><i class="ring"></i>${r.lv>1?'<i class="ring two"></i>':''}<i class="base"></i><div class="stand"><div class="beam"></div><div class="disc" tabindex="0" role="button" data-id="${r.id}" aria-label="${r.t} ระดับ${l.n} ${ST[r.st]}"><span>${r.st==='done'?'✓':r.ic}</span><i class="sym">${r.st==='done'?'✓':l.s}</i><span class="lbl">${r.t}</span></div></div></div>`}
+function build(m){const rs=R.filter(r=>on[r.lv]);const pl=$('pl');items=[];
+if(m==='pins'){pl.innerHTML=rs.map(pinH).join('');[...pl.children].forEach((el,i)=>items.push({el,X:rs[i].X,Y:rs[i].Y}))}
+else{const g={};rs.forEach(r=>{const k=Math.round(r.X/150)+','+Math.round(r.Y/150);(g[k]=g[k]||[]).push(r)});const cs=Object.values(g).map(a=>({a,X:a.reduce((t,r)=>t+r.X,0)/a.length,Y:a.reduce((t,r)=>t+r.Y,0)/a.length,lv:Math.max(...a.map(r=>r.lv))}));
+pl.innerHTML=cs.map((c,i)=>`<div class="cl" style="--c:var(${LV[c.lv].c});--d:${LV[c.lv].d}"><i class="ring"></i><b tabindex="0" role="button" data-c="${i}" aria-label="${c.a.length} เรื่องในพื้นที่นี้">${c.a.length}</b></div>`).join('');
+[...pl.children].forEach((el,i)=>{el.cs=cs[i];items.push({el,X:cs[i].X,Y:cs[i].Y})})}}
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+function frame(){mx=cl(mx,0,W);my=cl(my,0,H);s=cl(s,fit*.95,16);const vw=sw/s,vh=sh/s;
+svg.setAttribute('viewBox',`${mx-vw/2} ${my-vh/2} ${vw} ${vh}`);
+const a=cl((4-s)/2.8,0,1);$('gi').style.opacity=a;$('gf').style.opacity=1;stage.style.background=`color-mix(in srgb,var(--sea) ${a*100}%,var(--water))`;
+const m=s<2.2?'clusters':'pins';if(m!==mode){mode=m;build(m)}
+items.forEach(i=>{i.el.style.transform=`translate(${(i.X-mx)*s+sw/2}px,${(i.Y-my)*s+sh/2}px)`});
+$('lod').textContent=s<2.2?'ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่ ซูมเข้าเพื่อดูแต่ละเรื่อง':s<4?'ซูมต่อไป ภาพประกอบจะค่อยๆ กลายเป็นแผนที่ปกติ':'ระดับย่าน: แผนที่ปกติ เห็นถนนและบล็อก'}
+function zoomAt(px,py,f){const X=mx+(px-sw/2)/s;const Y=my+(py-sh/2)/s;s=cl(s*f,fit*.95,16);mx=X-(px-sw/2)/s;my=Y-(py-sh/2)/s;frame()}
+function fly(x,y,s2,ms=800){const a=[mx,my,s],t0=performance.now();(function st(t){const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;mx=a[0]+(x-a[0])*e;my=a[1]+(y-a[1])*e;s=a[2]*Math.pow(s2/a[2],e);frame();if(k<1)requestAnimationFrame(st)})(t0)}
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015))},{passive:false});
+stage.addEventListener('dblclick',e=>zoomAt(e.clientX,e.clientY,2));
+$('zin').onclick=()=>zoomAt(sw/2,sh/2,1.7);$('zout').onclick=()=>zoomAt(sw/2,sh/2,1/1.7);
+$('me2').onclick=()=>{const[x,y]=P(100.55,13.75);fly(x,y,5.5,1400)};
+const ptr=new Map();let moved=0,lastD=0;
+stage.addEventListener('pointerdown',e=>{ptr.set(e.pointerId,[e.clientX,e.clientY]);moved=0;lastD=0});
+addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;const o=ptr.get(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);
+if(ptr.size===1){const dx=e.clientX-o[0],dy=e.clientY-o[1];moved+=Math.abs(dx)+Math.abs(dy);mx-=dx/s;my-=dy/s;frame()}
+else if(ptr.size===2){const[p,q]=[...ptr.values()],dist=Math.hypot(p[0]-q[0],p[1]-q[1]);moved+=9;if(lastD)zoomAt((p[0]+q[0])/2,(p[1]+q[1])/2,dist/lastD);lastD=dist}});
+addEventListener('pointerup',e=>{ptr.delete(e.pointerId);lastD=0});addEventListener('pointercancel',e=>{ptr.delete(e.pointerId);lastD=0});
+$('pl').addEventListener('pointerover',e=>{const d=e.target.closest('.disc');if(!d||e.pointerType!=='mouse')return;const r=R.find(x=>x.id==d.dataset.id),b=d.getBoundingClientRect(),l=LV[r.lv];tip.innerHTML=`<b>${r.t}</b><br><small>${l.s} ${l.n} · ${ST[r.st]} · เจอเหมือนกัน ${r.n}</small>`;tip.style.left=Math.min(innerWidth-250,b.right+10)+'px';tip.style.top=Math.max(70,b.top)+'px';tip.classList.add('on')});
+$('pl').addEventListener('pointerout',()=>tip.classList.remove('on'));
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200)}
+function open(id){const r=R.find(x=>x.id==id),l=LV[r.lv],n=r.n+(mine.has(id)?1:0);tip.classList.remove('on');
+$('sheet').style.setProperty('--c',`var(${l.c})`);
+$('sheet').innerHTML=`<button class="btn close" id="x" aria-label="ปิด">✕</button><div class="photo">${r.ic}<small>🛡 เบลอใบหน้าและป้ายทะเบียนแล้ว</small></div><h2>${r.t}</h2>
+<div class="row"><span class="tag">${l.s} ${l.n}</span><span class="tag n">${r.ic} ${r.cat}</span><span class="tag n">${ST[r.st]}</span>${r.st==='open'?`<span class="tag n">ค้างมา ${r.d} วัน</span>`:''}</div>
+<p style="margin:4px 0">${r.x0}</p>${r.lv===3?'<p class="tag" style="padding:4px 10px;white-space:normal">ระบบนี้ไม่ใช่ช่องทางฉุกเฉิน หากมีอันตรายทันที โทร 191 / 199 / 1669</p>':''}
+<div class="row"><button class="btn pri" id="me" aria-pressed="${mine.has(id)}">เจอเหมือนกัน · ${n}</button>${r.st==='open'?'<button class="btn" id="fix">แจ้งว่าแก้แล้ว</button>':''}${r.st==='claimed'?'<button class="btn" id="adm">(เดโมผู้ดูแล) ยืนยันว่าแก้แล้ว</button>':''}</div>
+<small>ความคิดเห็น</small>${CM.map(c=>`<div class="cm">${c}</div>`).join('')}`;
+$('sheet').classList.add('on');
+$('x').onclick=()=>$('sheet').classList.remove('on');
+$('me').onclick=()=>{mine.has(id)?mine.delete(id):mine.add(id);open(id)};
+if($('fix'))$('fix').onclick=()=>{r.st='claimed';toast('ขอบคุณ ส่งให้ผู้ดูแลตรวจสอบแล้ว');mode='';frame();open(id)};
+if($('adm'))$('adm').onclick=()=>{r.st='done';toast('ยืนยันแล้ว ลำแสงดับลง');mode='';frame();open(id)}}
+function act(t){const d=t.closest('.disc'),c=t.closest('[data-c]');if(d&&moved<8)open(d.dataset.id);else if(c&&moved<8){const k=items.find(i=>i.el.contains(c)).el.cs;fly(k.X,k.Y,Math.max(s*2.6,3.2))}}
+$('pl').addEventListener('pointerdown',()=>{moved=0});
+$('pl').addEventListener('click',e=>act(e.target));
+$('pl').addEventListener('keydown',e=>{if(e.key==='Enter'){moved=0;act(e.target)}});
+addEventListener('resize',()=>{size();frame()});
+frame();
+</script>
+</body>
+</html>

@@ -9,26 +9,27 @@ colors:
   trust-blue: "#3F6FA8"
   on-trust-blue: "#FFFFFF"
   sand-line: "#E8E0D5"
-  street-ground: "#E4EDCC"
-  toy-sea: "#4FB3EA"
-  sea-shallow: "#3FD6C8"
-  sea-mid: "#1FA2E0"
-  sea-deep: "#1556B8"
-  sea-caustic: "#B9F3EC"
+  street-ground: "#F4ECDC"
+  toy-sea: "#A5D4E4"
+  sea-shallow: "#C3EBDD"
+  sea-mid: "#A5D4E4"
+  sea-deep: "#8AAEDD"
+  sea-caustic: "#E9FAF2"
+  map-ink: "#6B5242"
   level-minor-mint: "#8FD3B6"
   level-caution-butter: "#F6D983"
   level-danger-peach: "#F4A582"
   level-critical-rose: "#E57373"
-  cel-north: "#5DAA55"
-  cel-isan: "#F39C3C"
-  cel-central: "#F3CF55"
-  cel-east: "#E57A8C"
-  cel-west: "#9E86D6"
-  cel-south: "#D7684F"
-  toy-rim-cream: "#F3E3B0"
-  toy-soil-light: "#AB7B42"
-  toy-soil-mid: "#946636"
-  toy-soil-deep: "#7B5430"
+  cel-north: "#B7D7A0"
+  cel-isan: "#F5C7A1"
+  cel-central: "#F3E3B2"
+  cel-east: "#EFBCC6"
+  cel-west: "#CEC1E6"
+  cel-south: "#E9B9A2"
+  toy-rim-cream: "#FBEFD2"
+  toy-soil-light: "#DDB487"
+  toy-soil-mid: "#C99E72"
+  toy-soil-deep: "#B0855C"
   night-ground: "#23212B"
   night-card: "#2E2B38"
   night-ink: "#F3EFF7"
@@ -36,7 +37,7 @@ colors:
   night-blue: "#9CC0EE"
   night-on-blue: "#1D1B24"
   night-line: "#433F52"
-  night-sea: "#2F6F9F"
+  night-sea: "#3A6479"
 typography:
   headline:
     fontFamily: "Prompt, IBM Plex Sans Thai, system-ui, sans-serif"
@@ -193,9 +194,10 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 - **Level Critical Rose** (#E57373): danger level 3 วิกฤต. The only red in the system.
 
 ### Tertiary (illustration only)
-- **Cel Land**, one flat colour for each of the six geographic regions: north #5DAA55, Isan #F39C3C, central #F3CF55, east #E57A8C, west #9E86D6, south #D7684F (warm, so the long coast never melts into the sea). Faint ink lines still mark the provinces. Hover lifts a province 30% toward white. **Toy Rim Cream** (#F3E3B0) is the 6px sand beach under the 2–3px Slate Ink outline.
-- **Toy Soil** light / mid / deep (#AB7B42 / #946636 / #7B5430): the three stacked side layers that make the land look thick.
-- **Cel Sea** (from the owner's reference): Shallow Turquoise #3FD6C8, Mid Blue #1FA2E0, Deep Blue #1556B8, Caustic #B9F3EC, white foam and sparkles; Night: #1F8A8C / #145C93 / #0E2F6B / #58C2C0, foam #CFE8F0. **Toy Sea** (#4FB3EA, Night #2F6F9F) stays as the flat fallback under it.
+- **Cel Land**, one flat warm pastel for each of the six geographic regions (owner, 2026-10-17): north sage #B7D7A0, Isan apricot #F5C7A1, central wheat #F3E3B2, east blush #EFBCC6, west lilac #CEC1E6, south clay #E9B9A2. All are lighter and greyer than the four level colours, so a beacon always stands out from the land. Faint ink lines still mark the provinces. Hover lifts a province 30% toward white. **Toy Rim Cream** (#FBEFD2) is the 6px sand beach under the 2–3px Map Ink outline.
+- **Map Ink** (#6B5242): a warm cocoa for every line on the map (land outline, province lines, road casings, building edges); softer on pastels than Slate Ink, which stays the UI's text colour.
+- **Toy Soil** light / mid / deep (#DDB487 / #C99E72 / #B0855C, toffee): the three stacked side layers that make the land look thick.
+- **Sea** (warm pastel): Shallow Mint #C3EBDD, Mid Aqua #A5D4E4, Deep Periwinkle #8AAEDD, Line #E9FAF2 (contours, wave marks), cream-white foam #FFFBF2, glints #FFF4D6; Night: #4E8C86 / #3A6479 / #2F4068 / #93CCC2, foam #ECE5D6. **Toy Sea** (Mid Aqua, Night #3A6479) stays as the flat fallback under it.
 
 ### Neutral
 - **Cream Ground** (#FBF7F2): page background, icon-button hover fill, toast text.
@@ -203,8 +205,8 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 - **Slate Ink** (#2B2A33): all text, including text on pastel chips and level badges in both themes; the toast fill.
 - **Muted Ink** (#6B6878): secondary text, hints, meta lines, off chips, map attribution.
 - **Sand Line** (#E8E0D5): dividers, icon-button borders, the 1px outline of an off chip.
-- **Street map (cel):** ground #E4EDCC, parks #BFE09A, woods #A9D483, homes #EEEBD6, buildings #FFF8EC with an ink edge, roads white with Slate Ink casings, water in Shallow Turquoise; Night ground #29321F with the same roles darkened.
-- **Night** set (#23212B ground, #2E2B38 card, #F3EFF7 ink, #B7B2C4 muted, #9CC0EE blue, #433F52 line, #2F6F9F sea): the dark theme, same roles. Cards, discs and the chip tray turn Night Card; chips keep their daylight pastel.
+- **Street map (cel):** ground #F4ECDC, parks #D6E8BC, woods #C6DEAA, homes #F3E6D4, buildings #FFF9F0 with a Map Ink edge, roads white with Map Ink casings, water in Shallow Mint; Night ground #33302B with the same roles darkened and warmed.
+- **Night** set (#23212B ground, #2E2B38 card, #F3EFF7 ink, #B7B2C4 muted, #9CC0EE blue, #433F52 line, #3A6479 sea): the dark theme, same roles. Cards, discs and the chip tray turn Night Card; chips keep their daylight pastel.
 
 ### Named Rules
 **The Levels Only Mean Danger Rule.** Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.
@@ -213,7 +215,7 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 
 **The Toy Stays Toy Rule.** Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.
 
-**The Cel Rule.** The land has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs. The sea is the exception: it is soft and moving (owner, 2026-10-17), so the land reads as the solid object in it.
+**The Cel Rule.** The land has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs. The sea follows the same rule with softer means: flat bands, but every edge is anti-aliased to about one pixel, and nothing in it is ever cut into blocky cells.
 
 ## Typography
 
@@ -303,7 +305,7 @@ A 52px surface disc with the count in Count type, a 3px border and one pulse rin
 Province polygons on real coordinates, three soil layers that flatten with zoom, one flat Cel Land colour per region, faint ink province lines (30%, 0.6px), and a 6px sand rim under the ink outline. Nothing stands on it: no names, landmarks, vehicles or compass. Every toy layer fades from 100% at zoom 6 to 0% at zoom 8; the street map's place names start at zoom 7.5.
 
 ### Sea
-A MapLibre custom WebGL layer (`features/map/sea/`) over everything outside Thailand at every zoom, with the flat Toy Sea fill under it as the fallback. A smooth depth gradient by ground distance from a coast-distance texture (shallows to about 28 km, mid to 120 km, deep beyond, its edge wandering slowly), soft sun sheen, broken swell lines that roll in toward the coast and wash up as foam that drains back, and a few slow glints on open water. Every pattern is fixed to the ground and drawn at the two whole zooms around the camera, crossfaded, so nothing swims or pops while zooming. The swell fades out between zoom 8 and 10 (the texture is too coarse past that); a white line on the mask edge stands in from zoom 8 and is gone by 11.5, where the simplified mask no longer follows the real coast. Animation is capped at 60 fps, stops in a hidden tab and freezes under `prefers-reduced-motion`. The camera centre is held inside Thailand plus about 2 degrees, and the zoom floor is the whole country.
+A MapLibre custom WebGL layer (`features/map/sea/`) over everything outside Thailand at every zoom, with the flat Toy Sea fill under it as the fallback. Stylized like an illustrated chart: three flat pastel depth bands by ground distance from a coast-distance texture (shallows to 9 km, mid to 32 km, deep past 80 km; never thinner than 7 / 22 / 48 px at the country view), their edges wandering slowly, each with a pale contour line just inside it. Crisp dashed swell lines roll in toward the coast, thinning out a few spacings offshore; at the shore a line surges up as cream foam with a scalloped edge, a second thin line chasing it, then drains back. Out on open water, small two-arc wave marks drift and fade, and four-point glints blink now and then. Every pattern is fixed to the ground and drawn at the two whole zooms around the camera, crossfaded, so nothing swims or pops while zooming; every edge is about one pixel soft. The swell fades out between zoom 8 and 10 (the texture is too coarse past that); a white line on the mask edge stands in from zoom 8 and is gone by 11.5, where the simplified mask no longer follows the real coast. Animation is capped at 60 fps, stops in a hidden tab and freezes under `prefers-reduced-motion`. The camera centre is held inside Thailand plus about 2 degrees, and the zoom floor is the whole country.
 
 ### Attribution
 MapLibre's strip on the surface at 88%, Muted Ink text and links, Trust Blue focus ring on its ⓘ toggle.

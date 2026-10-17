@@ -1,5 +1,5 @@
-// Cel sea colours (DESIGN.md "Cel map"), after the owner's reference: turquoise shallows cut
-// sharply to a deep blue, white foam and sparkles. Fixed per theme, like the toy colours.
+// Sea colours (DESIGN.md "Sea"): warm pastels, mint shallows to a soft periwinkle deep, cream-white
+// foam. `caustic` is the pale line colour (band contours, wave marks). Fixed per theme.
 
 export type SeaTheme = 'light' | 'dark';
 export type Rgb = [number, number, number];
@@ -7,20 +7,20 @@ export type SeaPalette = { deep: Rgb; mid: Rgb; shallow: Rgb; foam: Rgb; caustic
 
 export const SEA_HEX: Record<SeaTheme, Record<keyof SeaPalette, string>> = {
   light: {
-    deep: '#1556B8',
-    mid: '#1FA2E0',
-    shallow: '#3FD6C8',
-    foam: '#FFFFFF',
-    caustic: '#B9F3EC',
-    sparkle: '#FFFFFF',
+    deep: '#8AAEDD',
+    mid: '#A5D4E4',
+    shallow: '#C3EBDD',
+    foam: '#FFFBF2',
+    caustic: '#E9FAF2',
+    sparkle: '#FFF4D6',
   },
   dark: {
-    deep: '#0E2F6B',
-    mid: '#145C93',
-    shallow: '#1F8A8C',
-    foam: '#CFE8F0',
-    caustic: '#58C2C0',
-    sparkle: '#E8F6FF',
+    deep: '#2F4068',
+    mid: '#3A6479',
+    shallow: '#4E8C86',
+    foam: '#ECE5D6',
+    caustic: '#93CCC2',
+    sparkle: '#F5E7C4',
   },
 };
 

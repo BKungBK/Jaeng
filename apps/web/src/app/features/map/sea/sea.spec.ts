@@ -46,7 +46,7 @@ describe('seaPalette', () => {
     }
   });
 
-  it('goes from turquoise shallows to deep blue', () => {
+  it('goes from mint shallows to a periwinkle deep', () => {
     const p = seaPalette('light');
     expect(p.shallow[1]).toBeGreaterThan(p.deep[1]); // greener
     expect(p.deep[2]).toBeGreaterThan(p.deep[0]); // blue

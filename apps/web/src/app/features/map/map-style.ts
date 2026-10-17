@@ -13,9 +13,10 @@ export type MapLike = Pick<MlMap, 'addSource' | 'addLayer' | 'getStyle' | 'setPa
 export type ToyGeometry = { provinces: FeatureCollection; land: FeatureCollection; mask: FeatureCollection };
 
 // Toy colours are fixed in both themes (DESIGN.md "The Toy Stays Toy Rule").
+// warm pastel: cream beach, toffee soil
 const TOY = {
-  rim: '#F3E3B0',
-  soil: ['#AB7B42', '#946636', '#7B5430'],
+  rim: '#FBEFD2',
+  soil: ['#DDB487', '#C99E72', '#B0855C'],
 };
 
 const fade = TOY_FADE as unknown as ExpressionSpecification;
@@ -40,7 +41,7 @@ export function setupReportLayers(map: MapLike): void {
 }
 
 /** The toy Thailand, drawn under the reports anchor. Best effort: it is decoration. */
-export function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA'): void {
+export function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#A5D4E4'): void {
   map.addSource('toy-mask', { type: 'geojson', data: geo.mask });
   map.addSource('toy-land', { type: 'geojson', data: geo.land });
   map.addSource('toy-provinces', { type: 'geojson', data: paintProvinces(geo.provinces), promoteId: 'pcode' });

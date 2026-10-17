@@ -81,9 +81,9 @@ describe('setupToyLayers', () => {
     // full depth on the toy, flattening as it fades so the coast does not ghost at zoom 7
     const depth = (px: number) => ['interpolate', ['linear'], ['zoom'], 6, ['literal', [0, px]], 8, ['literal', [0, 0]]];
     expect([soil(1), soil(2), soil(3)].map((p) => [p['fill-color'], p['fill-translate']])).toEqual([
-      ['#AB7B42', depth(8)],
-      ['#946636', depth(16)],
-      ['#7B5430', depth(24)],
+      ['#DDB487', depth(8)],
+      ['#C99E72', depth(16)],
+      ['#B0855C', depth(24)],
     ]);
   });
 
@@ -108,7 +108,7 @@ describe('tintBaseMap', () => {
     ]);
     tintBaseMap(r.map, 'light', '#3FD6C8');
     expect(r.paint).toEqual([
-      ['background', 'background-color', '#E4EDCC'],
+      ['background', 'background-color', '#F4ECDC'],
       ['water', 'fill-color', '#3FD6C8'],
     ]);
   });

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { FeatureCollection } from 'geojson';
-import { baseTint, paintProvinces, provinceRegion, REGION_COLOURS } from './cel-land';
+import { baseTint, INK, paintProvinces, provinceRegion, REGION_COLOURS } from './cel-land';
 
 const provinces = JSON.parse(
   readFileSync(resolve(process.cwd(), 'src/assets/geo/provinces.json'), 'utf8'),
@@ -54,7 +54,7 @@ describe('baseTint', () => {
   it('paints the street map water in the sea shallows and roads with an ink casing', () => {
     const tint = baseTint('light', '#3FD6C8');
     expect(tint).toContainEqual(['water', 'fill-color', '#3FD6C8']);
-    expect(tint.find(([id, prop]) => id === 'highway_major_casing' && prop === 'line-color')![2]).toBe('#2B2A33');
+    expect(tint.find(([id, prop]) => id === 'highway_major_casing' && prop === 'line-color')![2]).toBe(INK);
     expect(tint.find(([id]) => id === 'background')![2]).not.toBe(baseTint('dark', '#1F8A8C').find(([id]) => id === 'background')![2]);
   });
 });

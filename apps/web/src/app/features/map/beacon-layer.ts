@@ -72,7 +72,9 @@ export class BeaconLayer {
       }
     }
     if (this.handlers.synced) {
-      const boxes = [...this.entries.values()].map((e) => e.el.querySelector('.disc, .count')!.getBoundingClientRect());
+      const boxes = [...this.entries.values()].flatMap((e) =>
+        [...e.el.querySelectorAll('.disc, .count, .base')].map((n) => n.getBoundingClientRect()),
+      );
       this.handlers.synced(boxes);
     }
   }

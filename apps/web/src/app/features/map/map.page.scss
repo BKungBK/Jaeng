@@ -140,10 +140,14 @@
 
 .close {
   position: absolute;
-  z-index: 1;
-  top: 16px;
-  right: 18px;
+  top: 8px;
+  right: 8px;
   box-shadow: none;
+}
+
+// the close button keeps its own column beside the picture
+.peek .thumb {
+  margin-right: 52px;
 }
 
 .thumb {

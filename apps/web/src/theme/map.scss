@@ -274,6 +274,10 @@
     -1px 1px 0 #2b2a33;
 }
 
+.toy-label span {
+  display: inline-block;
+}
+
 .toy-label.clash {
   visibility: hidden;
 }

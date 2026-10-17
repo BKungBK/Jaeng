@@ -2,7 +2,7 @@
 // vowel and tone marks) and the slow movers (train, planes, ships, clouds). All fade with the toy.
 import maplibregl from 'maplibre-gl';
 import { emojiUrl } from './emoji';
-import { declutter, Rect } from './declutter';
+import { placeLabels, Rect } from './declutter';
 import { toyLabelOpacity, toyOpacity } from './toy';
 import { PROVINCE_LABELS, ROUTES } from './toy-places';
 
@@ -38,7 +38,10 @@ export class ToyOverlay {
     for (const l of PROVINCE_LABELS) {
       const el = document.createElement('div');
       el.className = 'toy-label';
-      el.textContent = l.name;
+      // inner span carries the declutter offset; MapLibre owns the marker element's transform
+      const text = document.createElement('span');
+      text.textContent = l.name;
+      el.appendChild(text);
       this.labels.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(l.lngLat).addTo(map));
     }
     for (const r of ROUTES) {
@@ -85,14 +88,26 @@ export class ToyOverlay {
     else if (opacity > 0 && !this.raf) this.raf = requestAnimationFrame(this.tick);
   }
 
-  /** Hide province names that would sit under a cluster, a beacon disc or another name. */
+  /** Move province names off clusters, beacons, movers and each other; hide one only when no
+   *  nearby spot is free. */
   declutter(obstacles: readonly Rect[]): void {
-    const els = this.labels.map((m) => m.getElement());
-    const show = declutter(
-      els.map((el) => el.getBoundingClientRect()),
-      obstacles,
-    );
-    els.forEach((el, i) => el.classList.toggle('clash', !show[i]));
+    const spans = this.labels.map((m) => m.getElement().firstElementChild as HTMLElement);
+    const movers = this.movers.map((m) => m.marker.getElement().getBoundingClientRect());
+    const home = spans.map((s) => {
+      const r = s.getBoundingClientRect();
+      const dx = Number(s.dataset['dx'] ?? 0);
+      const dy = Number(s.dataset['dy'] ?? 0);
+      return { left: r.left - dx, right: r.right - dx, top: r.top - dy, bottom: r.bottom - dy };
+    });
+    const spots = placeLabels(home, [...obstacles, ...movers]);
+    spans.forEach((s, i) => {
+      const spot = spots[i];
+      s.parentElement!.classList.toggle('clash', !spot);
+      const [dx, dy] = spot ?? [0, 0];
+      s.dataset['dx'] = String(dx);
+      s.dataset['dy'] = String(dy);
+      s.style.transform = dx || dy ? `translate(${dx}px, ${dy}px)` : '';
+    });
   }
 
   private place(fixed?: number) {

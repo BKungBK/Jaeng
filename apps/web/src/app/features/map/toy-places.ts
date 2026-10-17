@@ -35,7 +35,7 @@ export const LANDMARKS: { slug: EmojiSlug; lngLat: LngLat; size: number }[] = [
   { slug: 'hindu-temple', lngLat: [103.2, 14.6], size: 0.9 },
   // centre and west
   { slug: 'hindu-temple', lngLat: [99.75, 17.05], size: 0.9 }, // Sukhothai
-  { slug: 'elephant', lngLat: [98.95, 15.3], size: 0.8 },
+  { slug: 'elephant', lngLat: [98.65, 16.0], size: 0.8 },
   // east
   { slug: 'umbrella-on-ground', lngLat: [100.93, 12.85], size: 0.8 },
   { slug: 'palm-tree', lngLat: [102.25, 12.4], size: 0.8 },

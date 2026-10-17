@@ -10,7 +10,7 @@ const DEMO: DemoUser[] = [
   { who: 'admin', label_th: 'ผู้ดูแล' },
 ];
 
-async function setup(opts: { quickLogin?: DemoUser[] } = {}) {
+async function setup(opts: { quickLogin?: DemoUser[]; configFails?: boolean } = {}) {
   const auth = {
     sendCode: vi.fn().mockResolvedValue(undefined),
     verifyCode: vi.fn().mockResolvedValue(undefined),
@@ -21,7 +21,12 @@ async function setup(opts: { quickLogin?: DemoUser[] } = {}) {
       { provide: AuthService, useValue: auth },
       {
         provide: SupabaseService,
-        useValue: { config: async () => ({ supabaseAnonKey: 'k', quickLogin: opts.quickLogin ?? [] }) },
+        useValue: {
+          config: async () => {
+            if (opts.configFails) throw new Error('config 503');
+            return { supabaseAnonKey: 'k', quickLogin: opts.quickLogin ?? [] };
+          },
+        },
       },
     ],
   });
@@ -118,7 +123,17 @@ describe('LoginFormComponent', () => {
     t.auth.sendCode.mockRejectedValue(new Error('ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ'));
     await toCodeStep(t);
     expect(t.root.querySelector('[role="alert"]')?.textContent).toContain('ขอรหัสถี่ไปหน่อย');
-    expect(t.root.querySelector('input[type="email"]')).not.toBeNull();
+    const email = t.root.querySelector('input[type="email"]')!;
+    expect(email).not.toBeNull();
+    expect(email.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('has no demo section when the API config cannot load, and email login still works', async () => {
+    const t = await setup({ configFails: true });
+    await t.stable();
+    expect(t.root.textContent).not.toContain('สลับผู้ใช้สำหรับเดโม');
+    await toCodeStep(t);
+    expect(t.auth.sendCode).toHaveBeenCalledWith('pla@example.com');
   });
 
   it('unlocks "ส่งรหัสใหม่" after 60 seconds', async () => {

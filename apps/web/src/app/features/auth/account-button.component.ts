@@ -6,6 +6,18 @@ import { LoginPromptService } from './login-prompt.service';
 
 type MenuRole = 'switch' | 'signout';
 
+// Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
+const THAI_LEADING_VOWEL = /^[เ-ไ]$/u;
+const graphemes = new Intl.Segmenter('th', { granularity: 'grapheme' });
+
+/** The first letter of a name as one whole grapheme (a Thai consonant keeps its vowel and tone marks). */
+export function initialOf(name: string): string {
+  for (const { segment } of graphemes.segment(name.trim())) {
+    if (!THAI_LEADING_VOWEL.test(segment)) return segment.toLocaleUpperCase('th');
+  }
+  return '';
+}
+
 /** The account popover: who you are, switch user, sign out. It only reports the choice. */
 @Component({
   selector: 'app-account-menu',
@@ -34,7 +46,7 @@ type MenuRole = 'switch' | 'signout';
     ion-popover.account-menu {
       --width: 240px;
       --background: var(--surf);
-      --box-shadow: 0 8px 28px rgba(60, 50, 40, 0.18);
+      --box-shadow: var(--sh);
       --backdrop-opacity: 0;
       --offset-x: -8px; /* the 8 px gap the floating elements keep (DESIGN.md Layout) */
     }
@@ -43,8 +55,8 @@ type MenuRole = 'switch' | 'signout';
     }
     .account-menu-body {
       display: grid;
-      gap: 2px;
-      padding: 8px;
+      gap: 6px;
+      padding: 8px; /* room for the 3 px + 2 px focus ring inside the popover's clipped content */
       color: var(--ink);
       font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif;
     }
@@ -87,7 +99,7 @@ type MenuRole = 'switch' | 'signout';
     }
     .account-menu-item:focus-visible {
       outline: 3px solid var(--pri);
-      outline-offset: -3px;
+      outline-offset: 2px;
     }
   `,
 })
@@ -107,7 +119,12 @@ export class AccountMenuComponent {
   imports: [IconComponent],
   template: `
     <button type="button" class="ctl" [class.in]="auth.signedIn()" [attr.aria-label]="label()" (click)="open($event)">
-      <app-icon name="circleUser" [size]="22" />
+      <!-- signed in shows the name's initial, so the state is told by shape as well as colour -->
+      @if (initial(); as letter) {
+        <span class="initial" aria-hidden="true">{{ letter }}</span>
+      } @else {
+        <app-icon name="circleUser" [size]="22" />
+      }
     </button>
   `,
   styles: `
@@ -128,8 +145,12 @@ export class AccountMenuComponent {
       cursor: pointer;
     }
     /* the click target is the button, so the popover lines up with it, not with the icon */
-    .ctl app-icon {
+    .ctl app-icon,
+    .initial {
       pointer-events: none;
+    }
+    .initial {
+      font: 600 19px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
     }
     .ctl:hover {
       background: var(--bg);
@@ -158,6 +179,12 @@ export class AccountButtonComponent {
     if (!this.auth.signedIn()) return 'เข้าสู่ระบบ';
     const name = this.auth.profile()?.display_name;
     return name ? `บัญชี: ${name}` : 'บัญชีของฉัน';
+  });
+
+  /** Empty while signed out or while the profile loads: the icon shows instead. */
+  protected readonly initial = computed(() => {
+    const name = this.auth.signedIn() ? this.auth.profile()?.display_name : undefined;
+    return name ? initialOf(name) : '';
   });
 
   protected async open(event: Event) {

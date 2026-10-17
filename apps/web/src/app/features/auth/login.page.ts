@@ -27,10 +27,10 @@ import { safeNext } from './safe-next';
     .wrap {
       box-sizing: border-box;
       display: grid;
-      align-content: center;
+      align-content: safe center; /* "safe": a taller card starts at the top instead of being cut off above */
       justify-items: center;
       gap: 16px;
-      min-height: 100%;
+      height: 100%; /* a fixed height so a short phone scrolls inside the page to its bottom */
       overflow-y: auto;
       padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
     }

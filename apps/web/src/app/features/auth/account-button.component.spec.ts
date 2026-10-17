@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { PopoverController } from '@ionic/angular';
 import { AuthService, Profile } from '../../core/auth.service';
-import { AccountButtonComponent, AccountMenuComponent } from './account-button.component';
+import { AccountButtonComponent, AccountMenuComponent, initialOf } from './account-button.component';
 import { LoginPromptService } from './login-prompt.service';
 
 async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismissRole?: string } = {}) {
@@ -51,6 +51,24 @@ describe('AccountButtonComponent', () => {
     expect(button.getAttribute('aria-label')).toBe('บัญชี: พี่ปลา');
   });
 
+  it('shows the name initial when signed in, so the state is not told by colour alone', async () => {
+    const { fixture, root, auth } = await setup();
+    const signedOut = root.querySelector('button')!.innerHTML;
+    expect(root.querySelector('.initial')).toBeNull();
+    auth.signedIn.set(true);
+    auth.profile.set({ id: 'u1', display_name: 'พี่ปลา', role: 'user' });
+    await fixture.whenStable();
+    expect(root.querySelector('.initial')?.textContent?.trim()).toBe('พี่');
+    expect(root.querySelector('button app-icon')).toBeNull();
+    expect(root.querySelector('button')!.innerHTML).not.toBe(signedOut);
+  });
+
+  it('keeps the icon while the profile loads', async () => {
+    const { root } = await setup({ signedIn: true, profile: null });
+    expect(root.querySelector('.initial')).toBeNull();
+    expect(root.querySelector('button app-icon')).not.toBeNull();
+  });
+
   it('has a label while the profile is still loading', async () => {
     const { button } = await setup({ signedIn: true, profile: null });
     expect(button.getAttribute('aria-label')).toBe('บัญชีของฉัน');
@@ -88,6 +106,18 @@ describe('AccountButtonComponent', () => {
     button.click();
     await flush();
     expect(auth.signOut).toHaveBeenCalled();
+  });
+});
+
+describe('initialOf', () => {
+  it.each([
+    ['พี่ปลา', 'พี่'], // consonant with its combining marks stays whole
+    ['เพื่อนบ้านใจดี', 'พื่'], // a leading vowel is skipped: it is not a letter on its own
+    ['Admin', 'A'],
+    ['  บุญมี', 'บุ'],
+    ['', ''],
+  ])('%s -> %s', (name, initial) => {
+    expect(initialOf(name)).toBe(initial);
   });
 });
 

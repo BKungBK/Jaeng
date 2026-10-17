@@ -16,6 +16,7 @@
       [id]="id + '-email'"
       [value]="email()"
       [attr.aria-describedby]="error() ? id + '-error' : null"
+      [attr.aria-invalid]="error() ? true : null"
       (input)="onEmail($event)"
     />
     <ng-container *ngTemplateOutlet="stepError" />

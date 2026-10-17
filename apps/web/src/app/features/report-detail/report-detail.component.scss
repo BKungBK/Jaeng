@@ -1,0 +1,457 @@
+// Report detail (DESIGN.md "Report detail", .impeccable/surfaces/report-detail-*.md).
+// Text on a pastel fill is always Slate Ink on the pastel mixed into white (Ink On Pastel), in both themes.
+$slate: #2b2a33;
+$prompt: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+
+:host {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding: 12px 12px calc(20px + env(safe-area-inset-bottom, 0px));
+  color: var(--ink);
+  font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+p,
+ul,
+h2,
+h3 {
+  margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+button,
+a,
+textarea {
+  &:focus-visible {
+    outline: 3px solid var(--pri);
+    outline-offset: 2px;
+  }
+}
+
+// icon button over the picture's corner: it keeps its own white fill so it reads on any photo
+.ctl {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg);
+  }
+}
+
+.close {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  right: 20px;
+}
+
+// ---- gallery ----
+.gallery {
+  --c: var(--line);
+  margin: 0;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  height: 180px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c) 45%, #fff);
+  color: $slate;
+
+  &.wait {
+    background: var(--bg);
+  }
+}
+
+// in the phone sheet the picture gives up height so "เจอเหมือนกัน" sits inside the first 64%
+@media (max-width: 819px) {
+  .tile,
+  .shot {
+    height: 132px;
+  }
+}
+
+.strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  border-radius: 12px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.shot {
+  position: relative;
+  flex: 0 0 86%;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg);
+  scroll-snap-align: start;
+
+  .single & {
+    flex-basis: 100%;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.kind {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: $slate;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+// ---- heading and tags ----
+h2 {
+  margin-top: 4px;
+  font: 600 22px/1.4 $prompt;
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 13px;
+  line-height: 1.5;
+
+  &.lvl {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--c) 55%, #fff);
+    color: $slate;
+    font-weight: 500;
+  }
+
+  &.age {
+    color: var(--ink2);
+
+    &.long {
+      color: var(--ink);
+      font-weight: 500;
+    }
+  }
+}
+
+.utag {
+  padding: 0 4px;
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.desc {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.byline {
+  display: grid;
+  gap: 2px;
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 1.5;
+
+  strong {
+    color: var(--ink);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  time {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+}
+
+.place {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+
+  app-icon {
+    margin-top: 2px;
+    flex: none;
+  }
+}
+
+// ---- emergency (level 3): rose means danger here, which is the only thing it may mean ----
+.emergency {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--s3) 24%, #fff);
+  color: $slate;
+  font-size: 14px;
+  line-height: 1.6;
+
+  app-icon {
+    flex: none;
+    margin-top: 2px;
+  }
+
+  a {
+    display: inline-grid;
+    place-items: center;
+    min-width: 56px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 14px;
+    background: #fff;
+    color: $slate;
+    font: 600 16px/1 $prompt;
+    font-variant-numeric: tabular-nums;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      background: color-mix(in srgb, var(--s3) 10%, #fff);
+    }
+  }
+}
+
+.numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.sep {
+  color: color-mix(in srgb, $slate 60%, transparent);
+}
+
+// ---- actions ----
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  font: 500 15px/1.4 $prompt;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--bg);
+  }
+}
+
+.metoo {
+  flex: 1;
+  border-color: var(--pri);
+  color: var(--pri);
+
+  .n {
+    font-variant-numeric: tabular-nums;
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--pri);
+    color: var(--onpri);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--pri) 88%, var(--ink));
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
+
+.agreed {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink2);
+  font-size: 14px;
+}
+
+.status:empty {
+  display: none;
+}
+
+.status,
+.note {
+  color: var(--ink2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.status {
+  color: var(--ink);
+}
+
+.retry {
+  justify-self: start;
+}
+
+// ---- comments ----
+.comments {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+
+  > ul {
+    display: grid;
+    gap: 14px;
+  }
+}
+
+h3 {
+  font: 500 15px/1.4 $prompt;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 1.4;
+
+  strong {
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  time {
+    color: var(--ink2);
+    font-size: 13px;
+  }
+}
+
+.badge {
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.body {
+  margin-top: 2px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.composer {
+  display: grid;
+  gap: 6px;
+
+  textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 88px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surf);
+    color: var(--ink);
+    font: inherit;
+    resize: vertical;
+    caret-color: var(--pri);
+
+    &::placeholder {
+      color: var(--ink2);
+    }
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .count {
+    color: var(--ink2);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.send {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--pri);
+  color: var(--onpri);
+  cursor: pointer;
+
+  &:disabled {
+    background: var(--bg);
+    color: var(--ink2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    cursor: default;
+  }
+}
+
+.login {
+  width: 100%;
+}

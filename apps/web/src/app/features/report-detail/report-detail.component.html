@@ -1,0 +1,153 @@
+<button type="button" class="ctl close" aria-label="ปิด" #closeBtn (click)="closed.emit()">
+  <app-icon name="x" [size]="22" />
+</button>
+
+@switch (state()) {
+  @case ('loading') {
+    <div class="gallery"><div class="tile wait"></div></div>
+    <p class="note">กำลังเปิดเรื่องนี้…</p>
+  }
+  @case ('error') {
+    <div class="gallery"><div class="tile wait"></div></div>
+    <p class="note" role="status">{{ message() }}</p>
+    <button type="button" class="btn retry" (click)="retry()">ลองอีกครั้ง</button>
+  }
+  @case ('ready') {
+    @if (detail(); as d) {
+      <div class="gallery" [style.--c]="level(d).color">
+        @if (d.photos.length) {
+          <ul class="strip" [class.single]="d.photos.length === 1" aria-label="รูปของเรื่องนี้">
+            @for (p of d.photos; track p.path; let i = $index) {
+              <li class="shot">
+                <img
+                  [src]="photoUrl(p.path)"
+                  [attr.alt]="'รูป' + kind[p.kind] + ' ' + (i + 1)"
+                  [attr.width]="p.width"
+                  [attr.height]="p.height"
+                  loading="lazy"
+                />
+                <span class="kind" aria-hidden="true">{{ kind[p.kind] }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="tile"><app-icon [name]="icon(d)" [size]="48" /></div>
+        }
+      </div>
+
+      <h2 id="report-detail-title">{{ d.title }}</h2>
+
+      <ul class="tags">
+        <li class="tag lvl" [style.--c]="level(d).color">
+          <app-level-shape [level]="d.danger_level" />ระดับ{{ level(d).nameTh }}
+        </li>
+        <li class="tag"><app-icon [name]="icon(d)" [size]="16" />{{ category(d) }}</li>
+        <li class="tag">{{ status(d) }}</li>
+        @if (d.status !== 'resolved') {
+          <li class="tag age" [class.long]="longWait(d)">
+            {{ longWait(d) ? 'ค้างนาน · ' : '' }}ค้างมา {{ d.days_open }} วัน
+          </li>
+        }
+        @for (t of d.tags; track t) {
+          <li class="utag">#{{ t }}</li>
+        }
+      </ul>
+
+      @if (d.description) {
+        <p class="desc">{{ d.description }}</p>
+      }
+
+      <div class="byline">
+        <p>
+          แจ้งโดย <strong>{{ d.author_name ?? 'ผู้ใช้นิรนาม' }}</strong> ·
+          <time [attr.datetime]="d.created_at" [title]="date(d.created_at)">{{ ago(d.created_at) }}</time>
+        </p>
+        @if (d.place_name) {
+          <p class="place"><app-icon name="mapPin" [size]="16" />{{ d.place_name }}</p>
+        }
+      </div>
+
+      @if (d.danger_level === 3) {
+        <div class="emergency">
+          <app-icon name="phone" [size]="20" />
+          <p>
+            ระบบนี้ไม่ใช่ช่องทางฉุกเฉิน หากมีอันตรายทันที โทร
+            <span class="numbers">
+              <a href="tel:191">191</a><span class="sep" aria-hidden="true"> / </span><a href="tel:199">199</a
+              ><span class="sep" aria-hidden="true"> / </span><a href="tel:1669">1669</a>
+            </span>
+          </p>
+        </div>
+      }
+
+      <div class="actions">
+        @if (d.status === 'resolved') {
+          <p class="agreed"><app-icon name="hand" [size]="18" />มีคนเจอเหมือนกัน {{ d.confirm_count }} คน</p>
+        } @else {
+          <button
+            type="button"
+            class="btn metoo"
+            [attr.aria-pressed]="confirmed()"
+            [disabled]="confirming()"
+            (click)="toggle()"
+          >
+            <app-icon name="hand" [size]="20" />
+            เจอเหมือนกัน · <span class="n">{{ d.confirm_count }}</span>
+          </button>
+        }
+        <button type="button" class="btn copy" (click)="copyLink()">
+          <app-icon name="link" [size]="18" />คัดลอกลิงก์
+        </button>
+      </div>
+      <p class="status" role="status">{{ message() }}</p>
+
+      <section class="comments" aria-labelledby="report-comments-title">
+        <h3 id="report-comments-title">ความคิดเห็น · {{ comments().length }}</h3>
+        @if (comments().length) {
+          <ul>
+            @for (c of comments(); track c.id) {
+              <li>
+                <p class="who">
+                  <strong>{{ c.author_name ?? 'ผู้ใช้นิรนาม' }}</strong>
+                  @if (c.by_reporter) {
+                    <span class="badge">ผู้แจ้ง</span>
+                  }
+                  <time [attr.datetime]="c.created_at" [title]="date(c.created_at)">{{ ago(c.created_at) }}</time>
+                </p>
+                <p class="body">{{ c.body }}</p>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="note">ยังไม่มีความคิดเห็น มาเริ่มคุยกันได้เลยนะ</p>
+        }
+
+        @if (auth.signedIn()) {
+          <form class="composer" (submit)="$event.preventDefault(); send()">
+            <textarea
+              rows="3"
+              aria-label="เขียนความคิดเห็น"
+              aria-describedby="report-comment-count"
+              placeholder="เล่าเพิ่ม หรือให้กำลังใจกันได้นะ"
+              [attr.maxlength]="max"
+              [value]="draft()"
+              (input)="onInput($event)"
+              (keydown.control.enter)="send()"
+              (keydown.meta.enter)="send()"
+            ></textarea>
+            <div class="row">
+              <span class="count" id="report-comment-count">{{ draft().length }}/{{ max }}</span>
+              <button type="submit" class="send" aria-label="ส่งความคิดเห็น" [disabled]="!canSend()">
+                <app-icon name="send" [size]="20" />
+              </button>
+            </div>
+          </form>
+        } @else {
+          <button type="button" class="btn login" (click)="login()">
+            <app-icon name="messageCircle" [size]="18" />เข้าสู่ระบบเพื่อแสดงความคิดเห็น
+          </button>
+        }
+      </section>
+    }
+  }
+}

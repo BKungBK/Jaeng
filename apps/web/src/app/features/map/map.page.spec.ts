@@ -7,8 +7,11 @@ import { mapMatcher } from '../../app.routes';
 import { AppRouteStrategy } from '../../core/route-strategy';
 import { AuthService } from '../../core/auth.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
+import { ReportDetailComponent } from '../report-detail/report-detail.component';
+import { ReportDetailService } from '../report-detail/report-detail.service';
+import { By } from '@angular/platform-browser';
 import { MAP_FACTORY } from './map-factory';
-import { MapPage } from './map.page';
+import { centerFor, MapPage } from './map.page';
 import { EMPTY_COLLECTION } from './report';
 import { ReportsService } from './reports.service';
 
@@ -46,14 +49,67 @@ const authStubs = [
   { provide: PopoverController, useValue: { create: vi.fn() } },
 ];
 
-async function setup(inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION)) {
+// a deep-linkable report as the detail service returns it
+const DETAIL = {
+  id: '7b0c5a3e-1f7d-4c49-9a52-2b8f3d0c6e11',
+  title: 'หลุมลึกหน้าตลาด',
+  category: 'road',
+  icon: 'construction',
+  danger_level: 2,
+  status: 'open',
+  confirm_count: 3,
+  comment_count: 0,
+  days_open: 4,
+  cover_photo_path: null,
+  description: null,
+  lng: 100.5,
+  lat: 13.7,
+  place_name: null,
+  author_name: null,
+  tags: [],
+  photos: [],
+  created_at: '2026-10-13T08:00:00Z',
+  approved_at: '2026-10-13T09:00:00Z',
+  resolved_at: null,
+} as const;
+
+function fakeDetailService(detail: unknown = DETAIL) {
+  return {
+    get: vi.fn().mockResolvedValue(detail),
+    comments: vi.fn().mockResolvedValue([]),
+    myConfirmation: vi.fn().mockResolvedValue(false),
+    toggleConfirm: vi.fn(),
+    addComment: vi.fn(),
+  };
+}
+
+/** jsdom has no layout: answer the one breakpoint query as asked. */
+function mockWide(wide: boolean) {
+  vi.spyOn(window, 'matchMedia').mockImplementation(
+    (q: string) =>
+      ({
+        matches: q.includes('min-width: 820px') ? wide : false,
+        media: q,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }) as unknown as MediaQueryList,
+  );
+}
+
+async function setup(
+  inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION),
+  opts: { wide?: boolean; detail?: unknown } = {},
+) {
+  mockWide(opts.wide ?? true);
   const map = fakeMap();
   const navigate = vi.fn().mockResolvedValue(true);
+  const detailSvc = fakeDetailService(opts.detail === undefined ? DETAIL : opts.detail);
   TestBed.configureTestingModule({
     providers: [
       { provide: Router, useValue: { navigate } },
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: ReportsService, useValue: { inBbox } },
+      { provide: ReportDetailService, useValue: detailSvc },
       ...authStubs,
     ],
   });
@@ -62,11 +118,14 @@ async function setup(inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION)) {
   await Promise.resolve(); // the factory result is awaited
   await Promise.resolve();
   const root = fixture.nativeElement as HTMLElement;
-  return { map, fixture, root, inBbox, navigate };
+  return { map, fixture, root, inBbox, navigate, detailSvc };
 }
 
 describe('MapPage', () => {
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
   it('shows the brand, the level chips and the map controls', async () => {
     const { root } = await setup();
@@ -131,35 +190,125 @@ describe('MapPage', () => {
     cover_photo_path: null,
   } as const;
 
-  it('opens the peek for the clicked report and closes it with Escape', async () => {
-    const { fixture, root, navigate } = await setup();
+  const settle = async (fixture: { detectChanges: () => void }) => {
+    for (let i = 0; i < 8; i++) {
+      fixture.detectChanges();
+      await Promise.resolve();
+    }
+    fixture.detectChanges();
+  };
+
+  it('opens the detail panel for the clicked report and closes it with Escape', async () => {
+    const { fixture, root, navigate } = await setup(undefined, { wide: true });
     const page = fixture.componentInstance;
     page.select({ ...report });
     expect(navigate).toHaveBeenCalledWith(['/r', 'r1']);
     fixture.componentRef.setInput('id', 'r1'); // what the router does after the navigation
-    fixture.detectChanges();
-    const peek = root.querySelector('.peek')!;
-    expect(peek.getAttribute('role')).toBe('dialog');
-    expect(peek.querySelector(`#${peek.getAttribute('aria-labelledby')}`)?.textContent).toBe('หลุมลึก');
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    fixture.detectChanges();
+    await settle(fixture);
+    const panel = root.querySelector('aside.panel')!;
+    expect(panel.getAttribute('role')).toBe('dialog');
+    expect(panel.querySelector(`#${panel.getAttribute('aria-labelledby')}`)?.textContent?.trim()).toBe('หลุมลึกหน้าตลาด');
     expect(root.querySelector('.peek')).toBeNull();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(navigate).toHaveBeenCalledWith(['/']);
   });
 
-  it('shows no peek for a deep link it has no props for', async () => {
-    const { fixture, root } = await setup();
-    fixture.componentRef.setInput('id', 'r9');
+  it('moves the map controls beside the open panel', async () => {
+    const { fixture, root } = await setup(undefined, { wide: true });
+    expect(root.querySelector('.controls')?.classList).not.toContain('beside');
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    expect(root.querySelector('.controls')?.classList).toContain('beside');
+  });
+
+  it('uses a bottom sheet instead of the panel on narrow screens', async () => {
+    const { fixture, root } = await setup(undefined, { wide: false });
+    fixture.componentRef.setInput('id', DETAIL.id);
     fixture.detectChanges();
-    expect(root.querySelector('.peek')).toBeNull();
+    expect(root.querySelector('aside.panel')).toBeNull();
+    const sheet = root.querySelector('ion-modal')!;
+    expect(sheet).not.toBeNull();
+    expect(sheet.getAttribute('aria-labelledby')).toBe('report-detail-title');
+  });
+
+  it('returns focus to the report’s disc after closing', async () => {
+    const { fixture, map, navigate } = await setup(undefined, { wide: true });
+    const beacons = { focus: vi.fn(() => true), setSelected: vi.fn(), destroy: vi.fn() };
+    (fixture.componentInstance as unknown as { beacons: typeof beacons }).beacons = beacons;
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    let landed!: (v: boolean) => void;
+    navigate.mockReturnValueOnce(new Promise((r) => (landed = r)));
+    fixture.componentInstance.close();
+    expect(beacons.setSelected).toHaveBeenLastCalledWith(null);
+    expect(beacons.focus).not.toHaveBeenCalled(); // not before the navigation settles
+    landed(true);
+    await settle(fixture);
+    expect(beacons.focus).toHaveBeenCalledWith(DETAIL.id);
+    expect(map.canvas.focus).not.toHaveBeenCalled();
   });
 
   it('focuses the map canvas when the closed report has no marker', async () => {
-    const { fixture, map } = await setup();
+    const { fixture, map } = await setup(undefined, { wide: true });
     fixture.componentRef.setInput('id', 'r9');
     fixture.detectChanges();
     fixture.componentInstance.close();
+    await settle(fixture);
     expect(map.canvas.focus).toHaveBeenCalled();
+  });
+
+  it('flies to a deep-linked report at street zoom', async () => {
+    const { fixture, map } = await setup(undefined, { wide: true });
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    // left of the 380 px panel: the view's centre sits east of the report, at the same latitude
+    const [{ center, zoom }] = map.flyTo.mock.calls[0] as [{ center: [number, number]; zoom: number }];
+    expect(zoom).toBe(15);
+    expect(center).toEqual(centerFor([100.5, 13.7], 15, [-202, 0]));
+    expect(center[0]).toBeGreaterThan(100.5);
+    expect(center[1]).toBeCloseTo(13.7, 6);
+  });
+
+  it('turns a pixel offset into the map centre that puts the target there', () => {
+    expect(centerFor([100.5, 13.7], 15, [0, 0])).toEqual([100.5, expect.closeTo(13.7, 9)]);
+    // 512 * 2^15 px per 360 degrees: 202 px is about 0.00434 degrees of longitude
+    expect(centerFor([100.5, 13.7], 15, [-202, 0])[0]).toBeCloseTo(100.5 + (202 * 360) / (512 * 2 ** 15), 9);
+    // a target pushed up (negative y) means the centre moves south
+    expect(centerFor([100.5, 13.7], 15, [0, -260])[1]).toBeLessThan(13.7);
+  });
+
+  it('does not fly when the report was clicked on the map, but does after Back reopens it', async () => {
+    const { fixture, map } = await setup(undefined, { wide: true });
+    fixture.componentInstance.select({ ...report, id: DETAIL.id });
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    expect(map.flyTo).not.toHaveBeenCalled();
+    fixture.componentInstance.close();
+    fixture.componentRef.setInput('id', undefined);
+    await settle(fixture);
+    fixture.componentRef.setInput('id', DETAIL.id); // browser Back to /r/:id: no stale click
+    await settle(fixture);
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
+  });
+
+  it('says so and goes home when the linked report cannot be shown', async () => {
+    const { fixture, root, navigate } = await setup(undefined, { wide: true, detail: null });
+    fixture.componentRef.setInput('id', 'not-a-uuid');
+    await settle(fixture);
+    expect(root.querySelector('.toast')?.textContent).toContain('ไม่พบเรื่องนี้ หรือเรื่องนี้ยังไม่เปิดให้เห็นนะ');
+    expect(navigate).toHaveBeenCalledWith(['/'], { replaceUrl: true });
+  });
+
+  it('reloads the beams at once when the panel changes a count', async () => {
+    vi.useFakeTimers();
+    const { fixture, inBbox } = await setup(undefined, { wide: true });
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    const panel = fixture.debugElement.query(By.directive(ReportDetailComponent)).componentInstance as ReportDetailComponent;
+    expect(inBbox).not.toHaveBeenCalled();
+    panel.changed.emit({ id: DETAIL.id, status: 'open', confirm_count: 9, comment_count: 0 });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(inBbox).toHaveBeenCalledTimes(1);
   });
 
   it('keeps one page and one map from / to /r/x', async () => {
@@ -171,6 +320,7 @@ describe('MapPage', () => {
         provideRouter([{ matcher: mapMatcher, data: { reuse: 'map' }, component: MapPage }], withComponentInputBinding()),
         { provide: MAP_FACTORY, useValue: factory },
         { provide: ReportsService, useValue: { inBbox: vi.fn().mockResolvedValue(EMPTY_COLLECTION) } },
+        { provide: ReportDetailService, useValue: fakeDetailService() },
         ...authStubs,
       ],
     });

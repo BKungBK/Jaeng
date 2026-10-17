@@ -15,7 +15,7 @@
     },
     "typographyMeta": {
       "headline": { "displayName": "Headline", "purpose": "Brand word แจ้ง and sheet titles, Prompt 600." },
-      "title": { "displayName": "Title", "purpose": "Buttons, card headings and report titles in tooltip and peek card, Prompt 500." },
+      "title": { "displayName": "Title", "purpose": "Buttons, card headings and report titles in tooltip and detail panel, Prompt 500." },
       "body": { "displayName": "Body", "purpose": "Descriptions and comments in Thai and English." },
       "label": { "displayName": "Label", "purpose": "Level chips and toast." },
       "caption": { "displayName": "Caption", "purpose": "Tagline, hint card, meta and age lines." },
@@ -23,10 +23,10 @@
       "count": { "displayName": "Count", "purpose": "Cluster counts in tabular figures." }
     },
     "shadows": [
-      { "name": "float", "value": "0 8px 28px rgba(60,50,40,.18)", "purpose": "Every floating card, chip tray, icon button, tooltip, peek card and sheet." },
+      { "name": "float", "value": "0 8px 28px rgba(60,50,40,.18)", "purpose": "Every floating card, chip tray, icon button, tooltip, detail panel and sheets." },
       { "name": "pill", "value": "0 2px 8px rgba(0,0,0,.15)", "purpose": "Beacon short labels." },
       { "name": "glow", "value": "0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px var(--c)", "purpose": "Beacon and cluster discs only." },
-      { "name": "selected", "value": "0 0 0 3px var(--surf), 0 0 0 6px var(--pri), 0 0 28px var(--c)", "purpose": "The beacon whose peek card is open." },
+      { "name": "selected", "value": "0 0 0 3px var(--surf), 0 0 0 6px var(--pri), 0 0 28px var(--c)", "purpose": "The beacon whose detail panel is open." },
       { "name": "prop-lift", "value": "drop-shadow(0 6px 6px rgba(40,60,80,.25))", "purpose": "Filter on moving toy props (planes, clouds, train, ships) only." }
     ],
     "motion": [
@@ -57,7 +57,7 @@
       "name": "Icon Button",
       "kind": "button",
       "refersTo": "button-icon",
-      "description": "Map controls (zoom, locate) and the peek card's close: 44px, line icon.",
+      "description": "Map controls (zoom, locate, account) and the detail panel's close: 44px, line icon.",
       "html": "<button class=\"ds-ctl\" aria-label=\"ซูมเข้า\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
       "css": ".ds-ctl{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;box-shadow:0 8px 28px rgba(60,50,40,.18);cursor:pointer}.ds-ctl:hover{background:#FBF7F2}.ds-ctl:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-ctl svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}"
     },
@@ -78,12 +78,12 @@
       "css": ".ds-card{background:#fff;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);padding:8px 16px 10px;color:#2B2A33;font:400 16px/1.6 'IBM Plex Sans Thai',sans-serif;max-width:320px}.ds-card strong{display:block;font:600 24px/1.2 'Prompt',sans-serif}.ds-sub{color:#6B6878;font-size:13px;line-height:1.5}"
     },
     {
-      "name": "Peek Card",
+      "name": "Detail Panel",
       "kind": "card",
-      "refersTo": "peek-card",
-      "description": "Report summary dialog (stand-in for the detail panel); the tooltip uses the same summary at 240px without the close.",
-      "html": "<aside class=\"ds-peek\" role=\"dialog\" aria-labelledby=\"ds-peek-t\" style=\"--c:#E57373\"><button class=\"ds-close\" aria-label=\"ปิด\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg></button><div class=\"ds-thumb\"></div><strong class=\"ds-t\" id=\"ds-peek-t\">ฝาท่อหายกลางทางเท้า</strong><span class=\"ds-meta\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg> วิกฤต · ยังไม่ได้แก้ · เจอเหมือนกัน 27</span><span class=\"ds-meta\">ค้างมา 2 วัน</span></aside>",
-      "css": ".ds-peek{position:relative;display:grid;gap:4px;width:300px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif}.ds-close{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;cursor:pointer}.ds-close:hover{background:#FBF7F2}.ds-close:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-close svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.ds-thumb{height:120px;margin-right:52px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-t{font:500 15px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-meta{color:#6B6878;font-size:13px;line-height:1.5}.ds-meta svg{width:.85em;height:.85em;fill:currentColor;vertical-align:-.1em}"
+      "refersTo": "detail-panel",
+      "description": "Report detail dialog: 380px panel on desktop, the same content in a 64% bottom sheet on phones. The tooltip uses a smaller summary of the same report.",
+      "html": "<aside class=\"ds-detail\" role=\"dialog\" aria-labelledby=\"ds-detail-t\" style=\"--c:#E57373\"><button class=\"ds-close\" aria-label=\"ปิด\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg></button><div class=\"ds-thumb\"></div><strong class=\"ds-t\" id=\"ds-detail-t\">ฝาท่อหายกลางทางเท้า</strong><span class=\"ds-meta\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg> วิกฤต · ยังไม่ได้แก้ · ค้างมา 2 วัน</span><button class=\"ds-metoo\">เจอเหมือนกัน · 27</button></aside>",
+      "css": ".ds-detail{position:relative;display:grid;gap:12px;width:380px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif}.ds-close{position:absolute;top:20px;right:20px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;cursor:pointer}.ds-close:hover{background:#FBF7F2}.ds-close:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-close svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.ds-thumb{height:180px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-t{font:600 22px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-meta{color:#6B6878;font-size:13px;line-height:1.5}.ds-meta svg{width:.85em;height:.85em;fill:currentColor;vertical-align:-.1em}.ds-metoo{min-height:44px;border:1px solid #3F6FA8;border-radius:14px;background:#fff;color:#3F6FA8;font:500 15px 'Prompt',sans-serif;cursor:pointer}.ds-metoo:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
     },
     {
       "name": "Beacon",

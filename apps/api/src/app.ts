@@ -1,6 +1,8 @@
 import type { ReportSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
+import { devRoutes } from './routes/dev';
 import { reportRoutes } from './routes/reports';
+import type { QuickLogin } from './quick-login';
 import type { Verify } from './auth';
 import { ApiError, ERRORS, errorBody, type ErrorCode } from './errors';
 import type { Store } from './store';
@@ -11,6 +13,7 @@ export type AppDeps = {
   verify: Verify;
   store: Store;
   broadcast: (signal: ReportSignal) => Promise<void>;
+  quickLogin: QuickLogin;
 };
 
 function reply(set: { status?: number | string }, code: ErrorCode) {
@@ -33,6 +36,10 @@ export function createApp(deps: AppDeps) {
       if (!db) set.status = 503;
       return { ok: db, db };
     })
-    .get('/config', () => ({ supabaseAnonKey: deps.anonKey }))
+    .get('/config', ({ headers }) => ({
+      supabaseAnonKey: deps.anonKey,
+      quickLogin: deps.quickLogin.users(headers.host ?? null),
+    }))
+    .use(devRoutes(deps))
     .use(reportRoutes(deps));
 }

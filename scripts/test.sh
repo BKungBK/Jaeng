@@ -26,6 +26,7 @@ run "api" bun_in apps/api
 run "web" web_tests
 run "db" npx supabase test db
 run "seed" bash scripts/check-seed.sh
+run "api live" node scripts/check-api.mjs
 run "comment race" bash scripts/race-comment-count.sh
 
 exit $fail

@@ -33,6 +33,7 @@ function setup(over: { store?: Partial<Store>; member?: Member | null } = {}) {
     checkDb: async () => true,
     anonKey: 'k',
     verify: async () => 'user-1',
+    quickLogin: { users: () => [], signIn: async () => { throw new Error('unused'); } },
     store,
     broadcast: async (s) => {
       calls.broadcast.push(s);

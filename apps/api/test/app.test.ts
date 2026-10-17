@@ -5,6 +5,7 @@ const deps = (over: Partial<AppDeps> = {}): AppDeps => ({
   checkDb: async () => true,
   anonKey: 'k',
   verify: async () => 'user-1',
+  quickLogin: { users: () => [], signIn: async () => { throw new Error('unused'); } },
   store: {
     member: async () => null,
     toggleConfirmation: async () => {
@@ -52,7 +53,7 @@ describe('GET /config', () => {
   test('config', async () => {
     const res = await get(createApp(deps()), '/config');
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ supabaseAnonKey: 'k' });
+    expect(await res.json()).toEqual({ supabaseAnonKey: 'k', quickLogin: [] });
   });
 });
 

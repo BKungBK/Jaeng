@@ -4,6 +4,7 @@ import { createApp } from './app';
 import { createVerifier } from './auth';
 import { createBroadcaster } from './broadcast';
 import { loadEnv } from './env';
+import { createQuickLogin } from './quick-login';
 import { createSupabaseStore } from './supabase-store';
 
 const env = loadEnv();
@@ -30,5 +31,11 @@ createApp({
   verify,
   store: createSupabaseStore(client),
   broadcast: createBroadcaster(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY),
+  quickLogin: createQuickLogin({
+    enabled: env.quickLogin,
+    supabaseUrl: env.SUPABASE_URL,
+    anonKey: env.SUPABASE_ANON_KEY,
+    password: env.demoPassword,
+  }),
 }).listen({ hostname: '0.0.0.0', port: 3000 });
 console.log('api listening on :3000');

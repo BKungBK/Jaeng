@@ -1,8 +1,8 @@
 // MapLibre sources and layers for the toy map and reports (spec 4.4, DESIGN.md "Toy map").
 import type { FeatureCollection } from 'geojson';
 import type { ExpressionSpecification, Map as MlMap } from 'maplibre-gl';
-import { EmojiSlug, emojiUrl } from './emoji';
-import { CLUSTER_MAX_ZOOM, TOY_FADE } from './toy';
+import { addStickerImage, ImageLoader } from './icons';
+import { CLUSTER_MAX_ZOOM, LANDMARK_PX, STICKER_PX, TOY_FADE } from './toy';
 import { LANDMARKS } from './toy-places';
 
 export const REPORT_SOURCE = 'reports';
@@ -42,7 +42,7 @@ export function setupReportLayers(map: MapLike): void {
 }
 
 /** The toy Thailand, drawn under the reports anchor. Best effort: it is decoration. */
-export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA'): Promise<void> {
+export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA', load?: ImageLoader): Promise<void> {
   map.addSource('toy-mask', { type: 'geojson', data: geo.mask });
   map.addSource('toy-land', { type: 'geojson', data: geo.land });
   map.addSource('toy-provinces', { type: 'geojson', data: geo.provinces });
@@ -92,25 +92,20 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
   });
 
   const slugs = [...new Set(LANDMARKS.map((l) => l.slug))];
-  await Promise.all(slugs.map((slug) => addEmojiImage(map, slug)));
+  await Promise.all(slugs.map((slug) => addStickerImage(map, slug, STICKER_PX, load)));
   map.addLayer({
     id: 'toy-landmarks',
     type: 'symbol',
     source: 'toy-landmarks',
     layout: {
       'icon-image': ['get', 'slug'],
-      // 128 px images; size 1 ≈ 32 px at zoom 4, 51 px at zoom 6, 70 px at zoom 8
+      // STICKER_PX images scaled to landmarkPx(zoom) × size
       'icon-size': [
         'interpolate',
         ['linear'],
         ['zoom'],
-        4,
-        ['*', 0.25, ['get', 'size']],
-        6,
-        ['*', 0.4, ['get', 'size']],
-        8,
-        ['*', 0.55, ['get', 'size']],
-      ],
+        ...LANDMARK_PX.flatMap(([z, px]) => [z, ['*', px / STICKER_PX, ['get', 'size']]]),
+      ] as unknown as ExpressionSpecification,
       'icon-anchor': 'bottom',
       'icon-allow-overlap': true,
       'icon-ignore-placement': true,
@@ -119,12 +114,6 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
   });
 }
 
-
-async function addEmojiImage(map: MapLike, slug: EmojiSlug) {
-  if (map.hasImage(slug)) return;
-  const { data } = await map.loadImage(emojiUrl(slug));
-  if (!map.hasImage(slug)) map.addImage(slug, data);
-}
 
 /** Pull the OpenFreeMap positron base into the แจ้ง palette: sand land, misty water. */
 export function tintBaseMap(map: MapLike): void {

@@ -94,7 +94,7 @@ export class MapPage {
   private async onLoad(map: maplibregl.Map) {
     tintBaseMap(map);
     setupReportLayers(map);
-    // phones: start with the attribution folded to its ⓘ so it does not sit under the hint card
+    // phones: start with the attribution folded to its info button so it does not sit under the hint card
     if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
     await Promise.all([this.startBeacons(map), this.startToy(map)]);

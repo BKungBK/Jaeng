@@ -1,5 +1,21 @@
-import { toyLabelOpacity, toyOpacity, zoomHint } from './toy';
-import { PROVINCE_LABELS } from './toy-places';
+import { isIconName } from './icons';
+import { landmarkPx, toyLabelOpacity, toyOpacity, zoomHint } from './toy';
+import { LANDMARKS, PROVINCE_LABELS, ROUTES } from './toy-places';
+
+describe('landmarkPx', () => {
+  it('grows from 28 px to 44 px between zoom 4 and 8, clamped outside', () => {
+    expect(landmarkPx(2)).toBe(28);
+    expect(landmarkPx(5)).toBe(32);
+    expect(landmarkPx(7)).toBe(40);
+    expect(landmarkPx(12)).toBe(44);
+  });
+});
+
+describe('toy props', () => {
+  it('use Lucide icon names only', () => {
+    for (const { slug } of [...LANDMARKS, ...ROUTES]) expect(isIconName(slug)).toBe(true);
+  });
+});
 
 describe('toyOpacity', () => {
   it.each([

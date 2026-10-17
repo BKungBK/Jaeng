@@ -25,7 +25,7 @@ export const MAP_FACTORY = new InjectionToken<MapFactory>('MAP_FACTORY', {
       },
       minZoom: 2,
       maxZoom: 18,
-      attributionControl: { compact: true, customAttribution: 'OCHA COD-AB · Fluent Emoji (MIT)' },
+      attributionControl: { compact: true, customAttribution: 'OCHA COD-AB · Lucide (ISC)' },
     });
     map.on('style.load', () => map.setProjection({ type: 'globe' }));
     return map;

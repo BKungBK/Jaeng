@@ -1,6 +1,5 @@
 import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { EMOJI_SLUGS } from './emoji';
 
 const asset = (path: string) => resolve(process.cwd(), 'src/assets', path);
 const json = (path: string) => JSON.parse(readFileSync(asset(path), 'utf8'));
@@ -27,12 +26,5 @@ describe('toy map geometry', () => {
     const g = mask.features[0].geometry;
     const rings = g.type === 'Polygon' ? g.coordinates.length : g.coordinates.reduce((n: number, p: unknown[]) => n + p.length, 0);
     expect(rings).toBeGreaterThan(1);
-  });
-});
-
-describe('Fluent Emoji assets', () => {
-  it.each(EMOJI_SLUGS)('%s.png is a PNG', (slug) => {
-    const bytes = readFileSync(asset(`emoji/${slug}.png`));
-    expect([...bytes.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
   });
 });

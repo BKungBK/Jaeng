@@ -24,7 +24,7 @@ describe('icons', () => {
   it('knows its names', () => {
     expect(isIconName('construction')).toBe(true);
     expect(isIconName('toString')).toBe(false);
-    expect(isIconName('🕳️')).toBe(false);
+    expect(isIconName('\u{1F573}\u{FE0F}')).toBe(false); // the old road emoji
   });
 
   it('adds a sticker image once', async () => {

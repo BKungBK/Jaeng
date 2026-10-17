@@ -1,5 +1,5 @@
 // What sits on the toy map (spec 3.2.1). Positions are real coordinates; choices are the builder's (spec 14).
-import type { EmojiSlug } from './emoji';
+import type { IconName } from './icons';
 
 type LngLat = [number, number];
 
@@ -22,40 +22,36 @@ export const PROVINCE_LABELS: { name: string; lngLat: LngLat; prefer?: 'up' }[] 
   { name: 'ปัตตานี', lngLat: [101.25, 6.87] },
 ];
 
-/** 3D landmarks standing on the land (and islands/boats on the sea). size is relative to 1 = 48 px. */
-export const LANDMARKS: { slug: EmojiSlug; lngLat: LngLat; size: number }[] = [
+/** Lucide stickers standing on the land (and boats on the sea). size 1 = landmarkPx(zoom).
+ *  Plan 2b dropped the dragon, dinosaur and elephants: Lucide has no icon for them. */
+export const LANDMARKS: { slug: IconName; lngLat: LngLat; size: number }[] = [
   // north
   { slug: 'mountain', lngLat: [98.55, 19.35], size: 1.1 },
   { slug: 'mountain', lngLat: [100.3, 19.5], size: 0.9 },
-  { slug: 'hindu-temple', lngLat: [99.35, 18.35], size: 0.9 },
-  { slug: 'cherry-blossom', lngLat: [99.9, 18.1], size: 0.8 },
+  { slug: 'landmark', lngLat: [99.35, 18.35], size: 0.9 },
+  { slug: 'flower2', lngLat: [99.9, 18.1], size: 0.8 },
   // isan
-  { slug: 'dragon', lngLat: [102.75, 17.6], size: 1 },
-  { slug: 'sauropod', lngLat: [102.35, 16.75], size: 1 },
-  { slug: 'elephant', lngLat: [103.75, 15.05], size: 1 },
-  { slug: 'hindu-temple', lngLat: [103.2, 14.6], size: 0.9 },
+  { slug: 'landmark', lngLat: [103.2, 14.6], size: 0.9 },
   // centre and west
-  { slug: 'hindu-temple', lngLat: [99.75, 17.05], size: 0.9 }, // Sukhothai
-  { slug: 'elephant', lngLat: [98.65, 16.0], size: 0.8 },
+  { slug: 'landmark', lngLat: [99.75, 17.05], size: 0.9 }, // Sukhothai
   // east
-  { slug: 'umbrella-on-ground', lngLat: [100.93, 12.85], size: 0.8 },
-  { slug: 'palm-tree', lngLat: [102.25, 12.4], size: 0.8 },
+  { slug: 'umbrella', lngLat: [100.93, 12.85], size: 0.8 },
+  { slug: 'treePalm', lngLat: [102.25, 12.4], size: 0.8 },
   // south
-  { slug: 'desert-island', lngLat: [99.95, 9.55], size: 0.9 },
-  { slug: 'desert-island', lngLat: [98.75, 7.55], size: 0.9 },
-  { slug: 'palm-tree', lngLat: [99.6, 8.3], size: 0.9 },
-  { slug: 'speedboat', lngLat: [98.05, 8.35], size: 0.8 },
+  { slug: 'treePalm', lngLat: [99.95, 9.55], size: 0.9 },
+  { slug: 'treePalm', lngLat: [98.75, 7.55], size: 0.9 },
+  { slug: 'sailboat', lngLat: [98.05, 8.35], size: 0.8 },
 ];
 
 /** Things that drift slowly over the toy map along a path, looping every `seconds`.
  *  Paths keep clear of the province labels; reduced motion parks each one at 30% of its path. */
-export const ROUTES: { slug: EmojiSlug; path: LngLat[]; seconds: number }[] = [
+export const ROUTES: { slug: IconName; path: LngLat[]; seconds: number }[] = [
   // the northern line, drawn a little east of the towns it serves
-  { slug: 'locomotive', path: [[100.95, 14.75], [101.05, 15.7], [100.75, 16.35], [100.2, 17.6], [99.55, 18.35]], seconds: 90 },
+  { slug: 'trainFront', path: [[100.95, 14.75], [101.05, 15.7], [100.75, 16.35], [100.2, 17.6], [99.55, 18.35]], seconds: 90 },
   // planes cross the sea and the borders, away from the labels
-  { slug: 'airplane', path: [[97.2, 15.6], [97.7, 11.4], [97.3, 9.2]], seconds: 60 },
-  { slug: 'airplane', path: [[104.4, 18.6], [105.9, 16.6], [106.3, 13.2]], seconds: 60 },
-  { slug: 'passenger-ship', path: [[100.85, 12.4], [101.6, 10.6], [100.6, 9.9], [100.2, 11.6], [100.85, 12.4]], seconds: 120 },
+  { slug: 'plane', path: [[97.2, 15.6], [97.7, 11.4], [97.3, 9.2]], seconds: 60 },
+  { slug: 'plane', path: [[104.4, 18.6], [105.9, 16.6], [106.3, 13.2]], seconds: 60 },
+  { slug: 'ship', path: [[100.85, 12.4], [101.6, 10.6], [100.6, 9.9], [100.2, 11.6], [100.85, 12.4]], seconds: 120 },
   { slug: 'sailboat', path: [[101.9, 11.6], [102.4, 10.2], [101.4, 9.4], [101.9, 11.6]], seconds: 120 },
   { slug: 'cloud', path: [[95.6, 17.5], [97.2, 17.5]], seconds: 150 },
   { slug: 'cloud', path: [[105.6, 12.2], [104.2, 12.2]], seconds: 150 },

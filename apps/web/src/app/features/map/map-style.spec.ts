@@ -3,6 +3,7 @@ import type { FeatureCollection } from 'geojson';
 import { TOY_FADE } from './toy';
 
 const fc: FeatureCollection = { type: 'FeatureCollection', features: [] };
+const fakeLoad = async () => ({}) as HTMLImageElement;
 
 function recorder(baseLayers: { id: string; type: string }[] = []) {
   const layers: any[] = [];
@@ -24,7 +25,7 @@ function recorder(baseLayers: { id: string; type: string }[] = []) {
 describe('setupToyLayers', () => {
   it('adds the toy layers in drawing order', async () => {
     const r = recorder();
-    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     expect(r.layers.map((l) => l.id)).toEqual([
       'toy-mask',
       'toy-soil-3',
@@ -46,7 +47,7 @@ describe('setupToyLayers', () => {
 
   it('fades every toy layer out between zoom 6 and 8', async () => {
     const r = recorder();
-    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     for (const layer of r.layers.filter((l) => l.id.startsWith('toy-'))) {
       const key = Object.keys(layer.paint).find((k) => k.endsWith('-opacity'));
       expect(layer.paint[key!]).toEqual(TOY_FADE);
@@ -55,14 +56,14 @@ describe('setupToyLayers', () => {
 
   it('paints Isan orange and the rest green', async () => {
     const r = recorder();
-    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     const land = r.layers.find((l) => l.id === 'toy-land');
     expect(land.paint['fill-color']).toEqual(['match', ['get', 'region'], 'isan', '#F5A04A', '#79B83C']);
   });
 
   it('stacks the soil layers 8/16/24 px down', async () => {
     const r = recorder();
-    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     const soil = (n: number) => r.layers.find((l) => l.id === `toy-soil-${n}`).paint;
     // full depth on the toy, flattening as it fades so the coast does not ghost at zoom 7
     const depth = (px: number) => ['interpolate', ['linear'], ['zoom'], 6, ['literal', [0, px]], 8, ['literal', [0, 0]]];
@@ -86,7 +87,7 @@ describe('setupToyLayers', () => {
 
   it('loads every landmark image once', async () => {
     const r = recorder();
-    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     expect(r.images).toContain('mountain');
     expect(new Set(r.images).size).toBe(r.images.length);
   });

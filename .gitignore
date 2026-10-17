@@ -9,3 +9,5 @@ supabase/.temp/
 *.log
 .superpowers/
 .DS_Store
+.impeccable/config.local.json
+.impeccable/review/

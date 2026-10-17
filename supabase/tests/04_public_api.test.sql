@@ -1,5 +1,5 @@
 begin;
-select plan(17);
+select plan(20);
 
 -- Start from an empty map; the demo seed comes back when the transaction rolls back.
 delete from public.reports;
@@ -79,6 +79,21 @@ select is(
 select is(
   (select jsonb_array_length(public.reports_in_bbox(97, 5, 106, 21, categories => '{waste}') -> 'features')),
   0, 'category filter by slug');
+
+-- The web app sends the whole world when the globe view wraps (toBbox). A geography envelope
+-- from -180 to 180 collapses to nothing, so these compare in planar geometry.
+select is(
+  (select jsonb_array_length(public.reports_in_bbox(-180, -85, 180, 85) -> 'features')),
+  (select jsonb_array_length(public.reports_in_bbox(97, 5, 106, 21) -> 'features')),
+  'the world box finds every report Thailand has');
+select is(
+  (select jsonb_array_length(public.reports_in_bbox(20, 6.5, 180, 40) -> 'features')),
+  (select jsonb_array_length(public.reports_in_bbox(97, 5, 106, 21) -> 'features')),
+  'a very wide box keeps points near its south edge');
+select is(
+  (select open_count from public.stats_in_bbox(-180, -85, 180, 85)),
+  (select open_count from public.stats_in_bbox(97, 5, 106, 21)),
+  'stats over the world box match Thailand');
 
 -- stats_in_bbox: Bangkok has 1 resolved this month (fresh, if inside this month) and 3 open-ish.
 select is(

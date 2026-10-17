@@ -1,5 +1,18 @@
 // Design tokens for แจ้ง. Values from spec 3.11 and docs/prototype/thai-map-v2.html.
 // Danger levels: --s0 ทั่วไป, --s1 ควรระวัง, --s2 อันตราย, --s3 วิกฤต.
+// These tokens are Ionic's only colour source in both themes (no Ionic dark palette is loaded).
+
+// Ionic's stepped surface/text shades, mixed from the current theme's tokens.
+@mixin ion-steps {
+  --ion-background-color-step-50: color-mix(in srgb, var(--ink) 5%, var(--bg));
+  --ion-background-color-step-100: color-mix(in srgb, var(--ink) 10%, var(--bg));
+  --ion-background-color-step-150: color-mix(in srgb, var(--ink) 15%, var(--bg));
+  --ion-background-color-step-200: color-mix(in srgb, var(--ink) 20%, var(--bg));
+  --ion-text-color-step-50: color-mix(in srgb, var(--bg) 5%, var(--ink));
+  --ion-text-color-step-100: color-mix(in srgb, var(--bg) 10%, var(--ink));
+  --ion-text-color-step-150: color-mix(in srgb, var(--bg) 15%, var(--ink));
+  --ion-text-color-step-200: color-mix(in srgb, var(--bg) 20%, var(--ink));
+}
 
 :root {
   --bg: #fbf7f2;
@@ -19,6 +32,9 @@
   --s2: #f4a582;
   --s3: #e57373;
   --sh: 0 8px 28px rgba(60, 50, 40, 0.18);
+  --ion-background-color-rgb: 251, 247, 242;
+  --ion-text-color-rgb: 43, 42, 51;
+  @include ion-steps;
 }
 
 @mixin dark-tokens {
@@ -34,6 +50,9 @@
   --road: #4c475c;
   --water: #34506b;
   --sea: #2f6f9f;
+  --ion-background-color-rgb: 35, 33, 43;
+  --ion-text-color-rgb: 243, 239, 247;
+  @include ion-steps;
 }
 
 @media (prefers-color-scheme: dark) {

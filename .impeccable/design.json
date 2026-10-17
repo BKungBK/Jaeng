@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T00:00:00+07:00",
+  "title": "Design System: แจ้ง",
+  "extensions": {
+    "colorMeta": {
+      "trust-blue": { "role": "primary", "displayName": "Trust Blue", "canonical": "#3F6FA8", "tonalRamp": ["#14243a", "#1f3858", "#2b4c77", "#3f6fa8", "#5f89bd", "#87a7cf", "#b3c8e2", "#e0e9f4"] },
+      "level-minor-mint": { "role": "secondary", "displayName": "Level Minor Mint", "canonical": "#8FD3B6", "tonalRamp": ["#173d2e", "#245a45", "#36785e", "#4f9a7b", "#6db897", "#8fd3b6", "#bde5d3", "#e8f6f0"] },
+      "level-caution-butter": { "role": "secondary", "displayName": "Level Caution Butter", "canonical": "#F6D983", "tonalRamp": ["#4a3a0c", "#6b5516", "#8e7224", "#b39136", "#d6b44f", "#f6d983", "#f9e7b3", "#fdf6e2"] },
+      "level-danger-peach": { "role": "secondary", "displayName": "Level Danger Peach", "canonical": "#F4A582", "tonalRamp": ["#4d2312", "#70341c", "#94482a", "#b9603d", "#db8059", "#f4a582", "#f8c9b4", "#fdeee7"] },
+      "level-critical-rose": { "role": "secondary", "displayName": "Level Critical Rose", "canonical": "#E57373", "tonalRamp": ["#4a1515", "#6d2020", "#922d2d", "#b84141", "#e57373", "#ec9a9a", "#f4c4c4", "#fbeaea"] },
+      "toy-sea": { "role": "tertiary", "displayName": "Toy Sea", "canonical": "#4FB3EA", "tonalRamp": ["#0d3348", "#154b69", "#1f658c", "#2b80b0", "#3d9bd2", "#4fb3ea", "#93d0f2", "#dcf0fb"] },
+      "cream-ground": { "role": "neutral", "displayName": "Cream Ground", "canonical": "#FBF7F2", "tonalRamp": ["#2b2722", "#4a443c", "#6b6358", "#8f8577", "#b3a999", "#d6cdc0", "#ede6dc", "#fbf7f2"] },
+      "slate-ink": { "role": "neutral", "displayName": "Slate Ink", "canonical": "#2B2A33", "tonalRamp": ["#141319", "#2b2a33", "#43414e", "#5b5969", "#757385", "#9391a1", "#b4b2bf", "#dcdbe2"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Brand word and sheet titles, Prompt 600." },
+      "title": { "displayName": "Title", "purpose": "Buttons and card headings, Prompt 500." },
+      "body": { "displayName": "Body", "purpose": "Descriptions and comments in Thai and English." },
+      "label": { "displayName": "Label", "purpose": "Chips and tooltip titles." },
+      "caption": { "displayName": "Caption", "purpose": "Hints and metadata." },
+      "map-label": { "displayName": "Map Label", "purpose": "Province names with a dark halo on the toy map." }
+    },
+    "shadows": [
+      { "name": "float", "value": "0 8px 28px rgba(60,50,40,.18)", "purpose": "Every floating card, tooltip and sheet." },
+      { "name": "pill", "value": "0 2px 8px rgba(0,0,0,.15)", "purpose": "Beacon short labels." },
+      { "name": "glow", "value": "0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px var(--c)", "purpose": "Beacon and cluster discs only." }
+    ],
+    "motion": [
+      { "name": "pulse-l0", "value": "3s ease-out infinite", "purpose": "Level 0 pulse ring." },
+      { "name": "pulse-l1", "value": "2.4s ease-out infinite", "purpose": "Level 1 pulse ring." },
+      { "name": "pulse-l2", "value": "1.6s ease-out infinite", "purpose": "Level 2 pulse rings (two, half-period offset)." },
+      { "name": "pulse-l3", "value": "1s ease-out infinite", "purpose": "Level 3 pulse rings (two, half-period offset)." },
+      { "name": "beam-grow", "value": "height 400ms cubic-bezier(.3,.7,.2,1)", "purpose": "Beam rising after a me-too." },
+      { "name": "sheet", "value": "transform 350ms cubic-bezier(.3,.7,.2,1)", "purpose": "Detail sheet and panel entrance." }
+    ],
+    "breakpoints": [
+      { "name": "wide", "value": "820px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action such as เจอเหมือนกัน.",
+      "html": "<button class=\"ds-btn-primary\">เจอเหมือนกัน · 12</button>",
+      "css": ".ds-btn-primary{min-height:44px;min-width:44px;border-radius:14px;border:1px solid transparent;background:#3F6FA8;color:#fff;padding:0 14px;font:500 15px 'Prompt','IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-btn-primary:hover{background:#355f91}.ds-btn-primary:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Map controls and secondary actions.",
+      "html": "<button class=\"ds-btn\" aria-label=\"ซูมเข้า\">＋</button>",
+      "css": ".ds-btn{min-height:44px;min-width:44px;border-radius:14px;border:1px solid #E8E0D5;background:#fff;color:#2B2A33;padding:0 14px;font:500 15px 'Prompt',sans-serif;cursor:pointer;box-shadow:0 8px 28px rgba(60,50,40,.18)}.ds-btn:hover{background:#FBF7F2}.ds-btn:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    },
+    {
+      "name": "Level Chips",
+      "kind": "chip",
+      "refersTo": "chip-level",
+      "description": "Toggle filter for the four danger levels; off is struck through.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" style=\"--c:#8FD3B6\" aria-pressed=\"true\">● ทั่วไป</button><button class=\"ds-chip\" style=\"--c:#F6D983\" aria-pressed=\"true\">▲ ควรระวัง</button><button class=\"ds-chip\" style=\"--c:#F4A582\" aria-pressed=\"false\">◆ อันตราย</button><button class=\"ds-chip\" style=\"--c:#E57373\" aria-pressed=\"true\">⚠ วิกฤต</button></div>",
+      "css": ".ds-chips{display:flex;gap:6px;padding:6px;background:#fff;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18)}.ds-chip{min-height:44px;border:0;border-radius:14px;padding:0 12px;background:color-mix(in srgb,var(--c) 55%,#fff);color:#2B2A33;font:500 14px 'IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-chip[aria-pressed=false]{opacity:.4;text-decoration:line-through}.ds-chip:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    },
+    {
+      "name": "Floating Card",
+      "kind": "card",
+      "refersTo": "card-floating",
+      "description": "Brand card and hint card floating over the map.",
+      "html": "<div class=\"ds-card\"><strong>แจ้ง</strong><div class=\"ds-sub\">ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่</div></div>",
+      "css": ".ds-card{background:#fff;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);padding:8px 14px;color:#2B2A33;font:400 16px/1.6 'IBM Plex Sans Thai',sans-serif;max-width:320px}.ds-card strong{font:600 19px/1.3 'Prompt',sans-serif}.ds-sub{color:#6B6878;font-size:13px}"
+    },
+    {
+      "name": "Beacon",
+      "kind": "custom",
+      "refersTo": "beacon-disc",
+      "description": "Bat-Signal beacon: base, pulse ring, cone beam, disc with category icon and level badge, short label.",
+      "html": "<div class=\"ds-pin\" style=\"--c:#F4A582;--d:1.6s;--h:132px\"><i class=\"ds-ring\"></i><i class=\"ds-base\"></i><div class=\"ds-stand\"><div class=\"ds-beam\"></div><div class=\"ds-disc\" role=\"button\" tabindex=\"0\" aria-label=\"หลุมลึกกลางถนน ระดับอันตราย ยังไม่ได้แก้\">🕳️<i class=\"ds-sym\">◆</i><span class=\"ds-lbl\">หลุมลึกกลางถนน</span></div></div></div>",
+      "css": ".ds-pin{position:relative;width:0;height:0;margin:180px 80px 40px}.ds-ring{position:absolute;left:-36px;top:-36px;width:72px;height:72px;box-sizing:border-box;border-radius:50%;border:3px solid var(--c);animation:ds-pulse var(--d) ease-out infinite}@keyframes ds-pulse{from{transform:scale(.3,.14);opacity:.85}to{transform:scale(1.5,.68);opacity:0}}.ds-base{position:absolute;left:-7px;top:-7px;width:14px;height:14px;border-radius:50%;background:var(--c);border:2px solid #fff}.ds-stand{position:absolute;left:-30px;bottom:0;width:60px;height:var(--h)}.ds-beam{position:absolute;inset:0;background:linear-gradient(to top,var(--c),transparent 95%);opacity:.8;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%)}.ds-disc{position:absolute;left:3px;top:-30px;width:54px;height:54px;box-sizing:border-box;border-radius:50%;background:#fff;border:3px solid var(--c);display:grid;place-items:center;font-size:24px;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}.ds-sym{position:absolute;right:-8px;bottom:-4px;font-size:12px;font-style:normal;font-weight:600;background:var(--c);color:#2B2A33;border-radius:9px;min-width:18px;height:18px;line-height:18px;text-align:center}.ds-lbl{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#2B2A33;padding:0 8px;border-radius:10px;font:400 12px/20px 'IBM Plex Sans Thai',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.15)}"
+    },
+    {
+      "name": "Cluster",
+      "kind": "custom",
+      "refersTo": "cluster-disc",
+      "description": "Count disc for grouped reports, border in the highest level inside.",
+      "html": "<button class=\"ds-cl\" style=\"--c:#E57373\" aria-label=\"7 เรื่องในพื้นที่นี้\">7</button>",
+      "css": ".ds-cl{width:52px;height:52px;box-sizing:border-box;border-radius:50%;background:#fff;border:3px solid var(--c);font:600 18px 'Prompt',sans-serif;color:#2B2A33;cursor:pointer;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}.ds-cl:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "เมืองของเล่นยามฟ้าแจ้ง (Toy Town at First Light)",
+    "overview": "แจ้ง means both \"to report\" and \"the sky turning bright\". The system is a toy model of Thailand seen at dawn: thick, soft-edged land like a painted wooden puzzle, a bright toy sea, small 3D landmarks, and above it the only lights in the scene, pastel signal beams that rise from each reported problem. The toy world is the welcome; the beams are the information. As the visitor zooms in, the toy dissolves into a calm street map and the beams stay, so the map stops being a picture and becomes a place.\n\nEverything around the map is a working app: floating white cards with soft shadows, 44 px targets, Thai-first type, short warm copy. The interface never imitates the toy; it sits on top of it like a friendly guide holding the map open. Danger is said three ways at once (colour, shape, pulse speed), and status is said by the beam's form, never by colour.",
+    "keyCharacteristics": [
+      "Toy-model Thailand (stacked soil layers, green land, orange Isan, cream rim) that fades out between zoom 6 and 8.",
+      "Pastel beams as the only light source; height grows with \"เจอเหมือนกัน\".",
+      "Floating cards over a full-bleed map; no app chrome bars.",
+      "Microsoft Fluent Emoji 3D (MIT) for every pictogram: landmarks, vehicles and the eight category icons, so the toy world and the beacons share one object language.",
+      "Prompt for voice, IBM Plex Sans Thai for reading."
+    ],
+    "rules": [
+      { "name": "The Levels Only Mean Danger Rule", "body": "Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.", "section": "colors" },
+      { "name": "The Ink On Pastel Rule", "body": "Text on any pastel fill is Slate Ink (#2B2A33), never white, so every chip passes WCAG AA.", "section": "colors" },
+      { "name": "The Toy Stays Toy Rule", "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea darkens to Night Sea; the toy is an object, not a surface.", "section": "colors" },
+      { "name": "The Thai First Rule", "body": "Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.", "section": "typography" },
+      { "name": "The One Light Rule", "body": "Only beacons glow. No other element gets a coloured shadow or glow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do encode every danger level with colour, shape symbol and pulse speed together.",
+      "Do keep text on pastel fills in Slate Ink (#2B2A33).",
+      "Do keep every target at least 44 × 44 px and give every beacon an aria-label of \"{title} ระดับ{level} {status}\".",
+      "Do use Fluent Emoji 3D images for pictograms so they look the same on every device.",
+      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Microsoft Fluent Emoji (MIT) in the map attribution."
+    ],
+    "donts": [
+      "Don't look like a dark game or a cold government form.",
+      "Don't copy or store the reference poster by ครูหนิง & Gemini; draw everything from real geometry and MIT emoji.",
+      "Don't show status with colour; status is beam shape.",
+      "Don't let anything except beacons glow.",
+      "Don't claim photos are blurred until blurring exists."
+    ]
+  }
+}

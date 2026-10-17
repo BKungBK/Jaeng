@@ -1,4 +1,4 @@
-import { MapLike, REPORT_SOURCE, setupMapLayers, tintBaseMap } from './map-style';
+import { MapLike, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
 import type { FeatureCollection } from 'geojson';
 import { TOY_FADE } from './toy';
 
@@ -21,10 +21,10 @@ function recorder(baseLayers: { id: string; type: string }[] = []) {
   return { map, layers, sources, paint, images };
 }
 
-describe('setupMapLayers', () => {
+describe('setupToyLayers', () => {
   it('adds the toy layers in drawing order', async () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
     expect(r.layers.map((l) => l.id)).toEqual([
       'toy-mask',
       'toy-soil-3',
@@ -34,20 +34,19 @@ describe('setupMapLayers', () => {
       'toy-lines',
       'toy-rim',
       'toy-landmarks',
-      'reports-anchor',
     ]);
   });
 
-  it('gives the report source an invisible layer so MapLibre loads its tiles', async () => {
+  it('gives the report source an invisible layer so MapLibre loads its tiles', () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    setupReportLayers(r.map);
     const anchor = r.layers.find((l) => l.id === 'reports-anchor');
     expect(anchor).toMatchObject({ source: REPORT_SOURCE, paint: { 'circle-opacity': 0 } });
   });
 
   it('fades every toy layer out between zoom 6 and 8', async () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
     for (const layer of r.layers.filter((l) => l.id.startsWith('toy-'))) {
       const key = Object.keys(layer.paint).find((k) => k.endsWith('-opacity'));
       expect(layer.paint[key!]).toEqual(TOY_FADE);
@@ -56,14 +55,14 @@ describe('setupMapLayers', () => {
 
   it('paints Isan orange and the rest green', async () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
     const land = r.layers.find((l) => l.id === 'toy-land');
     expect(land.paint['fill-color']).toEqual(['match', ['get', 'region'], 'isan', '#F5A04A', '#79B83C']);
   });
 
   it('stacks the soil layers 8/16/24 px down', async () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
     const soil = (n: number) => r.layers.find((l) => l.id === `toy-soil-${n}`).paint;
     // full depth on the toy, flattening as it fades so the coast does not ghost at zoom 7
     const depth = (px: number) => ['interpolate', ['linear'], ['zoom'], 6, ['literal', [0, px]], 8, ['literal', [0, 0]]];
@@ -74,9 +73,9 @@ describe('setupMapLayers', () => {
     ]);
   });
 
-  it('adds a clustered report source that tracks the highest level', async () => {
+  it('adds a clustered report source that tracks the highest level', () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    setupReportLayers(r.map);
     expect(r.sources[REPORT_SOURCE]).toMatchObject({
       type: 'geojson',
       cluster: true,
@@ -87,7 +86,7 @@ describe('setupMapLayers', () => {
 
   it('loads every landmark image once', async () => {
     const r = recorder();
-    await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
     expect(r.images).toContain('mountain');
     expect(new Set(r.images).size).toBe(r.images.length);
   });

@@ -4,7 +4,7 @@ import maplibregl from 'maplibre-gl';
 import { emojiUrl } from './emoji';
 import { placeLabels, Rect } from './declutter';
 import { toyLabelOpacity, toyOpacity } from './toy';
-import { PROVINCE_LABELS, ROUTES } from './toy-places';
+import { LANDMARKS, PROVINCE_LABELS, ROUTES } from './toy-places';
 
 type LngLat = [number, number];
 type Mover = { marker: maplibregl.Marker; path: LngLat[]; seconds: number; loop: boolean; lengths: number[]; total: number };
@@ -35,15 +35,6 @@ export class ToyOverlay {
     private map: maplibregl.Map,
     private reducedMotion: boolean,
   ) {
-    for (const l of PROVINCE_LABELS) {
-      const el = document.createElement('div');
-      el.className = 'toy-label';
-      // inner span carries the declutter offset; MapLibre owns the marker element's transform
-      const text = document.createElement('span');
-      text.textContent = l.name;
-      el.appendChild(text);
-      this.labels.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(l.lngLat).addTo(map));
-    }
     for (const r of ROUTES) {
       const el = document.createElement('div');
       el.className = `toy-mover ${r.slug}`;
@@ -63,6 +54,16 @@ export class ToyOverlay {
         total: lengths.reduce((s, x) => s + x, 0),
       };
       this.movers.push(mover);
+    }
+    // names after movers, so a passing train or ship goes under the name, never over it
+    for (const l of PROVINCE_LABELS) {
+      const el = document.createElement('div');
+      el.className = 'toy-label';
+      // inner span carries the declutter offset; MapLibre owns the marker element's transform
+      const text = document.createElement('span');
+      text.textContent = l.name;
+      el.appendChild(text);
+      this.labels.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(l.lngLat).addTo(map));
     }
     map.on('zoom', this.onZoom);
     this.applyZoom();
@@ -92,14 +93,19 @@ export class ToyOverlay {
    *  nearby spot is free. */
   declutter(obstacles: readonly Rect[]): void {
     const spans = this.labels.map((m) => m.getElement().firstElementChild as HTMLElement);
-    const movers = this.movers.map((m) => m.marker.getElement().getBoundingClientRect());
+    // moving props only count when they stand still (reduced motion); otherwise names would jump after them
+    const movers = this.reducedMotion ? this.movers.map((m) => m.marker.getElement().getBoundingClientRect()) : [];
     const home = spans.map((s) => {
       const r = s.getBoundingClientRect();
       const dx = Number(s.dataset['dx'] ?? 0);
       const dy = Number(s.dataset['dy'] ?? 0);
       return { left: r.left - dx, right: r.right - dx, top: r.top - dy, bottom: r.bottom - dy };
     });
-    const spots = placeLabels(home, [...obstacles, ...movers]);
+    const spots = placeLabels(
+      home,
+      [...obstacles, ...movers, ...this.landmarkBoxes()],
+      PROVINCE_LABELS.map((l) => l.prefer),
+    );
     spans.forEach((s, i) => {
       const spot = spots[i];
       s.parentElement!.classList.toggle('clash', !spot);
@@ -107,6 +113,20 @@ export class ToyOverlay {
       s.dataset['dx'] = String(dx);
       s.dataset['dy'] = String(dy);
       s.style.transform = dx || dy ? `translate(${dx}px, ${dy}px)` : '';
+    });
+  }
+
+  /** Screen boxes of the 3D landmarks (symbol layer, bottom-anchored, sized as in map-style). */
+  private landmarkBoxes(): Rect[] {
+    const zoom = this.map.getZoom();
+    const scale = zoom <= 4 ? 0.25 : zoom >= 8 ? 0.55 : zoom <= 6 ? 0.25 + ((zoom - 4) / 2) * 0.15 : 0.4 + ((zoom - 6) / 2) * 0.15;
+    const origin = this.map.getContainer().getBoundingClientRect();
+    return LANDMARKS.map((l) => {
+      const p = this.map.project(l.lngLat);
+      const size = 128 * scale * l.size;
+      const x = origin.left + p.x;
+      const y = origin.top + p.y;
+      return { left: x - size / 2, right: x + size / 2, top: y - size, bottom: y };
     });
   }
 

@@ -3,7 +3,8 @@ import type { EmojiSlug } from './emoji';
 
 type LngLat = [number, number];
 
-export const PROVINCE_LABELS: { name: string; lngLat: LngLat }[] = [
+/** prefer: which way a name moves first when its own spot is taken (Songkhla sits north of Pattani). */
+export const PROVINCE_LABELS: { name: string; lngLat: LngLat; prefer?: 'up' }[] = [
   { name: 'เชียงใหม่', lngLat: [98.98, 18.79] },
   { name: 'พิษณุโลก', lngLat: [100.26, 16.82] },
   { name: 'นครสวรรค์', lngLat: [100.12, 15.7] },
@@ -17,7 +18,7 @@ export const PROVINCE_LABELS: { name: string; lngLat: LngLat }[] = [
   { name: 'ระยอง', lngLat: [101.28, 12.68] },
   { name: 'สุราษฎร์ธานี', lngLat: [99.33, 9.14] },
   { name: 'ภูเก็ต', lngLat: [98.39, 7.88] },
-  { name: 'สงขลา', lngLat: [100.59, 7.19] },
+  { name: 'สงขลา', lngLat: [100.59, 7.19], prefer: 'up' },
   { name: 'ปัตตานี', lngLat: [101.25, 6.87] },
 ];
 

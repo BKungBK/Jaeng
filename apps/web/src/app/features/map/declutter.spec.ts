@@ -34,6 +34,15 @@ describe('placeLabels', () => {
     expect(declutter([moved], [r(74, 74, 52, 52)])).toEqual([true]);
   });
 
+  it('never moves a label further than one row from its town', () => {
+    // blocked straight on and one row down; free only far away to the side
+    expect(placeLabels([r(80, 90)], [r(60, 60, 60, 110)])).toEqual([null]);
+  });
+
+  it('tries above first for a label that prefers up', () => {
+    expect(placeLabels([r(80, 90)], [r(74, 74, 52, 52)], ['up'])).toEqual([[0, -38]]);
+  });
+
   it('hides a label only when every position is blocked', () => {
     expect(placeLabels([r(80, 90)], [r(0, 0, 400, 400)])).toEqual([null]);
   });

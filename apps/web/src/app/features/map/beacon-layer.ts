@@ -25,6 +25,8 @@ type Item =
 export class BeaconLayer {
   private entries = new Map<string, Entry>();
   private queued = false;
+  private frame = 0;
+  private destroyed = false;
   private readonly onRender = () => this.queue();
 
   constructor(
@@ -36,9 +38,9 @@ export class BeaconLayer {
 
   /** Coalesce bursts of render events into one sync per frame. */
   private queue() {
-    if (this.queued) return;
+    if (this.queued || this.destroyed) return;
     this.queued = true;
-    requestAnimationFrame(() => {
+    this.frame = requestAnimationFrame(() => {
       this.queued = false;
       this.sync();
     });
@@ -175,6 +177,8 @@ export class BeaconLayer {
   }
 
   destroy(): void {
+    this.destroyed = true;
+    cancelAnimationFrame(this.frame);
     this.map.off('render', this.onRender);
     for (const entry of this.entries.values()) entry.marker.remove();
     this.entries.clear();

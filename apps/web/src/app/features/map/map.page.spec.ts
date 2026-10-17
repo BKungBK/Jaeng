@@ -7,7 +7,14 @@ import { ReportsService } from './reports.service';
 // Stand-in for maplibregl.Map: records handlers and lets a test fire events.
 function fakeMap() {
   const handlers: Record<string, (() => void)[]> = {};
+  const sources: Record<string, unknown> = {};
   return {
+    sources,
+    addSource: (id: string, spec: unknown) => void (sources[id] = spec),
+    addLayer: vi.fn(),
+    getStyle: () => ({ layers: [] }),
+    setPaintProperty: vi.fn(),
+    getContainer: () => document.createElement('div'),
     on: (type: string, fn: () => void) => void (handlers[type] ??= []).push(fn),
     off: () => undefined,
     fire: (type: string) => handlers[type]?.forEach((fn) => fn()),
@@ -105,6 +112,36 @@ describe('MapPage', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
     expect(root.querySelector('.peek')).toBeNull();
+  });
+
+  it('still loads reports when the toy decoration fails to load', async () => {
+    vi.useFakeTimers();
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    const { map, inBbox } = await setup();
+    map.fire('load');
+    await vi.advanceTimersByTimeAsync(10);
+    expect(map.sources['reports']).toBeDefined();
+    expect(inBbox).toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+
+  it('removes a map that arrives after the page is gone', async () => {
+    let resolveMap!: (m: unknown) => void;
+    const map = fakeMap();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MAP_FACTORY, useValue: () => new Promise((r) => (resolveMap = r)) },
+        { provide: ReportsService, useValue: { inBbox: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(MapPage);
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.destroy();
+    resolveMap(map);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(map.remove).toHaveBeenCalled();
   });
 
   it('zooms with the buttons', async () => {

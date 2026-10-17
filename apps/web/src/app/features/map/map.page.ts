@@ -19,7 +19,7 @@ import { emojiUrl } from './emoji';
 import { FilterBarComponent } from './filter-bar.component';
 import { LevelShapeComponent } from './level-shape';
 import { MAP_FACTORY } from './map-factory';
-import { REPORT_SOURCE, setupMapLayers, tintBaseMap } from './map-style';
+import { REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
 import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
@@ -49,6 +49,7 @@ export class MapPage {
   private toy?: ToyOverlay;
   private loadTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
+  private destroyed = false;
 
   readonly levels = signal<readonly DangerLevel[]>([0, 1, 2, 3]);
   readonly zoom = signal(5);
@@ -63,8 +64,9 @@ export class MapPage {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    afterNextRender(() => this.start());
+    afterNextRender(() => void this.start());
     destroyRef.onDestroy(() => {
+      this.destroyed = true;
       clearTimeout(this.loadTimer);
       clearTimeout(this.toastTimer);
       this.beacons?.destroy();
@@ -75,6 +77,10 @@ export class MapPage {
 
   private async start() {
     const map = await this.createMap(this.container().nativeElement);
+    if (this.destroyed) {
+      map.remove(); // the page left while MapLibre was still loading
+      return;
+    }
     this.map = map;
     // dev builds expose the map for manual checks and E2E (window.__map)
     if (isDevMode()) (window as unknown as { __map: maplibregl.Map }).__map = map;
@@ -85,31 +91,55 @@ export class MapPage {
     this.zoom.set(map.getZoom());
   }
 
+  /** Data first, decoration second: a missing toy asset must never cost the reports. */
   private async onLoad(map: maplibregl.Map) {
     tintBaseMap(map);
-    const [provinces, land, mask] = await Promise.all(
-      ['provinces', 'land', 'mask'].map((n) => fetch(`assets/geo/${n}.json`).then((r) => r.json())),
-    );
-    const sea = getComputedStyle(document.documentElement).getPropertyValue('--sea').trim() || undefined;
-    await setupMapLayers(map, { provinces, land, mask }, sea);
-    // these two construct maplibregl.Marker, so they load with MapLibre, not with the page
-    const [{ ToyOverlay }, { BeaconLayer }] = await Promise.all([import('./toy-overlay'), import('./beacon-layer')]);
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.toy = new ToyOverlay(map, reduced);
-    this.beacons = new BeaconLayer(map, {
-      hover: (p, el) => {
-        const r = el.getBoundingClientRect();
-        this.hover.set({ p, x: Math.min(innerWidth - 256, r.right + 10), y: Math.max(76, r.top) });
-      },
-      leave: () => this.hover.set(null),
-      select: (p) => this.select(p),
-      synced: (boxes) => this.toy?.declutter(boxes),
-    });
+    setupReportLayers(map);
     // phones: start with the attribution folded to its ⓘ so it does not sit under the hint card
     if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
+    await Promise.all([this.startBeacons(map), this.startToy(map)]);
   }
 
+  private async startBeacons(map: maplibregl.Map) {
+    try {
+      // constructs maplibregl.Marker, so it loads with MapLibre, not with the page
+      const { BeaconLayer } = await import('./beacon-layer');
+      if (this.destroyed) return;
+      this.beacons = new BeaconLayer(map, {
+        hover: (p, el) => {
+          const r = el.getBoundingClientRect();
+          this.hover.set({ p, x: Math.min(innerWidth - 256, r.right + 10), y: Math.max(76, r.top) });
+        },
+        leave: () => this.hover.set(null),
+        select: (p) => this.select(p),
+        synced: (boxes) => this.toy?.declutter(boxes),
+      });
+    } catch {
+      if (!this.destroyed) this.showToast('แผนที่โหลดไม่ครบ ลองรีเฟรชหน้านี้อีกครั้งนะ');
+    }
+  }
+
+  private async startToy(map: maplibregl.Map) {
+    try {
+      const [provinces, land, mask] = await Promise.all(
+        ['provinces', 'land', 'mask'].map(async (n) => {
+          const res = await fetch(`assets/geo/${n}.json`);
+          if (!res.ok) throw new Error(`geo ${n} ${res.status}`);
+          return res.json();
+        }),
+      );
+      if (this.destroyed) return;
+      const sea = getComputedStyle(document.documentElement).getPropertyValue('--sea').trim() || undefined;
+      await setupToyLayers(map, { provinces, land, mask }, sea);
+      const { ToyOverlay } = await import('./toy-overlay');
+      if (this.destroyed) return;
+      this.toy = new ToyOverlay(map, matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) {
+      // decoration only: the street map and the reports still work without it
+      console.warn('toy map unavailable', e);
+    }
+  }
   private select(p: ReportProps) {
     this.hover.set(null);
     this.markSelected(false);
@@ -143,11 +173,11 @@ export class MapPage {
 
   private async load() {
     const map = this.map;
-    if (!map) return;
+    if (!map || this.destroyed) return;
     const b = map.getBounds();
     const bbox = toBbox({ west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() });
     const result = await this.loader.load(bbox, this.levels());
-    if (!result) return;
+    if (!result || this.destroyed) return;
     if ('error' in result) {
       this.showToast('โหลดข้อมูลไม่สำเร็จ ลองเลื่อนแผนที่อีกครั้งนะ');
       return;

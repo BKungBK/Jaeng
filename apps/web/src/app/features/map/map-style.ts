@@ -22,7 +22,27 @@ const TOY = {
 
 const fade = TOY_FADE as unknown as ExpressionSpecification;
 
-export async function setupMapLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA'): Promise<void> {
+/** The reports source the beacons read from. Added first: the data must not depend on decoration. */
+export function setupReportLayers(map: MapLike): void {
+  map.addSource(REPORT_SOURCE, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+    cluster: true,
+    clusterMaxZoom: CLUSTER_MAX_ZOOM,
+    clusterRadius: 60,
+    clusterProperties: { maxLevel: ['max', ['get', 'danger_level']] },
+  });
+  // MapLibre only loads tiles for a source some layer uses; beacons themselves are HTML markers.
+  map.addLayer({
+    id: 'reports-anchor',
+    type: 'circle',
+    source: REPORT_SOURCE,
+    paint: { 'circle-radius': 1, 'circle-opacity': 0 },
+  });
+}
+
+/** The toy Thailand, drawn under the reports anchor. Best effort: it is decoration. */
+export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA'): Promise<void> {
   map.addSource('toy-mask', { type: 'geojson', data: geo.mask });
   map.addSource('toy-land', { type: 'geojson', data: geo.land });
   map.addSource('toy-provinces', { type: 'geojson', data: geo.provinces });
@@ -97,23 +117,8 @@ export async function setupMapLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
     },
     paint: { 'icon-opacity': fade },
   });
-
-  map.addSource(REPORT_SOURCE, {
-    type: 'geojson',
-    data: { type: 'FeatureCollection', features: [] },
-    cluster: true,
-    clusterMaxZoom: CLUSTER_MAX_ZOOM,
-    clusterRadius: 60,
-    clusterProperties: { maxLevel: ['max', ['get', 'danger_level']] },
-  });
-  // MapLibre only loads tiles for a source some layer uses; beacons themselves are HTML markers.
-  map.addLayer({
-    id: 'reports-anchor',
-    type: 'circle',
-    source: REPORT_SOURCE,
-    paint: { 'circle-radius': 1, 'circle-opacity': 0 },
-  });
 }
+
 
 async function addEmojiImage(map: MapLike, slug: EmojiSlug) {
   if (map.hasImage(slug)) return;

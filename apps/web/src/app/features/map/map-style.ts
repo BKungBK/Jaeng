@@ -58,7 +58,9 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
     },
   });
 
-  map.addLayer({ id: 'toy-mask', type: 'fill', source: 'toy-mask', paint: { 'fill-color': sea, 'fill-opacity': fade } });
+  // opaque at every zoom: outside Thailand there is only sea (plan 2b). Added after every base
+  // layer, so it also covers the street map's names abroad.
+  map.addLayer({ id: 'toy-mask', type: 'fill', source: 'toy-mask', paint: { 'fill-color': sea, 'fill-opacity': 1 } });
   for (const n of [3, 2, 1]) {
     map.addLayer({
       id: `toy-soil-${n}`,

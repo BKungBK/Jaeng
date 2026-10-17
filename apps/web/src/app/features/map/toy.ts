@@ -43,7 +43,6 @@ export function toyLabelOpacity(zoom: number): number {
 export function zoomHint(zoom: number, shown: number, levelsOn: number): string {
   if (levelsOn === 0) return 'ปิดตัวกรองครบทุกระดับแล้ว แตะชิปด้านบนเพื่อดูเรื่องอีกครั้ง';
   if (shown === 0) return 'ยังไม่มีเรื่องตรงกับตัวกรองในบริเวณนี้';
-  if (zoom < 4) return 'มุมมองโลก: ซูมเข้าหาประเทศไทยเพื่อดูสัญญาณไฟ';
   if (zoom < 6) return 'ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่ ซูมเข้าเพื่อดูแต่ละเรื่อง';
   if (zoom < 8) return 'ซูมต่อไป ภาพประกอบจะค่อยๆ กลายเป็นแผนที่ปกติ';
   if (zoom < BEAM_ZOOM) return 'แผนที่ปกติ: เรื่องที่อยู่ใกล้กันรวมเป็นวงตัวเลข';

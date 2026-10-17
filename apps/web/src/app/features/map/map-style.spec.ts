@@ -45,10 +45,16 @@ describe('setupToyLayers', () => {
     expect(anchor).toMatchObject({ source: REPORT_SOURCE, paint: { 'circle-opacity': 0 } });
   });
 
-  it('fades every toy layer out between zoom 6 and 8', async () => {
+  it('keeps the mask opaque at every zoom so only Thailand shows', async () => {
     const r = recorder();
     await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
-    for (const layer of r.layers.filter((l) => l.id.startsWith('toy-'))) {
+    expect(r.layers.find((l) => l.id === 'toy-mask').paint['fill-opacity']).toBe(1);
+  });
+
+  it('fades every other toy layer out between zoom 6 and 8', async () => {
+    const r = recorder();
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
+    for (const layer of r.layers.filter((l) => l.id.startsWith('toy-') && l.id !== 'toy-mask')) {
       const key = Object.keys(layer.paint).find((k) => k.endsWith('-opacity'));
       expect(layer.paint[key!]).toEqual(TOY_FADE);
     }

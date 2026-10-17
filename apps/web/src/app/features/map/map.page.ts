@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
+import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { IconComponent } from '../../shared/icon.component';
 import { categoryIcon } from './beacon';
@@ -47,6 +48,7 @@ export class MapPage {
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
   private toy?: ToyOverlay;
+  private stopSea?: () => void;
   private loadTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
@@ -70,6 +72,7 @@ export class MapPage {
       clearTimeout(this.toastTimer);
       this.beacons?.destroy();
       this.toy?.destroy();
+      this.stopSea?.();
       this.map?.remove();
     });
   }
@@ -131,14 +134,29 @@ export class MapPage {
       if (this.destroyed) return;
       const sea = getComputedStyle(document.documentElement).getPropertyValue('--sea').trim() || undefined;
       await setupToyLayers(map, { provinces, land, mask }, sea);
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      void this.startSea(map, mask, reducedMotion);
       const { ToyOverlay } = await import('./toy-overlay');
       if (this.destroyed) return;
-      this.toy = new ToyOverlay(map, matchMedia('(prefers-reduced-motion: reduce)').matches);
+      this.toy = new ToyOverlay(map, reducedMotion);
     } catch (e) {
       // decoration only: the street map and the reports still work without it
       console.warn('toy map unavailable', e);
     }
   }
+  /** The animated cel sea over the flat mask; if it fails the flat sea stays. */
+  private async startSea(map: maplibregl.Map, mask: FeatureCollection, reducedMotion: boolean) {
+    try {
+      const { startSea } = await import('./sea/start-sea');
+      if (this.destroyed) return;
+      const stop = await startSea(map, mask, reducedMotion);
+      if (this.destroyed) stop();
+      else this.stopSea = stop;
+    } catch (e) {
+      console.warn('animated sea unavailable', e);
+    }
+  }
+
   private select(p: ReportProps) {
     this.hover.set(null);
     this.markSelected(false);

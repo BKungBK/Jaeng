@@ -28,6 +28,7 @@ describe('setupToyLayers', () => {
     await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     expect(r.layers.map((l) => l.id)).toEqual([
       'toy-mask',
+      'sea-foam',
       'toy-soil-3',
       'toy-soil-2',
       'toy-soil-1',
@@ -55,6 +56,7 @@ describe('setupToyLayers', () => {
     const r = recorder();
     await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     for (const layer of r.layers.filter((l) => l.id.startsWith('toy-') && l.id !== 'toy-mask')) {
+      // sea-foam is not a toy layer: it fades in at street zoom
       const key = Object.keys(layer.paint).find((k) => k.endsWith('-opacity'));
       expect(layer.paint[key!]).toEqual(TOY_FADE);
     }

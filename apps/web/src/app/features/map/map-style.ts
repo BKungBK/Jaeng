@@ -61,6 +61,20 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
   // opaque at every zoom: outside Thailand there is only sea (plan 2b). Added after every base
   // layer, so it also covers the street map's names abroad.
   map.addLayer({ id: 'toy-mask', type: 'fill', source: 'toy-mask', paint: { 'fill-color': sea, 'fill-opacity': 1 } });
+  // the animated sea (SeaLayer) slots in here, between the flat mask and this foam line
+  // street-zoom foam along the mask's exact edge; the shader's own foam is too coarse past zoom 9
+  map.addLayer({
+    id: 'sea-foam',
+    type: 'line',
+    source: 'toy-mask',
+    minzoom: 8,
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: {
+      'line-color': '#FFFFFF',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 8, 2, 14, 5],
+      'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0, 10, 1],
+    },
+  });
   for (const n of [3, 2, 1]) {
     map.addLayer({
       id: `toy-soil-${n}`,

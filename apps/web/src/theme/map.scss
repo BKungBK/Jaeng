@@ -1,0 +1,264 @@
+// Map marker styles (DESIGN.md "Beacon", "Cluster", "Toy map"). Global because MapLibre markers
+// are created outside Angular views. Ported from docs/prototype/thai-map-v2.html.
+
+::selection {
+  background: color-mix(in srgb, var(--pri) 28%, transparent);
+  color: var(--ink);
+}
+
+// ---------- beacon ----------
+.beacon {
+  position: absolute;
+  width: 0;
+  height: 0;
+
+  .ring {
+    position: absolute;
+    left: -36px;
+    top: -36px;
+    width: 72px;
+    height: 72px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 3px solid var(--c);
+    pointer-events: none;
+    animation: beacon-pulse var(--d) ease-out infinite;
+
+    &.two {
+      animation-delay: calc(var(--d) / 2);
+    }
+  }
+
+  .base {
+    position: absolute;
+    left: -7px;
+    top: -7px;
+    width: 14px;
+    height: 14px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: var(--c);
+    border: 2px solid #fff;
+    pointer-events: none;
+  }
+
+  .stand {
+    position: absolute;
+    left: -30px;
+    bottom: 0;
+    width: 60px;
+    height: var(--h);
+    pointer-events: none;
+    transition: height 400ms cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .beam {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--c), transparent 95%);
+    opacity: 0.8;
+    clip-path: polygon(0 0, 100% 0, 54% 100%, 46% 100%);
+  }
+
+  .disc {
+    position: absolute;
+    left: 3px;
+    top: -30px;
+    width: 54px;
+    height: 54px;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--surf);
+    border: 3px solid var(--c);
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),
+      0 0 28px var(--c);
+    cursor: pointer;
+    pointer-events: auto;
+    outline: none;
+
+    &:focus-visible {
+      outline: 3px solid var(--pri);
+      outline-offset: 4px;
+    }
+  }
+
+  .icon {
+    width: 30px;
+    height: 30px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .tick {
+    font: 600 22px/1 'Prompt', sans-serif;
+    color: var(--ink);
+  }
+
+  .sym {
+    position: absolute;
+    right: -8px;
+    bottom: -4px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--c);
+    color: #2b2a33;
+    font: 600 12px/18px 'IBM Plex Sans Thai', sans-serif;
+    font-style: normal;
+    text-align: center;
+  }
+
+  .lbl {
+    position: absolute;
+    left: 50%;
+    top: -28px;
+    transform: translateX(-50%);
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: var(--surf);
+    color: var(--ink);
+    font: 400 12px/22px 'IBM Plex Sans Thai', sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+  }
+
+  // compact: isolated report at country/province zoom, smaller disc on a short beam
+  &.compact .disc {
+    transform: scale(0.82);
+    transform-origin: 50% 100%;
+  }
+
+  &.st-claimed {
+    .beam {
+      opacity: 0.28;
+    }
+    .disc {
+      border-style: dashed;
+    }
+    .ring {
+      display: none;
+    }
+  }
+
+  &.st-done {
+    --c: var(--s0);
+
+    .beam,
+    .ring {
+      display: none;
+    }
+    .disc {
+      opacity: 0.85;
+    }
+  }
+}
+
+@keyframes beacon-pulse {
+  from {
+    transform: scale(0.3, 0.14);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.5, 0.68);
+    opacity: 0;
+  }
+}
+
+// ---------- cluster ----------
+.cluster {
+  position: absolute;
+  width: 0;
+  height: 0;
+
+  .ring {
+    position: absolute;
+    left: -36px;
+    top: -36px;
+    width: 72px;
+    height: 72px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 3px solid var(--c);
+    pointer-events: none;
+    animation: beacon-pulse var(--d) ease-out infinite;
+  }
+
+  .count {
+    position: absolute;
+    left: -26px;
+    top: -26px;
+    width: 52px;
+    height: 52px;
+    box-sizing: border-box;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--surf);
+    border: 3px solid var(--c);
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),
+      0 0 28px var(--c);
+    color: var(--ink);
+    font: 600 18px/1 'Prompt', sans-serif;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 3px solid var(--pri);
+      outline-offset: 4px;
+    }
+  }
+}
+
+// ---------- toy overlay ----------
+.toy-label {
+  --k: 1;
+  font: 600 calc(13px + 8px * var(--k)) / 1 'Prompt', sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  // dark halo, so white Thai text reads on green, orange and blue
+  text-shadow:
+    0 0 3px #2b2a33,
+    0 0 3px #2b2a33,
+    1px 1px 0 #2b2a33,
+    -1px -1px 0 #2b2a33,
+    1px -1px 0 #2b2a33,
+    -1px 1px 0 #2b2a33;
+}
+
+.toy-mover {
+  pointer-events: none;
+
+  img {
+    display: block;
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 6px 6px rgba(40, 60, 80, 0.25));
+  }
+
+  &.cloud img {
+    width: 96px;
+    height: 96px;
+    opacity: 0.92;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beacon .ring,
+  .cluster .ring {
+    animation: none;
+    opacity: 0.5;
+    transform: scale(1, 0.45);
+  }
+  .beacon .stand {
+    transition: none;
+  }
+}

@@ -123,20 +123,30 @@ async function main() {
     }
   } finally {
     // 8
-    if (commentId) {
-      psql(`delete from public.comments where id = '${uuid(commentId)}'`);
-      const left = await sb(`public_comments?select=id&id=eq.${commentId}`);
-      check('test comment cleaned up', left.length === 0);
+    // Each cleanup has its own try/catch so one failure cannot skip the other.
+    try {
+      if (commentId) {
+        const cid = uuid(commentId);
+        psql(`delete from public.comments where id = '${cid}'`);
+        const left = await sb(`public_comments?select=id&id=eq.${cid}`);
+        check('test comment cleaned up', left.length === 0);
+      }
+    } catch (e) {
+      check('test comment cleaned up', false, String(e));
     }
     // Restore neighbor1's confirmation to the starting state (the counter trigger fixes confirm_count).
-    const now = psql(`select count(*) from public.confirmations where report_id = '${reportId}' and user_id = ${n1}`) === '1';
-    if (now !== wasConfirmed) {
-      psql(
-        wasConfirmed
-          ? `insert into public.confirmations (report_id, user_id) values ('${reportId}', ${n1})`
-          : `delete from public.confirmations where report_id = '${reportId}' and user_id = ${n1}`,
-      );
-      console.log('! restored neighbor1 confirmation to its starting state');
+    try {
+      const now = psql(`select count(*) from public.confirmations where report_id = '${reportId}' and user_id = ${n1}`) === '1';
+      if (now !== wasConfirmed) {
+        psql(
+          wasConfirmed
+            ? `insert into public.confirmations (report_id, user_id) values ('${reportId}', ${n1})`
+            : `delete from public.confirmations where report_id = '${reportId}' and user_id = ${n1}`,
+        );
+        console.log('! restored neighbor1 confirmation to its starting state');
+      }
+    } catch (e) {
+      check('neighbor1 confirmation restored', false, String(e));
     }
   }
 }

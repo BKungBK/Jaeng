@@ -3,7 +3,7 @@
 import type maplibregl from 'maplibre-gl';
 import type { CustomRenderMethodInput } from 'maplibre-gl';
 import { SeaClock } from './sea-clock';
-import { SEA_ANCHOR, SeaMesh } from './sea-geometry';
+import { mercX, mercY, SEA_ANCHOR, SeaMesh } from './sea-geometry';
 import { SeaPalette } from './sea-palette';
 import { SEA_FRAGMENT, SEA_VERTEX } from './sea.glsl';
 
@@ -17,6 +17,22 @@ const PATTERN_PERIOD = 96 * 1024;
 
 /** Fades the shader's foam out between zoom 8 and 10, where the texture is too coarse. */
 export const seaFoamFade = (zoom: number) => Math.max(0, Math.min(1, (10 - zoom) / 2));
+
+/** Is land at this texture position (0..1)? Built from a downsampled copy of the land channel. */
+export type LandSampler = (u: number, v: number) => boolean;
+
+/** Whether any sea shows in the view [u0, v0, u1, v1] (texture space), checked on a 6×6 grid;
+ *  outside the texture is open sea. Used to stop animating when the screen is all land. */
+export function seaInView(landAt: LandSampler, [u0, v0, u1, v1]: [number, number, number, number]): boolean {
+  const n = 6;
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      const u = u0 + ((u1 - u0) * i) / (n - 1);
+      const v = v0 + ((v1 - v0) * j) / (n - 1);
+      if (u < 0 || u > 1 || v < 0 || v > 1 || !landAt(u, v)) return true;
+    }
+  return false;
+}
 
 /** column-major 4×4 multiply, in float64 */
 function multiply(a: ArrayLike<number>, b: ArrayLike<number>): Float32Array {
@@ -52,6 +68,7 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     private grid: SeaGrid,
     private palette: SeaPalette,
     private clock: SeaClock,
+    private landAt?: LandSampler,
   ) {}
 
   setPalette(palette: SeaPalette): void {
@@ -59,8 +76,14 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     this.map?.triggerRepaint();
   }
 
-  onAdd(map: maplibregl.Map, gl: WebGLRenderingContext | WebGL2RenderingContext): void {
+  onAdd(map: maplibregl.Map): void {
     this.map = map;
+    document.addEventListener('visibilitychange', this.onVisibility);
+  }
+
+  /** GPU resources are made on the first render, not in onAdd: MapLibre caches its GL bindings and
+   *  only resets that cache after a custom layer's render, so binding anything earlier corrupts it. */
+  private init(gl: WebGLRenderingContext | WebGL2RenderingContext) {
     if (!('createVertexArray' in gl)) {
       this.fail('WebGL2 unavailable');
       return;
@@ -98,7 +121,6 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     } catch (e) {
       this.fail(e);
     }
-    document.addEventListener('visibilitychange', this.onVisibility);
   }
 
   private link(gl: WebGL2RenderingContext): WebGLProgram {
@@ -127,7 +149,8 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     this.failed = true;
   }
 
-  render(_gl: WebGLRenderingContext | WebGL2RenderingContext, args: CustomRenderMethodInput): void {
+  render(context: WebGLRenderingContext | WebGL2RenderingContext, args: CustomRenderMethodInput): void {
+    if (!this.program && !this.failed && this.map) this.init(context);
     const { gl, map, program } = this;
     if (this.failed || !gl || !map || !program || !this.vao) return;
     const zoom = map.getZoom();
@@ -175,7 +198,18 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
   }
 
   private schedule() {
-    if (this.timer !== undefined) return;
+    if (this.timer !== undefined || !this.map) return;
+    if (this.landAt) {
+      // all land on screen (a city at street zoom): hold still until the camera moves
+      const b = this.map.getBounds();
+      const uv = (lng: number, lat: number) => [
+        (mercX(lng) - this.grid.x0) / this.grid.size,
+        (mercY(lat) - this.grid.y0) / this.grid.size,
+      ];
+      const [u0, v0] = uv(b.getWest(), b.getNorth());
+      const [u1, v1] = uv(b.getEast(), b.getSouth());
+      if (!seaInView(this.landAt, [u0, v0, u1, v1])) return;
+    }
     const wait = this.clock.nextFrameIn(document.hidden);
     if (wait === null) return;
     this.timer = setTimeout(() => {
@@ -184,7 +218,7 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     }, wait);
   }
 
-  onRemove(_map: maplibregl.Map, _gl: WebGLRenderingContext | WebGL2RenderingContext): void {
+  onRemove(): void {
     clearTimeout(this.timer);
     this.timer = undefined;
     document.removeEventListener('visibilitychange', this.onVisibility);

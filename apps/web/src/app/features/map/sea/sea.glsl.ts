@@ -71,27 +71,33 @@ void main() {
   col = mix(col, mix(col, u_caustic, 0.45), step(rim, 1.2));
 
   // caustics: thin bright cell-edge lines, full in the shallows, faint in the mid band, none at sea
-  float c = voronoiEdge(p / 64.0, u_time * 0.9);
-  float c2 = voronoiEdge(p / 32.0 + 7.3, -u_time * 0.7);
-  float lines = step(c, 0.05) + step(c2, 0.035) * 0.5;
-  float reach = d < 1.0 ? 0.9 : d < 4.0 ? 0.3 : 0.0;
-  col = mix(col, u_caustic, clamp(lines, 0.0, 1.0) * reach);
+  // (the bands are wide, so this branch is coherent and open water skips the two Voronoi passes)
+  if (d < 4.0) {
+    float c = voronoiEdge(p / 64.0, u_time * 0.9);
+    float c2 = voronoiEdge(p / 32.0 + 7.3, -u_time * 0.7);
+    float lines = step(c, 0.05) + step(c2, 0.035) * 0.5;
+    float reach = d < 1.0 ? 0.9 : 0.3;
+    col = mix(col, u_caustic, clamp(lines, 0.0, 1.0) * reach);
+  }
 
-  // foam lapping the coast: a solid band that breathes, and a thin line chasing it
-  float wave = sin(u_time * 1.3 - px * 0.18);
-  float band = step(px, 3.5 + 2.5 * (0.5 + 0.5 * wave));
-  float trail = step(abs(px - (11.0 + 5.0 * (0.5 + 0.5 * sin(u_time * 1.3 - 1.4)))), 0.8);
-  float broken = step(0.5, noise(p / 16.0 + u_time * 0.2));
-  col = mix(col, u_foam, max(band, trail * broken) * u_foamFade);
+  // foam lapping the coast: a solid band that breathes, and a thin line chasing it (within 20 px)
+  if (u_foamFade > 0.0 && px < 20.0) {
+    float wave = sin(u_time * 1.3 - px * 0.18);
+    float band = step(px, 3.5 + 2.5 * (0.5 + 0.5 * wave));
+    float trail = step(abs(px - (11.0 + 5.0 * (0.5 + 0.5 * sin(u_time * 1.3 - 1.4)))), 0.8);
+    float broken = step(0.5, noise(p / 16.0 + u_time * 0.2));
+    col = mix(col, u_foam, max(band, trail * broken) * u_foamFade);
+  }
 
   // sparkles on open water: one per cell, flashing briefly
-  vec2 cell = floor(p / 48.0);
-  vec2 spot = (cell + 0.2 + 0.6 * hash2(cell)) * 48.0;
-  float phase = fract(u_time * 0.3 + hash(cell + 3.1));
-  float on = step(0.93, phase) * step(1.0, d);
-  vec2 q = abs(p - spot);
-  float star = step(q.x + q.y * 3.0, 3.2) + step(q.y + q.x * 3.0, 3.2);
-  col = mix(col, u_sparkle, clamp(star, 0.0, 1.0) * on);
+  if (d >= 1.0) {
+    vec2 cell = floor(p / 48.0);
+    vec2 spot = (cell + 0.2 + 0.6 * hash2(cell)) * 48.0;
+    float phase = fract(u_time * 0.3 + hash(cell + 3.1));
+    vec2 q = abs(p - spot);
+    float star = step(q.x + q.y * 3.0, 3.2) + step(q.y + q.x * 3.0, 3.2);
+    col = mix(col, u_sparkle, clamp(star, 0.0, 1.0) * step(0.93, phase));
+  }
 
   fragColor = vec4(col, 1.0);
 }`;

@@ -4,6 +4,7 @@ import type { FeatureCollection } from 'geojson';
 import { SEA_FRAME_MS, SeaClock } from './sea-clock';
 import { SEA_ANCHOR, seaTriangles } from './sea-geometry';
 import { seaPalette } from './sea-palette';
+import { seaFoamFade, seaInView } from './sea-layer';
 
 const mask = JSON.parse(readFileSync(resolve(process.cwd(), 'src/assets/geo/mask.json'), 'utf8')) as FeatureCollection;
 
@@ -49,6 +50,30 @@ describe('seaPalette', () => {
     const p = seaPalette('light');
     expect(p.shallow[1]).toBeGreaterThan(p.deep[1]); // greener
     expect(p.deep[2]).toBeGreaterThan(p.deep[0]); // blue
+  });
+});
+
+describe('seaInView', () => {
+  // a 4×4 mask: land (true) on the left half, sea on the right
+  const land = (u: number) => u < 0.5;
+  const sampler = (u: number, _v: number) => land(u);
+
+  it('is true when any part of the view is sea', () => {
+    expect(seaInView(sampler, [0.3, 0.2, 0.6, 0.4])).toBe(true);
+  });
+
+  it('is false when the whole view is land', () => {
+    expect(seaInView(sampler, [0.1, 0.2, 0.4, 0.4])).toBe(false);
+  });
+
+  it('counts anything outside the texture as sea', () => {
+    expect(seaInView(sampler, [-0.2, 0.2, 0.1, 0.4])).toBe(true);
+  });
+});
+
+describe('seaFoamFade', () => {
+  it('is full to zoom 8 and gone by zoom 10', () => {
+    expect([7, 8, 9, 10, 12].map(seaFoamFade)).toEqual([1, 1, 0.5, 0, 0]);
   });
 });
 

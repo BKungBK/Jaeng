@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import type { DemoUser } from '@jaeng/shared/api';
-import { AuthService } from '../../core/auth.service';
+import { AuthError, AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { LoginFormComponent } from './login-form.component';
 
@@ -110,7 +110,7 @@ describe('LoginFormComponent', () => {
 
   it('shows a wrong code in Thai in role="alert" and does not finish', async () => {
     const t = await setup();
-    t.auth.verifyCode.mockRejectedValue(new Error('รหัสไม่ถูก หรือหมดอายุแล้ว ลองขอรหัสใหม่นะ'));
+    t.auth.verifyCode.mockRejectedValue(new AuthError('รหัสไม่ถูก หรือหมดอายุแล้ว ลองขอรหัสใหม่นะ'));
     await toCodeStep(t);
     await t.type('input[autocomplete="one-time-code"]', '000000');
     await t.submit();
@@ -120,7 +120,7 @@ describe('LoginFormComponent', () => {
 
   it('shows a send failure in role="alert" and stays on the email step', async () => {
     const t = await setup();
-    t.auth.sendCode.mockRejectedValue(new Error('ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ'));
+    t.auth.sendCode.mockRejectedValue(new AuthError('ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ'));
     await toCodeStep(t);
     expect(t.root.querySelector('[role="alert"]')?.textContent).toContain('ขอรหัสถี่ไปหน่อย');
     const email = t.root.querySelector('input[type="email"]')!;
@@ -181,11 +181,27 @@ describe('LoginFormComponent', () => {
 
   it('shows a failed quick login in role="alert"', async () => {
     const t = await setup({ quickLogin: DEMO });
-    t.auth.quickLogin.mockRejectedValue(new Error('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ'));
+    t.auth.quickLogin.mockRejectedValue(new AuthError('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ'));
     await t.stable();
     t.button('คนแจ้ง')!.click();
     await t.stable();
     expect(t.root.querySelector('[role="alert"]')?.textContent).toContain('เข้าสู่ระบบไม่สำเร็จ');
     expect(t.done).not.toHaveBeenCalled();
+  });
+
+  it('never shows a raw technical message, only the generic Thai one', async () => {
+    const t = await setup({ quickLogin: DEMO });
+    t.auth.sendCode.mockRejectedValue(new Error('config 503'));
+    t.auth.quickLogin.mockRejectedValue(new TypeError('Failed to fetch'));
+    await t.stable();
+    await toCodeStep(t);
+    const alert = t.root.querySelector('[role="alert"]')?.textContent ?? '';
+    expect(alert).not.toContain('config 503');
+    expect(alert).toContain('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
+    t.button('คนแจ้ง')!.click();
+    await t.stable();
+    const all = t.root.textContent ?? '';
+    expect(all).not.toContain('Failed to fetch');
+    expect(all).toContain('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
   });
 });

@@ -102,4 +102,9 @@ describe('ApiService', () => {
     const { service } = setup({ access: 't' }, new Response('<html>oops</html>', { status: 502 }));
     await expect(service.post('/x')).rejects.toMatchObject({ status: 502, code: 'internal' });
   });
+
+  it("words its own internal error exactly like the API's internal message", async () => {
+    const { service } = setup({ access: 't' }, new Response('<html>oops</html>', { status: 502 }));
+    await expect(service.post('/x')).rejects.toMatchObject({ messageTh: 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ' });
+  });
 });

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthService } from './auth.service';
+import { AuthError, AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
 
 const session = (token = 'at') => ({ access_token: token, refresh_token: 'rt', user: { id: 'u1' } });
@@ -86,6 +86,23 @@ describe('AuthService', () => {
     expect(service.profile()).toBeNull(); // and still null after the failed load
   });
 
+  it('keeps the profile when a reload for the same user fails (token refresh)', async () => {
+    const a = { id: 'u1', display_name: 'A', role: 'admin' };
+    const { service, emit, maybeSingle } = setup({ profile: a });
+    await service.ready;
+    emit('SIGNED_IN', session());
+    await flush();
+    expect(service.profile()).toEqual(a);
+    maybeSingle.mockRejectedValueOnce(new Error('offline'));
+    emit('TOKEN_REFRESHED', session('at2'));
+    await flush();
+    expect(service.profile()).toEqual(a);
+    maybeSingle.mockResolvedValueOnce({ data: null, error: { message: 'boom' } });
+    emit('TOKEN_REFRESHED', session('at3'));
+    await flush();
+    expect(service.profile()).toEqual(a); // an error answer is a failure too, not "no profile"
+  });
+
   it('picks up an existing session on start', async () => {
     const profile = { id: 'u1', display_name: 'a', role: 'admin' };
     const { service } = setup({ session: session(), profile });
@@ -107,11 +124,38 @@ describe('AuthService', () => {
     expect(auth.setSession).toHaveBeenCalledWith({ access_token: 'A', refresh_token: 'R' });
   });
 
-  it('quickLogin rejects when the API says no', async () => {
+  it('quickLogin rejects with the Thai message when the API says no', async () => {
     const { service, auth } = setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 404 })));
-    await expect(service.quickLogin('admin')).rejects.toThrow();
+    const err = await service.quickLogin('admin').catch((e) => e);
+    expect(err).toBeInstanceOf(AuthError);
+    expect(err.message).toBe('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
     expect(auth.setSession).not.toHaveBeenCalled();
+  });
+
+  it('quickLogin turns a network failure or a non-JSON answer into the Thai message', async () => {
+    const { service, auth } = setup();
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    const offline = await service.quickLogin('admin').catch((e) => e);
+    expect(offline).toBeInstanceOf(AuthError);
+    expect(offline.message).toBe('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html>', { status: 200 })));
+    const html = await service.quickLogin('admin').catch((e) => e);
+    expect(html).toBeInstanceOf(AuthError);
+    expect(html.message).toBe('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
+    expect(auth.setSession).not.toHaveBeenCalled();
+  });
+
+  it('quickLogin turns a setSession error into the Thai message', async () => {
+    const { service, auth } = setup();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ access_token: 'A', refresh_token: 'R' }), { status: 200 })),
+    );
+    auth.setSession.mockResolvedValue({ error: { message: 'Invalid Refresh Token' } });
+    const err = await service.quickLogin('admin').catch((e) => e);
+    expect(err).toBeInstanceOf(AuthError);
+    expect(err.message).toBe('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
   });
 
   it('sendCode asks for an email OTP and may create the user', async () => {

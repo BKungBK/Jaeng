@@ -1,23 +1,37 @@
-import { jwtVerify, type JWTVerifyGetKey } from 'jose';
+import { errors, jwtVerify, type JWTVerifyGetKey } from 'jose';
 import { ApiError } from './errors';
 import type { Member, Store } from './store';
 
-/** Resolves a bearer token to the user id (sub). Throws ApiError('unauthorized'). */
+/** Resolves a bearer token to the user id (sub). Throws ApiError('unauthorized'), or 'internal' when the keys can't be read. */
 export type Verify = (token: string) => Promise<string>;
+
+/**
+ * True when jose rejected the token itself. A JWKS timeout, a bad JWKS response (jose's generic
+ * JOSEError, JWKSInvalid) or a network error is our problem, not the caller's.
+ */
+function isTokenFailure(e: unknown): boolean {
+  if (!(e instanceof errors.JOSEError)) return false;
+  if (e instanceof errors.JWKSTimeout || e instanceof errors.JWKSInvalid) return false;
+  return e.code !== errors.JOSEError.code;
+}
 
 export function createVerifier(keys: JWTVerifyGetKey): Verify {
   return async (token) => {
+    let sub: unknown;
     try {
       const { payload } = await jwtVerify(token, keys, {
         algorithms: ['ES256', 'RS256'],
         audience: 'authenticated',
         requiredClaims: ['sub'],
       });
-      if (typeof payload.sub !== 'string' || payload.sub === '') throw new Error('no sub');
-      return payload.sub;
-    } catch {
-      throw new ApiError('unauthorized');
+      sub = payload.sub;
+    } catch (e) {
+      if (isTokenFailure(e)) throw new ApiError('unauthorized');
+      console.error('token verification could not run', e);
+      throw new ApiError('internal');
     }
+    if (typeof sub !== 'string' || sub === '') throw new ApiError('unauthorized');
+    return sub;
   };
 }
 

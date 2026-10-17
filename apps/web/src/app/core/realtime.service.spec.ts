@@ -59,6 +59,49 @@ describe('RealtimeService', () => {
     expect(client.channel).not.toHaveBeenCalled();
   });
 
+  it('drops malformed payloads', async () => {
+    const { emit, service } = setup();
+    const a = vi.fn();
+    service.listen(a);
+    await flush();
+    const bad: unknown[] = [
+      null,
+      'r1',
+      { ...sig, id: 7 },
+      { ...sig, id: '' },
+      { ...sig, status: 'deleted' },
+      { ...sig, confirm_count: '3' },
+      { ...sig, comment_count: -1 },
+      { ...sig, confirm_count: 1.5 },
+      { id: 'r1', status: 'open' },
+    ];
+    for (const p of bad) emit(p as ReportSignal);
+    expect(a).not.toHaveBeenCalled();
+    emit(sig);
+    expect(a).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for a removal still in flight before opening the channel again', async () => {
+    const { client, emit, service } = setup();
+    let finishRemoval!: () => void;
+    client.removeChannel.mockReturnValue(new Promise<void>((r) => (finishRemoval = r)));
+    const offFirst = service.listen(() => {});
+    await flush();
+    expect(client.channel).toHaveBeenCalledTimes(1);
+    offFirst(); // last one leaves: removal starts and hangs
+    await flush();
+    expect(client.removeChannel).toHaveBeenCalledTimes(1);
+    const b = vi.fn();
+    service.listen(b); // arrives before the removal finished
+    await flush();
+    expect(client.channel).toHaveBeenCalledTimes(1); // did not grab the channel being removed
+    finishRemoval();
+    await flush();
+    expect(client.channel).toHaveBeenCalledTimes(2);
+    emit(sig);
+    expect(b).toHaveBeenCalledWith(sig);
+  });
+
   it('can subscribe again after everyone left', async () => {
     const { client, service } = setup();
     service.listen(() => {})();

@@ -12,7 +12,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { COMMENT_MAX, PublicComment, ReportSignal } from '@jaeng/shared/api';
+import { COMMENT_MAX, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { LEVELS } from '@jaeng/shared/levels';
 import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
@@ -27,7 +27,9 @@ import { CATEGORY_TH, PHOTO_KIND_TH, ReportDetail } from './report-detail';
 import { ReportDetailService } from './report-detail.service';
 
 const MSG_LOAD = 'โหลดเรื่องนี้ไม่สำเร็จ ลองอีกครั้งนะ';
-const MSG_GENERIC = 'มีบางอย่างขัดข้อง ลองใหม่อีกครั้งนะ';
+const MSG_GENERIC = MSG_INTERNAL_TH;
+/** Live signals for the open report are coalesced over this window into one refetch. */
+export const SIGNAL_DEBOUNCE_MS = 250;
 const LONG_WAIT_DAYS = 30;
 
 type State = 'loading' | 'ready' | 'error';
@@ -72,18 +74,28 @@ export class ReportDetailComponent {
 
   /** Bumped on every load so a slow answer for a previous report is dropped. */
   private seq = 0;
+  /** Bumped on every "did I press it" read, so an answer for the previous user cannot land last. */
+  private mineSeq = 0;
+  /** Bumped on every live refetch, so only the newest one is applied. */
+  private liveSeq = 0;
+  private liveTimer?: ReturnType<typeof setTimeout>;
   private realtime = inject(RealtimeService);
+  private readonly userId = computed(() => this.auth.session()?.user.id ?? null);
 
   constructor() {
     const stop = this.realtime.listen((s) => this.onSignal(s));
-    inject(DestroyRef).onDestroy(stop);
+    inject(DestroyRef).onDestroy(() => {
+      stop();
+      clearTimeout(this.liveTimer);
+    });
     effect(() => {
       const id = this.reportId();
       untracked(() => void this.load(id));
     });
-    // logging in or out (here or in the account menu) changes whose "me too" this is
+    // logging in, out, or as someone else (quick login, OTP: SIGNED_IN without SIGNED_OUT)
+    // changes whose "me too" this is, so watch the user id, not just "signed in"
     effect(() => {
-      this.auth.signedIn();
+      this.userId(); // a computed: a token refresh for the same user does not re-run this
       untracked(() => {
         if (this.detail()) void this.refreshMine(this.seq);
       });
@@ -92,6 +104,7 @@ export class ReportDetailComponent {
 
   protected async load(id: string) {
     const seq = ++this.seq;
+    clearTimeout(this.liveTimer); // a pending live refetch belongs to the previous report
     this.state.set('loading');
     this.detail.set(null);
     this.comments.set([]);
@@ -137,13 +150,35 @@ export class ReportDetailComponent {
     }
   }
 
-  /** A live signal (Realtime Broadcast): the server's counts win; new comments are fetched. */
+  /**
+   * A live signal (Realtime Broadcast) only says "this report changed": the channel is public, so
+   * anyone with the anon key can send one. A burst is coalesced into one refetch, and the refetched
+   * report is what gets shown.
+   */
   private onSignal(s: ReportSignal) {
     const d = this.detail();
     if (!d || s.id !== this.reportId() || s.id !== d.id) return;
-    const moreComments = s.comment_count !== d.comment_count;
-    this.detail.set({ ...d, status: s.status, confirm_count: s.confirm_count, comment_count: s.comment_count });
-    if (moreComments) void this.loadComments(d.id, this.seq);
+    clearTimeout(this.liveTimer);
+    const seq = this.seq;
+    this.liveTimer = setTimeout(() => void this.refetch(d.id, seq), SIGNAL_DEBOUNCE_MS);
+  }
+
+  private async refetch(id: string, seq: number) {
+    const live = ++this.liveSeq;
+    let fresh: ReportDetail | null;
+    try {
+      fresh = await this.svc.get(id);
+    } catch {
+      return; // keep what is shown; the next signal tries again
+    }
+    if (seq !== this.seq || live !== this.liveSeq) return;
+    if (!fresh) {
+      this.missing.emit(); // hidden or removed meanwhile
+      return;
+    }
+    const shown = this.detail()?.comment_count;
+    this.detail.set({ ...fresh, photos: fresh.photos ?? [], tags: fresh.tags ?? [] });
+    if (fresh.comment_count !== shown) await this.loadComments(id, seq);
   }
 
   protected retry() {
@@ -151,9 +186,10 @@ export class ReportDetailComponent {
   }
 
   private async refreshMine(seq: number): Promise<boolean> {
+    const mineSeq = ++this.mineSeq;
     try {
       const mine = await this.svc.myConfirmation(this.reportId());
-      if (seq === this.seq) this.confirmed.set(mine);
+      if (seq === this.seq && mineSeq === this.mineSeq) this.confirmed.set(mine);
       return mine;
     } catch {
       return this.confirmed();
@@ -193,7 +229,8 @@ export class ReportDetailComponent {
     try {
       const res = await this.svc.addComment(d.id, body);
       if (seq !== this.seq) return;
-      this.comments.update((list) => (list.some((c) => c.id === res.comment.id) ? list : [...list, res.comment]));      this.draft.set('');
+      this.comments.update((list) => (list.some((c) => c.id === res.comment.id) ? list : [...list, res.comment]));
+      this.draft.set('');
       this.apply(res.report);
     } catch (e) {
       if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);

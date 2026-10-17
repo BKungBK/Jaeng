@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { ApiError } from '../../core/api.service';
@@ -6,7 +6,7 @@ import { AuthService } from '../../core/auth.service';
 import { RealtimeService } from '../../core/realtime.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import type { ReportDetail } from './report-detail';
-import { ReportDetailComponent } from './report-detail.component';
+import { ReportDetailComponent, SIGNAL_DEBOUNCE_MS } from './report-detail.component';
 import { ReportDetailService } from './report-detail.service';
 
 const ID = '7b0c5a3e-1f7d-4c49-9a52-2b8f3d0c6e11';
@@ -79,7 +79,9 @@ async function setup(opts: Opts = {}) {
     toggleConfirm: vi.fn(),
     addComment: vi.fn(),
   };
-  const signedIn = signal(opts.signedIn ?? true);
+  const user = signal<string | null>((opts.signedIn ?? true) ? 'u1' : null);
+  const session = computed(() => (user() ? { user: { id: user() } } : null));
+  const signedIn = computed(() => user() !== null);
   const ask = vi.fn().mockResolvedValue(false);
   const unlisten = vi.fn();
   const listeners: ((s: ReportSignal) => void)[] = [];
@@ -92,7 +94,7 @@ async function setup(opts: Opts = {}) {
     providers: [
       { provide: RealtimeService, useValue: { listen } },
       { provide: ReportDetailService, useValue: svc },
-      { provide: AuthService, useValue: { signedIn, profile: signal(null) } },
+      { provide: AuthService, useValue: { session, signedIn, profile: signal(null) } },
       { provide: LoginPromptService, useValue: { ask } },
     ],
   });
@@ -114,7 +116,12 @@ async function setup(opts: Opts = {}) {
   await settle();
   const root = fixture.nativeElement as HTMLElement;
   const meToo = () => root.querySelector<HTMLButtonElement>('button.metoo');
-  return { fixture, root, svc, signedIn, ask, out, settle, meToo, emit, listen, unlisten };
+  /** Waits out the live-signal debounce (real timers), then settles. */
+  const afterDebounce = async () => {
+    await new Promise((r) => setTimeout(r, SIGNAL_DEBOUNCE_MS + 30));
+    await settle();
+  };
+  return { fixture, root, svc, user, ask, out, settle, afterDebounce, meToo, emit, listen, unlisten };
 }
 
 describe('ReportDetailComponent', () => {
@@ -250,9 +257,9 @@ describe('ReportDetailComponent', () => {
     });
 
     it('toggles after a successful login', async () => {
-      const { svc, meToo, settle, ask, signedIn } = await setup({ signedIn: false });
+      const { svc, meToo, settle, ask, user } = await setup({ signedIn: false });
       ask.mockImplementation(async () => {
-        signedIn.set(true);
+        user.set('u1');
         return true;
       });
       svc.toggleConfirm.mockResolvedValue({ confirmed: true, report: sig() });
@@ -262,9 +269,9 @@ describe('ReportDetailComponent', () => {
     });
 
     it('does not undo an existing confirmation found after login', async () => {
-      const { svc, meToo, settle, ask, signedIn } = await setup({ signedIn: false });
+      const { svc, meToo, settle, ask, user } = await setup({ signedIn: false });
       ask.mockImplementation(async () => {
-        signedIn.set(true);
+        user.set('u1');
         return true;
       });
       svc.myConfirmation.mockResolvedValue(true);
@@ -276,7 +283,7 @@ describe('ReportDetailComponent', () => {
 
     it('shows the API message in the status line', async () => {
       const { svc, meToo, settle, root } = await setup();
-      svc.toggleConfirm.mockRejectedValue(new ApiError(409, 'report_closed', 'เรื่องนี้ปิดไปแล้วนะ'));
+      svc.toggleConfirm.mockRejectedValue(new ApiError(409, 'report_resolved', 'เรื่องนี้ปิดไปแล้วนะ'));
       meToo()!.click();
       await settle();
       expect(root.querySelector('[role="status"]')?.textContent).toContain('เรื่องนี้ปิดไปแล้วนะ');
@@ -297,6 +304,42 @@ describe('ReportDetailComponent', () => {
       await settle();
       expect(meToo()!.disabled).toBe(false);
       expect(meToo()!.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('re-reads my confirmation when another user signs in without signing out first', async () => {
+      const { svc, meToo, settle, user } = await setup({ mine: true });
+      expect(meToo()!.getAttribute('aria-pressed')).toBe('true');
+      const calls = svc.myConfirmation.mock.calls.length;
+      svc.myConfirmation.mockResolvedValue(false);
+      user.set('u2'); // quick login reporter -> neighbor1: SIGNED_IN, still signed in
+      await settle();
+      expect(svc.myConfirmation.mock.calls.length).toBe(calls + 1);
+      expect(meToo()!.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it("drops a slow answer for the previous user's confirmation", async () => {
+      const { svc, meToo, settle, user } = await setup({ mine: false });
+      const slow = deferred<boolean>();
+      svc.myConfirmation.mockReturnValueOnce(slow.promise).mockResolvedValueOnce(false);
+      user.set('u2');
+      await settle();
+      user.set('u3');
+      await settle();
+      slow.resolve(true); // u2's answer arrives after u3's
+      await settle();
+      expect(meToo()!.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('shows a hand when not pressed and a check when pressed, keeping the label', async () => {
+      const { svc, meToo, settle } = await setup({ mine: false });
+      expect(meToo()!.querySelector('svg.icon-hand')).not.toBeNull();
+      expect(meToo()!.querySelector('svg.icon-check')).toBeNull();
+      svc.toggleConfirm.mockResolvedValue({ confirmed: true, report: sig({ confirm_count: 4 }) });
+      meToo()!.click();
+      await settle();
+      expect(meToo()!.querySelector('svg.icon-check')).not.toBeNull();
+      expect(meToo()!.querySelector('svg.icon-hand')).toBeNull();
+      expect(meToo()!.textContent?.replace(/\s+/g, ' ')).toContain('เจอเหมือนกัน · 4');
     });
 
     it('is a sentence, not a button, on a resolved report', async () => {
@@ -426,39 +469,74 @@ describe('ReportDetailComponent', () => {
       expect(unlisten).toHaveBeenCalledTimes(1);
     });
 
-    it('shows new counts and status from a signal for this report', async () => {
-      const { root, emit, settle, meToo } = await setup();
+    it('refetches the report on a signal and shows what the server says', async () => {
+      const { root, svc, emit, afterDebounce, meToo } = await setup();
+      svc.get.mockResolvedValue(detail({ confirm_count: 8 }));
       emit(sig({ confirm_count: 8 }));
-      await settle();
+      await afterDebounce();
+      expect(svc.get).toHaveBeenCalledTimes(2);
       expect(meToo()!.textContent).toContain('8');
+      svc.get.mockResolvedValue(detail({ status: 'resolved', confirm_count: 8 }));
       emit(sig({ status: 'resolved', confirm_count: 8 }));
-      await settle();
+      await afterDebounce();
       expect(meToo()).toBeNull();
       expect(root.textContent).toContain('มีคนเจอเหมือนกัน 8 คน');
     });
 
-    it('ignores a signal for another report', async () => {
-      const { svc, emit, settle, meToo } = await setup();
-      emit(sig({ id: 'someone-else', confirm_count: 99, comment_count: 9 }));
+    it('does not trust the payload: a spoofed "resolved" leaves me-too in place when the refetch says open', async () => {
+      const { svc, emit, afterDebounce, meToo } = await setup();
+      emit(sig({ status: 'resolved', confirm_count: 999, comment_count: 1 }));
+      await afterDebounce();
+      expect(svc.get).toHaveBeenCalledTimes(2);
+      expect(meToo()).not.toBeNull();
+      expect(meToo()!.textContent).toContain('3');
+      expect(meToo()!.textContent).not.toContain('999');
+    });
+
+    it('coalesces a burst of signals into one refetch', async () => {
+      const { svc, emit, settle, afterDebounce } = await setup();
+      for (let i = 0; i < 6; i++) emit(sig({ confirm_count: 4 + i }));
       await settle();
+      expect(svc.get).toHaveBeenCalledTimes(1); // only the first load so far
+      await afterDebounce();
+      expect(svc.get).toHaveBeenCalledTimes(2);
+    });
+
+    it('emits missing when the refetch finds the report gone', async () => {
+      const { svc, emit, afterDebounce, out } = await setup();
+      svc.get.mockResolvedValue(null);
+      emit(sig());
+      await afterDebounce();
+      expect(out.missing).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores a signal for another report', async () => {
+      const { svc, emit, afterDebounce, meToo } = await setup();
+      emit(sig({ id: 'someone-else', confirm_count: 99, comment_count: 9 }));
+      await afterDebounce();
+      expect(svc.get).toHaveBeenCalledTimes(1);
       expect(meToo()!.textContent).toContain('3');
       expect(svc.comments).toHaveBeenCalledTimes(1);
     });
 
-    it('reloads the comments when the comment count differs, merging without duplicates', async () => {
-      const { root, svc, emit, settle } = await setup();
+    it('reloads the comments only when the refetched comment count differs, merging without duplicates', async () => {
+      const { root, svc, emit, afterDebounce } = await setup();
+      emit(sig({ comment_count: 2 })); // the payload's count is not trusted: the refetch still says 1
+      await afterDebounce();
+      expect(svc.comments).toHaveBeenCalledTimes(1);
+      svc.get.mockResolvedValue(detail({ comment_count: 2 }));
       svc.comments.mockResolvedValue([comment(), comment({ id: 'c2', body: 'จากอีกหน้าต่าง' })]);
       emit(sig({ comment_count: 2 }));
-      await settle();
+      await afterDebounce();
       expect(svc.comments).toHaveBeenCalledTimes(2);
       expect(root.querySelectorAll('.comments li')).toHaveLength(2);
       emit(sig({ comment_count: 2 })); // same count again: nothing to fetch
-      await settle();
+      await afterDebounce();
       expect(svc.comments).toHaveBeenCalledTimes(2);
     });
 
     it('does not lose a comment of my own when a reload comes back without it', async () => {
-      const { root, fixture, svc, emit, settle } = await setup();
+      const { root, fixture, svc, emit, settle, afterDebounce } = await setup();
       const mine = comment({ id: 'c9', body: 'ของฉันเอง' });
       svc.addComment.mockResolvedValue({ comment: mine, report: sig({ comment_count: 2 }) });
       const box = root.querySelector<HTMLTextAreaElement>('.composer textarea')!;
@@ -468,8 +546,9 @@ describe('ReportDetailComponent', () => {
       root.querySelector<HTMLButtonElement>('.composer button.send')!.click();
       await settle();
       svc.comments.mockResolvedValue([comment(), comment({ id: 'c2' })]);
+      svc.get.mockResolvedValue(detail({ comment_count: 3 }));
       emit(sig({ comment_count: 3 }));
-      await settle();
+      await afterDebounce();
       expect(root.querySelectorAll('.comments li')).toHaveLength(3);
     });
   });

@@ -24,6 +24,8 @@ async function api(path, { method = 'GET', token, body } = {}) {
 }
 
 async function main() {
+  // A previous run killed between ban and unban would leave neighbor1 banned; start clean (idempotent).
+  psql(`update public.profiles set banned_at = null where id = (select id from auth.users where email='neighbor1@jaeng.local')`);
   const config = await api('/config');
   const anon = config.json?.supabaseAnonKey;
   const sb = async (path) => {
@@ -121,6 +123,14 @@ async function main() {
     } else {
       check('confirming a resolved report is 409', false, 'no resolved report in the seed');
     }
+
+    // 7b
+    const ghost = await api(`/reports/${crypto.randomUUID()}/confirm`, { method: 'POST', token: neighbor.access_token });
+    check(
+      'confirming a non-existent report is 404 report_not_found',
+      ghost.status === 404 && ghost.json?.error?.code === 'report_not_found',
+      JSON.stringify([ghost.status, ghost.json]),
+    );
   } finally {
     // 8
     // Each cleanup has its own try/catch so one failure cannot skip the other.

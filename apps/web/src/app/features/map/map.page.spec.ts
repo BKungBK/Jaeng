@@ -57,7 +57,7 @@ const rt = {
 
 const authStubs = [
   { provide: RealtimeService, useValue: { listen: rt.listen } },
-  { provide: AuthService, useValue: { signedIn: signal(false), profile: signal(null) } },
+  { provide: AuthService, useValue: { session: signal(null), signedIn: signal(false), profile: signal(null) } },
   { provide: LoginPromptService, useValue: { ask: vi.fn() } },
   { provide: PopoverController, useValue: { create: vi.fn() } },
 ];

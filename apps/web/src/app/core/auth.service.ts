@@ -7,18 +7,24 @@ export type Profile = { id: string; display_name: string; role: 'user' | 'admin'
 
 const MSG_BAD_CODE = 'รหัสไม่ถูก หรือหมดอายุแล้ว ลองขอรหัสใหม่นะ';
 const MSG_TOO_OFTEN = 'ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ';
-const MSG_GENERIC = 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ';
+export const MSG_LOGIN_FAILED = 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ';
+const MSG_GENERIC = MSG_LOGIN_FAILED;
+
+/** An error whose message is Thai text written for the visitor; anything else is never shown as is. */
+export class AuthError extends Error {
+  override name = 'AuthError';
+}
 
 type AuthErr = { status?: number; code?: string; message?: string };
 
-function thaiError(e: AuthErr): Error {
+function thaiError(e: AuthErr): AuthError {
   if (e.status === 429 || e.code === 'over_email_send_rate_limit' || e.code === 'over_request_rate_limit') {
-    return new Error(MSG_TOO_OFTEN);
+    return new AuthError(MSG_TOO_OFTEN);
   }
   if (e.code === 'otp_expired' || e.code === 'otp_disabled' || e.status === 403 || e.status === 400) {
-    return new Error(MSG_BAD_CODE);
+    return new AuthError(MSG_BAD_CODE);
   }
-  return new Error(MSG_GENERIC);
+  return new AuthError(MSG_GENERIC);
 }
 
 @Injectable({ providedIn: 'root' })
@@ -81,11 +87,14 @@ export class AuthService {
   private async loadProfile(id: string): Promise<void> {
     try {
       const client = await this.supabase.client();
-      const { data } = await client.from('profiles').select('id, display_name, role').eq('id', id).maybeSingle();
+      const { data, error } = await client.from('profiles').select('id, display_name, role').eq('id', id).maybeSingle();
+      if (error) throw error;
       // ignore a stale answer if the user changed meanwhile
       if (this.sessionSig()?.user.id === id) this.profileSig.set((data as Profile | null) ?? null);
     } catch {
-      if (this.sessionSig()?.user.id === id) this.profileSig.set(null);
+      // A failed reload for the same user (e.g. on TOKEN_REFRESHED) keeps the profile already shown.
+      // apply() has already cleared it when the user changed, so nothing of another user survives.
+      if (this.sessionSig()?.user.id === id && this.profileSig()?.id !== id) this.profileSig.set(null);
     }
   }
 
@@ -102,16 +111,26 @@ export class AuthService {
   }
 
   async quickLogin(who: DemoWho): Promise<void> {
-    const res = await fetch('/api/dev/quick-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ who }),
-    });
-    if (!res.ok) throw new Error(MSG_GENERIC);
-    const { access_token, refresh_token } = (await res.json()) as { access_token: string; refresh_token: string };
-    const client = await this.clientReady();
-    const { error } = await client.auth.setSession({ access_token, refresh_token });
-    if (error) throw new Error(MSG_GENERIC);
+    let tokens: { access_token: string; refresh_token: string };
+    try {
+      const res = await fetch('/api/dev/quick-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ who }),
+      });
+      if (!res.ok) throw new Error(`quick login ${res.status}`);
+      tokens = (await res.json()) as typeof tokens;
+      if (typeof tokens?.access_token !== 'string' || typeof tokens?.refresh_token !== 'string') throw new Error('no tokens');
+    } catch {
+      throw new AuthError(MSG_GENERIC); // offline, API down, not JSON, or a refusal: one Thai message
+    }
+    try {
+      const client = await this.clientReady();
+      const { error } = await client.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token });
+      if (error) throw error;
+    } catch {
+      throw new AuthError(MSG_GENERIC);
+    }
   }
 
   async signOut(): Promise<void> {

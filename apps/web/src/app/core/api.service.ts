@@ -1,18 +1,18 @@
 import { inject, Injectable } from '@angular/core';
-import type { ApiErrorBody } from '@jaeng/shared/api';
+import { MSG_INTERNAL_TH, type ApiErrorBody, type ErrorCode } from '@jaeng/shared/api';
 import { AuthService } from './auth.service';
 
 export class ApiError extends Error {
   constructor(
     readonly status: number,
-    readonly code: string,
+    readonly code: ErrorCode,
     readonly messageTh: string,
   ) {
     super(`${status} ${code}`);
   }
 }
 
-const MSG_INTERNAL = 'มีบางอย่างขัดข้อง ลองใหม่อีกครั้งนะ';
+const MSG_INTERNAL = MSG_INTERNAL_TH;
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {

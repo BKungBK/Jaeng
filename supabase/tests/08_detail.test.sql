@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(26);
 
 -- Start from an empty map; the demo seed comes back when the transaction rolls back.
 delete from public.reports;
@@ -89,6 +89,12 @@ select tests.as_owner();
 select is((select photos from public.public_reports where id = :'r1'), '[]'::jsonb, 'no photos is an empty array');
 select is((select jsonb_array_length(photos) from public.public_reports where id = :'r2'), 2,
   'only before/after photos are exposed');
+
+-- The public views never expose who wrote something or the raw location column
+select hasnt_column('public', 'public_reports', 'author_id', 'public_reports has no author_id');
+select hasnt_column('public', 'public_reports', 'location', 'public_reports has no location column');
+select hasnt_column('public', 'public_comments', 'author_id', 'public_comments has no author_id');
+select hasnt_column('public', 'public_comments', 'location', 'public_comments has no location column');
 
 select * from finish();
 rollback;

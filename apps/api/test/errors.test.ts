@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
 import { ApiError, ERRORS, errorBody } from '../src/errors';
 
 test('errorBody builds the bilingual body', () => {
@@ -14,6 +15,11 @@ test('every code has a status and both messages', () => {
     expect(e.en.length).toBeGreaterThan(0);
     expect(errorBody(code as keyof typeof ERRORS).error.code).toBe(code);
   }
+});
+
+test('the internal message is the shared wording the web app also uses', () => {
+  expect(ERRORS.internal.th).toBe(MSG_INTERNAL_TH);
+  expect(MSG_INTERNAL_TH).toBe('ระบบขัดข้อง ลองใหม่อีกครั้งนะ');
 });
 
 test('ApiError carries its code', () => {

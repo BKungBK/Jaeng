@@ -91,7 +91,8 @@
             [disabled]="confirming()"
             (click)="toggle()"
           >
-            <app-icon name="hand" [size]="20" />
+            <!-- pressed is shown by shape too, not by fill colour alone -->
+            <app-icon [name]="confirmed() ? 'check' : 'hand'" [size]="20" />
             เจอเหมือนกัน · <span class="n">{{ d.confirm_count }}</span>
           </button>
         }

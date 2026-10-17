@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import type { DemoUser, DemoWho } from '@jaeng/shared/api';
-import { AuthService } from '../../core/auth.service';
+import { AuthError, AuthService, MSG_LOGIN_FAILED } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -21,7 +21,7 @@ import { IconComponent } from '../../shared/icon.component';
 export const RESEND_AFTER_MS = 60_000;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const MSG_GENERIC = 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ';
+const MSG_GENERIC = MSG_LOGIN_FAILED;
 
 type Busy = 'send' | 'verify' | 'resend' | DemoWho;
 
@@ -153,7 +153,8 @@ export class LoginFormComponent {
       await job();
       return true;
     } catch (e) {
-      errorSig.set(e instanceof Error && e.message ? e.message : MSG_GENERIC);
+      // only AuthService's own Thai text is shown; "config 503" or "Failed to fetch" never reach the visitor
+      errorSig.set(e instanceof AuthError && e.message ? e.message : MSG_GENERIC);
       return false;
     } finally {
       this.busy.set(null);

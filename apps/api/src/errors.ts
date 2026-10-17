@@ -1,4 +1,6 @@
-import type { ApiErrorBody } from '@jaeng/shared/api';
+import { MSG_INTERNAL_TH, type ApiErrorBody, type ServerErrorCode } from '@jaeng/shared/api';
+
+type Entry = { status: number; th: string; en: string };
 
 export const ERRORS = {
   unauthorized: { status: 401, th: 'เข้าสู่ระบบก่อนนะ', en: 'Please sign in first.' },
@@ -8,10 +10,10 @@ export const ERRORS = {
   invalid_body: { status: 400, th: 'ความคิดเห็นต้องยาว 1–500 ตัวอักษร', en: 'Comments must be 1–500 characters.' },
   invalid_request: { status: 400, th: 'ข้อมูลไม่ถูกต้อง', en: 'Invalid request.' },
   not_found: { status: 404, th: 'ไม่พบหน้านี้', en: 'Not found.' },
-  internal: { status: 500, th: 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ', en: 'Something went wrong. Please try again.' },
-} as const;
+  internal: { status: 500, th: MSG_INTERNAL_TH, en: 'Something went wrong. Please try again.' },
+} as const satisfies Record<ServerErrorCode, Entry>;
 
-export type ErrorCode = keyof typeof ERRORS;
+export type ErrorCode = ServerErrorCode;
 
 export class ApiError extends Error {
   constructor(readonly code: ErrorCode) {

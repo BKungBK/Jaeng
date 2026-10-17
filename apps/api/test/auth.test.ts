@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } from 'jose';
+import { SignJWT, createLocalJWKSet, errors, exportJWK, generateKeyPair } from 'jose';
 import { createVerifier, requireMember } from '../src/auth';
 import { ApiError } from '../src/errors';
 import type { Member } from '../src/store';
@@ -57,6 +57,30 @@ describe('createVerifier', () => {
   });
   test('garbage', async () => {
     await rejects(verify('not-a-jwt'), 'unauthorized');
+  });
+  test('a key getter that cannot reach the JWKS is internal, not unauthorized', async () => {
+    const offline = createVerifier(async () => {
+      throw new TypeError('fetch failed');
+    });
+    await rejects(offline(await sign()), 'internal');
+  });
+  test('a JWKS timeout is internal', async () => {
+    const slow = createVerifier(async () => {
+      throw new errors.JWKSTimeout();
+    });
+    await rejects(slow(await sign()), 'internal');
+  });
+  test('a non-200 JWKS response (generic JOSEError) is internal', async () => {
+    const broken = createVerifier(async () => {
+      throw new errors.JOSEError('Expected 200 OK from the JSON Web Key Set HTTP response');
+    });
+    await rejects(broken(await sign()), 'internal');
+  });
+  test('no matching key in the JWKS is still unauthorized', async () => {
+    const none = createVerifier(async () => {
+      throw new errors.JWKSNoMatchingKey();
+    });
+    await rejects(none(await sign()), 'unauthorized');
   });
 });
 

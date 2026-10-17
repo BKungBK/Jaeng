@@ -25,6 +25,24 @@ export type PublicComment = {
 export type DemoWho = 'reporter' | 'neighbor1' | 'admin';
 export type DemoUser = { who: DemoWho; label_th: string };
 
-export type ApiErrorBody = { error: { code: string; message_th: string; message_en: string } };
+/** Every error code the web app can see: the API's codes, plus 'network' (web only: the request never got an answer). */
+export type ErrorCode =
+  | 'unauthorized'
+  | 'banned'
+  | 'report_not_found'
+  | 'report_resolved'
+  | 'invalid_body'
+  | 'invalid_request'
+  | 'not_found'
+  | 'internal'
+  | 'network';
+
+/** The codes the API itself sends. */
+export type ServerErrorCode = Exclude<ErrorCode, 'network'>;
+
+/** One wording for "something broke on our side", on both the API and the web app. */
+export const MSG_INTERNAL_TH = 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ';
+
+export type ApiErrorBody = { error: { code: ErrorCode; message_th: string; message_en: string } };
 
 export const COMMENT_MAX = 500;

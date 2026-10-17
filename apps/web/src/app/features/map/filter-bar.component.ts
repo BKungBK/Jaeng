@@ -53,6 +53,18 @@ import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
       outline: 3px solid var(--pri);
       outline-offset: 2px;
     }
+    @media (max-width: 419px) {
+      .chips {
+        flex-wrap: nowrap;
+        gap: 4px;
+        padding: 4px;
+      }
+      .chip {
+        padding: 0 8px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+    }
   `,
 })
 export class FilterBarComponent {

@@ -1,0 +1,88 @@
+import { TestBed } from '@angular/core/testing';
+import { MAP_FACTORY } from './map-factory';
+import { MapPage } from './map.page';
+import { EMPTY_COLLECTION } from './report';
+import { ReportsService } from './reports.service';
+
+// Stand-in for maplibregl.Map: records handlers and lets a test fire events.
+function fakeMap() {
+  const handlers: Record<string, (() => void)[]> = {};
+  return {
+    on: (type: string, fn: () => void) => void (handlers[type] ??= []).push(fn),
+    off: () => undefined,
+    fire: (type: string) => handlers[type]?.forEach((fn) => fn()),
+    getZoom: () => 5,
+    getBounds: () => ({ getWest: () => 97, getSouth: () => 5, getEast: () => 106, getNorth: () => 21 }),
+    getSource: () => undefined,
+    zoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    flyTo: vi.fn(),
+    remove: vi.fn(),
+  };
+}
+
+async function setup(inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION)) {
+  const map = fakeMap();
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: MAP_FACTORY, useValue: () => map },
+      { provide: ReportsService, useValue: { inBbox } },
+    ],
+  });
+  const fixture = TestBed.createComponent(MapPage);
+  fixture.detectChanges();
+  await Promise.resolve(); // the factory result is awaited
+  await Promise.resolve();
+  const root = fixture.nativeElement as HTMLElement;
+  return { map, fixture, root, inBbox };
+}
+
+describe('MapPage', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('shows the brand, the level chips and the map controls', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('แจ้ง');
+    expect(root.querySelectorAll('app-filter-bar button')).toHaveLength(4);
+    for (const label of ['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน']) {
+      expect(root.querySelector(`button[aria-label="${label}"]`)).not.toBeNull();
+    }
+  });
+
+  it('loads reports for the view 300 ms after the map stops moving', async () => {
+    vi.useFakeTimers();
+    const { map, inBbox } = await setup();
+    map.fire('moveend');
+    map.fire('moveend');
+    expect(inBbox).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(inBbox).toHaveBeenCalledTimes(1);
+    expect(inBbox).toHaveBeenCalledWith([97, 5, 106, 21], [0, 1, 2, 3]);
+  });
+
+  it('says so when every level chip is off', async () => {
+    vi.useFakeTimers();
+    const { fixture, root } = await setup();
+    for (const b of [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button')]) b.click();
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    expect(root.querySelector('.hint')?.textContent).toContain('ปิดตัวกรองครบทุกระดับแล้ว');
+  });
+
+  it('shows a toast when loading fails', async () => {
+    vi.useFakeTimers();
+    const { map, fixture, root } = await setup(vi.fn().mockRejectedValue(new Error('offline')));
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('โหลดข้อมูลไม่สำเร็จ');
+  });
+
+  it('zooms with the buttons', async () => {
+    const { map, root } = await setup();
+    root.querySelector<HTMLButtonElement>('button[aria-label="ซูมเข้า"]')!.click();
+    root.querySelector<HTMLButtonElement>('button[aria-label="ซูมออก"]')!.click();
+    expect(map.zoomIn).toHaveBeenCalled();
+    expect(map.zoomOut).toHaveBeenCalled();
+  });
+});

@@ -2,15 +2,23 @@
 // Plain DOM for map markers and controls.
 import {
   Check,
+  CircleUser,
   Construction,
   createElement,
   Droplet,
+  Hand,
   IconNode,
   Lightbulb,
+  Link,
   LocateFixed,
+  LogOut,
+  Mail,
   MapPin,
+  MessageCircle,
   Minus,
+  Phone,
   Plus,
+  Send,
   Trash2,
   TreeDeciduous,
   TriangleAlert,
@@ -32,6 +40,14 @@ export const ICONS = {
   minus: Minus,
   locateFixed: LocateFixed,
   x: X,
+  circleUser: CircleUser,
+  logOut: LogOut,
+  mail: Mail,
+  send: Send,
+  hand: Hand,
+  link: Link,
+  messageCircle: MessageCircle,
+  phone: Phone,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

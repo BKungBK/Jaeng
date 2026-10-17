@@ -1,4 +1,8 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { PopoverController } from '@ionic/angular';
+import { AuthService } from '../../core/auth.service';
+import { LoginPromptService } from '../auth/login-prompt.service';
 import { MAP_FACTORY } from './map-factory';
 import { MapPage } from './map.page';
 import { EMPTY_COLLECTION } from './report';
@@ -28,12 +32,20 @@ function fakeMap() {
   };
 }
 
+// the account button's services, signed out (Ionic's overlay controllers come from provideIonicAngular)
+const authStubs = [
+  { provide: AuthService, useValue: { signedIn: signal(false), profile: signal(null) } },
+  { provide: LoginPromptService, useValue: { ask: vi.fn() } },
+  { provide: PopoverController, useValue: { create: vi.fn() } },
+];
+
 async function setup(inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION)) {
   const map = fakeMap();
   TestBed.configureTestingModule({
     providers: [
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: ReportsService, useValue: { inBbox } },
+      ...authStubs,
     ],
   });
   const fixture = TestBed.createComponent(MapPage);
@@ -54,6 +66,12 @@ describe('MapPage', () => {
     for (const label of ['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน']) {
       expect(root.querySelector(`button[aria-label="${label}"]`)).not.toBeNull();
     }
+  });
+
+  it('puts the account button after the locate button', async () => {
+    const { root } = await setup();
+    const labels = [...root.querySelectorAll('.controls button')].map((b) => b.getAttribute('aria-label'));
+    expect(labels).toEqual(['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน', 'เข้าสู่ระบบ']);
   });
 
   it('loads reports for the view 300 ms after the map stops moving', async () => {
@@ -132,6 +150,7 @@ describe('MapPage', () => {
       providers: [
         { provide: MAP_FACTORY, useValue: () => new Promise((r) => (resolveMap = r)) },
         { provide: ReportsService, useValue: { inBbox: vi.fn() } },
+        ...authStubs,
       ],
     });
     const fixture = TestBed.createComponent(MapPage);

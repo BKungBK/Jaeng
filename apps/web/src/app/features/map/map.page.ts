@@ -15,6 +15,7 @@ import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { IconComponent } from '../../shared/icon.component';
+import { AccountButtonComponent } from '../auth/account-button.component';
 import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
 import { FilterBarComponent } from './filter-bar.component';
@@ -35,7 +36,7 @@ const LOAD_DEBOUNCE_MS = 300;
   templateUrl: 'map.page.html',
   styleUrls: ['map.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent, IconComponent],
+  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent, IconComponent, AccountButtonComponent],
   host: { class: 'ion-page', '(document:keydown.escape)': 'closePeek()' },
 })
 export class MapPage {

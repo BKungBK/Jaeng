@@ -102,7 +102,7 @@
       <p class="status" role="status">{{ message() }}</p>
 
       <section class="comments" aria-labelledby="report-comments-title">
-        <h3 id="report-comments-title">ความคิดเห็น · {{ comments().length }}</h3>
+        <h3 id="report-comments-title">ความคิดเห็น · {{ d.comment_count }}</h3>
         @if (comments().length) {
           <ul>
             @for (c of comments(); track c.id) {

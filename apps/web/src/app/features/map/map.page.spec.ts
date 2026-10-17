@@ -5,7 +5,9 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { PopoverController } from '@ionic/angular';
 import { mapMatcher } from '../../app.routes';
 import { AppRouteStrategy } from '../../core/route-strategy';
+import type { ReportSignal } from '@jaeng/shared/api';
 import { AuthService } from '../../core/auth.service';
+import { RealtimeService } from '../../core/realtime.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { ReportDetailComponent } from '../report-detail/report-detail.component';
 import { ReportDetailService } from '../report-detail/report-detail.service';
@@ -43,7 +45,18 @@ function fakeMap() {
 }
 
 // the account button's services, signed out (Ionic's overlay controllers come from provideIonicAngular)
+const rt = {
+  listeners: [] as ((s: ReportSignal) => void)[],
+  unlisten: vi.fn(),
+  listen: vi.fn((fn: (s: ReportSignal) => void) => {
+    rt.listeners.push(fn);
+    return rt.unlisten;
+  }),
+  emit: (s: ReportSignal) => rt.listeners.forEach((fn) => fn(s)),
+};
+
 const authStubs = [
+  { provide: RealtimeService, useValue: { listen: rt.listen } },
   { provide: AuthService, useValue: { signedIn: signal(false), profile: signal(null) } },
   { provide: LoginPromptService, useValue: { ask: vi.fn() } },
   { provide: PopoverController, useValue: { create: vi.fn() } },
@@ -122,9 +135,33 @@ async function setup(
 }
 
 describe('MapPage', () => {
+  beforeEach(() => {
+    rt.listeners.length = 0;
+    rt.listen.mockClear();
+    rt.unlisten.mockClear();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it('turns a burst of realtime signals into one reload, and stops listening when destroyed', async () => {
+    vi.useFakeTimers();
+    const { fixture, inBbox } = await setup();
+    expect(rt.listen).toHaveBeenCalledTimes(1);
+    const s = (n: number): ReportSignal => ({ id: `r${n}`, status: 'open', confirm_count: n, comment_count: 0 });
+    rt.emit(s(1));
+    await vi.advanceTimersByTimeAsync(100);
+    rt.emit(s(2));
+    await vi.advanceTimersByTimeAsync(100);
+    rt.emit(s(3));
+    await vi.advanceTimersByTimeAsync(299);
+    expect(inBbox).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(inBbox).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+    expect(rt.unlisten).toHaveBeenCalledTimes(1);
   });
 
   it('shows the brand, the level chips and the map controls', async () => {

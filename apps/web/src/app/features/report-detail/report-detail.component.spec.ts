@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { RealtimeService } from '../../core/realtime.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import type { ReportDetail } from './report-detail';
 import { ReportDetailComponent } from './report-detail.component';
@@ -80,8 +81,16 @@ async function setup(opts: Opts = {}) {
   };
   const signedIn = signal(opts.signedIn ?? true);
   const ask = vi.fn().mockResolvedValue(false);
+  const unlisten = vi.fn();
+  const listeners: ((s: ReportSignal) => void)[] = [];
+  const listen = vi.fn((fn: (s: ReportSignal) => void) => {
+    listeners.push(fn);
+    return unlisten;
+  });
+  const emit = (s: ReportSignal) => listeners.forEach((fn) => fn(s));
   TestBed.configureTestingModule({
     providers: [
+      { provide: RealtimeService, useValue: { listen } },
       { provide: ReportDetailService, useValue: svc },
       { provide: AuthService, useValue: { signedIn, profile: signal(null) } },
       { provide: LoginPromptService, useValue: { ask } },
@@ -105,7 +114,7 @@ async function setup(opts: Opts = {}) {
   await settle();
   const root = fixture.nativeElement as HTMLElement;
   const meToo = () => root.querySelector<HTMLButtonElement>('button.metoo');
-  return { fixture, root, svc, signedIn, ask, out, settle, meToo };
+  return { fixture, root, svc, signedIn, ask, out, settle, meToo, emit, listen, unlisten };
 }
 
 describe('ReportDetailComponent', () => {
@@ -274,6 +283,22 @@ describe('ReportDetailComponent', () => {
       expect(meToo()!.getAttribute('aria-pressed')).toBe('false');
     });
 
+    it('leaves the next report enabled when the toggle for the previous one is still pending', async () => {
+      const { fixture, svc, meToo, settle } = await setup();
+      const answer = deferred<{ confirmed: boolean; report: ReportSignal }>();
+      svc.toggleConfirm.mockReturnValue(answer.promise);
+      meToo()!.click();
+      await settle();
+      expect(meToo()!.disabled).toBe(true);
+      fixture.componentRef.setInput('reportId', 'other');
+      await settle();
+      expect(meToo()!.disabled).toBe(false);
+      answer.resolve({ confirmed: true, report: sig({ confirm_count: 9 }) });
+      await settle();
+      expect(meToo()!.disabled).toBe(false);
+      expect(meToo()!.getAttribute('aria-pressed')).toBe('false');
+    });
+
     it('is a sentence, not a button, on a resolved report', async () => {
       const { root, meToo } = await setup({ report: detail({ status: 'resolved', confirm_count: 5 }) });
       expect(meToo()).toBeNull();
@@ -340,12 +365,112 @@ describe('ReportDetailComponent', () => {
       expect(root.querySelectorAll('.comments li')).toHaveLength(1);
     });
 
+    it('keeps send disabled for a 501-character draft', async () => {
+      const { root, fixture } = await setup();
+      typeInto(root, 'ก'.repeat(500));
+      fixture.detectChanges();
+      expect(sendBtn(root).disabled).toBe(false);
+      typeInto(root, 'ก'.repeat(501));
+      fixture.detectChanges();
+      expect(sendBtn(root).disabled).toBe(true);
+    });
+
+    it('keeps a comment sent before the first list arrives, and counts from the report', async () => {
+      const { root, fixture, svc, settle } = await setup({ comments: [] });
+      const first = deferred<PublicComment[]>();
+      svc.comments.mockReturnValue(first.promise);
+      fixture.componentRef.setInput('reportId', 'other');
+      await settle();
+      const added = comment({ id: 'c9', body: 'มาก่อนรายการ' });
+      svc.addComment.mockResolvedValue({ comment: added, report: sig({ comment_count: 2 }) });
+      typeInto(root, 'มาก่อนรายการ');
+      fixture.detectChanges();
+      sendBtn(root).click();
+      await settle();
+      first.resolve([comment()]);
+      await settle();
+      const items = [...root.querySelectorAll('.comments li')].map((li) => li.textContent);
+      expect(items).toHaveLength(2);
+      expect(items.some((t) => t?.includes('เจอเหมือนกันเมื่อวาน'))).toBe(true);
+      expect(items.some((t) => t?.includes('มาก่อนรายการ'))).toBe(true);
+      expect(root.querySelector('#report-comments-title')?.textContent).toContain('· 2');
+    });
+
+    it('takes the heading count from the report, not the list length', async () => {
+      const { root } = await setup({ report: detail({ comment_count: 5 }), comments: [comment()] });
+      expect(root.querySelector('#report-comments-title')?.textContent).toContain('· 5');
+    });
+
     it('offers a login button instead of the box when signed out', async () => {
       const { root, ask } = await setup({ signedIn: false });
       expect(root.querySelector('.composer textarea')).toBeNull();
       const btn = [...root.querySelectorAll('button')].find((b) => b.textContent?.includes('เข้าสู่ระบบเพื่อแสดงความคิดเห็น'));
       btn!.click();
       expect(ask).toHaveBeenCalled();
+    });
+  });
+
+  it('keeps the status line in the accessibility tree while it is empty', async () => {
+    const { root } = await setup();
+    const status = root.querySelector<HTMLElement>('p.status[role="status"]')!;
+    expect(status).not.toBeNull();
+    expect(status.textContent).toBe('');
+    expect(getComputedStyle(status).display).not.toBe('none');
+  });
+
+  describe('live updates', () => {
+    it('listens while open and stops when destroyed', async () => {
+      const { fixture, listen, unlisten } = await setup();
+      expect(listen).toHaveBeenCalledTimes(1);
+      fixture.destroy();
+      expect(unlisten).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows new counts and status from a signal for this report', async () => {
+      const { root, emit, settle, meToo } = await setup();
+      emit(sig({ confirm_count: 8 }));
+      await settle();
+      expect(meToo()!.textContent).toContain('8');
+      emit(sig({ status: 'resolved', confirm_count: 8 }));
+      await settle();
+      expect(meToo()).toBeNull();
+      expect(root.textContent).toContain('มีคนเจอเหมือนกัน 8 คน');
+    });
+
+    it('ignores a signal for another report', async () => {
+      const { svc, emit, settle, meToo } = await setup();
+      emit(sig({ id: 'someone-else', confirm_count: 99, comment_count: 9 }));
+      await settle();
+      expect(meToo()!.textContent).toContain('3');
+      expect(svc.comments).toHaveBeenCalledTimes(1);
+    });
+
+    it('reloads the comments when the comment count differs, merging without duplicates', async () => {
+      const { root, svc, emit, settle } = await setup();
+      svc.comments.mockResolvedValue([comment(), comment({ id: 'c2', body: 'จากอีกหน้าต่าง' })]);
+      emit(sig({ comment_count: 2 }));
+      await settle();
+      expect(svc.comments).toHaveBeenCalledTimes(2);
+      expect(root.querySelectorAll('.comments li')).toHaveLength(2);
+      emit(sig({ comment_count: 2 })); // same count again: nothing to fetch
+      await settle();
+      expect(svc.comments).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not lose a comment of my own when a reload comes back without it', async () => {
+      const { root, fixture, svc, emit, settle } = await setup();
+      const mine = comment({ id: 'c9', body: 'ของฉันเอง' });
+      svc.addComment.mockResolvedValue({ comment: mine, report: sig({ comment_count: 2 }) });
+      const box = root.querySelector<HTMLTextAreaElement>('.composer textarea')!;
+      box.value = 'ของฉันเอง';
+      box.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      root.querySelector<HTMLButtonElement>('.composer button.send')!.click();
+      await settle();
+      svc.comments.mockResolvedValue([comment(), comment({ id: 'c2' })]);
+      emit(sig({ comment_count: 3 }));
+      await settle();
+      expect(root.querySelectorAll('.comments li')).toHaveLength(3);
     });
   });
 

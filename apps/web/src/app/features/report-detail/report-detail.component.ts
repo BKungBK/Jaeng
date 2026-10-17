@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   computed,
   effect,
@@ -15,6 +16,7 @@ import { COMMENT_MAX, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { LEVELS } from '@jaeng/shared/levels';
 import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { RealtimeService } from '../../core/realtime.service';
 import { IconComponent } from '../../shared/icon.component';
 import { formatAgo, formatDate } from '../../shared/time';
 import { LoginPromptService } from '../auth/login-prompt.service';
@@ -63,12 +65,18 @@ export class ReportDetailComponent {
   protected readonly message = signal('');
 
   protected readonly max = COMMENT_MAX;
-  protected readonly canSend = computed(() => this.draft().trim().length > 0 && !this.sending());
+  protected readonly canSend = computed(() => {
+    const n = this.draft().length;
+    return this.draft().trim().length > 0 && n <= COMMENT_MAX && !this.sending();
+  });
 
   /** Bumped on every load so a slow answer for a previous report is dropped. */
   private seq = 0;
+  private realtime = inject(RealtimeService);
 
   constructor() {
+    const stop = this.realtime.listen((s) => this.onSignal(s));
+    inject(DestroyRef).onDestroy(stop);
     effect(() => {
       const id = this.reportId();
       untracked(() => void this.load(id));
@@ -90,6 +98,8 @@ export class ReportDetailComponent {
     this.confirmed.set(false);
     this.message.set('');
     this.draft.set('');
+    this.confirming.set(false); // flags belong to the report on screen, not to the panel
+    this.sending.set(false);
     let d: ReportDetail | null;
     try {
       d = await this.svc.get(id);
@@ -110,12 +120,30 @@ export class ReportDetailComponent {
     // keyboard and screen-reader users land inside the panel
     setTimeout(() => this.closeBtn()?.nativeElement.focus({ preventScroll: true }));
     void this.refreshMine(seq);
+    await this.loadComments(id, seq);
+  }
+
+  /** Merges instead of replacing, so a comment that arrived by another route meanwhile is kept. */
+  private async loadComments(id: string, seq: number) {
     try {
       const list = await this.svc.comments(id);
-      if (seq === this.seq) this.comments.set(list);
+      if (seq !== this.seq) return;
+      this.comments.update((have) => {
+        const ids = new Set(list.map((c) => c.id));
+        return [...list, ...have.filter((c) => !ids.has(c.id))];
+      });
     } catch {
       // the report is still worth showing without its comments
     }
+  }
+
+  /** A live signal (Realtime Broadcast): the server's counts win; new comments are fetched. */
+  private onSignal(s: ReportSignal) {
+    const d = this.detail();
+    if (!d || s.id !== this.reportId() || s.id !== d.id) return;
+    const moreComments = s.comment_count !== d.comment_count;
+    this.detail.set({ ...d, status: s.status, confirm_count: s.confirm_count, comment_count: s.comment_count });
+    if (moreComments) void this.loadComments(d.id, this.seq);
   }
 
   protected retry() {
@@ -151,27 +179,26 @@ export class ReportDetailComponent {
     } catch (e) {
       if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);
     } finally {
-      this.confirming.set(false);
+      if (seq === this.seq) this.confirming.set(false);
     }
   }
 
   protected async send() {
     const d = this.detail();
     const body = this.draft().trim();
-    if (!d || !body || this.sending()) return;
+    if (!d || !body || this.draft().length > COMMENT_MAX || this.sending()) return;
     this.sending.set(true);
     this.message.set('');
     const seq = this.seq;
     try {
       const res = await this.svc.addComment(d.id, body);
       if (seq !== this.seq) return;
-      this.comments.update((list) => (list.some((c) => c.id === res.comment.id) ? list : [...list, res.comment]));
-      this.draft.set('');
+      this.comments.update((list) => (list.some((c) => c.id === res.comment.id) ? list : [...list, res.comment]));      this.draft.set('');
       this.apply(res.report);
     } catch (e) {
       if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);
     } finally {
-      this.sending.set(false);
+      if (seq === this.seq) this.sending.set(false);
     }
   }
 

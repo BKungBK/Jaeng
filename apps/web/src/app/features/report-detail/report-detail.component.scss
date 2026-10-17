@@ -326,8 +326,14 @@ h2 {
   font-size: 14px;
 }
 
+// empty, the live region stays in the accessibility tree (display:none would drop it and the first message would be missed)
 .status:empty {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 
 .status,

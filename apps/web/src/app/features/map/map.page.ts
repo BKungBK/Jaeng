@@ -20,6 +20,7 @@ import { IonModal } from '@ionic/angular';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
+import { RealtimeService } from '../../core/realtime.service';
 import { IconComponent } from '../../shared/icon.component';
 import { AccountButtonComponent } from '../auth/account-button.component';
 import type { ReportDetail } from '../report-detail/report-detail';
@@ -123,6 +124,8 @@ export class MapPage {
       const id = this.id();
       untracked(() => this.follow(id));
     });
+    // every live signal re-runs the debounced bbox load, so a burst becomes one request
+    destroyRef.onDestroy(inject(RealtimeService).listen(() => this.scheduleLoad()));
     afterNextRender(() => void this.start());
     destroyRef.onDestroy(() => {
       this.destroyed = true;

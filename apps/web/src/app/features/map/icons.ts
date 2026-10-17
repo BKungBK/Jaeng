@@ -11,9 +11,12 @@ import {
   IconNode,
   Landmark,
   Lightbulb,
+  LocateFixed,
   MapPin,
+  Minus,
   Mountain,
   Plane,
+  Plus,
   Sailboat,
   Ship,
   TrainFront,
@@ -23,6 +26,7 @@ import {
   TriangleAlert,
   Umbrella,
   Waves,
+  X,
 } from 'lucide';
 import type { Map as MlMap } from 'maplibre-gl';
 
@@ -47,6 +51,10 @@ export const ICONS = {
   plane: Plane,
   cloud: Cloud,
   compass: Compass,
+  plus: Plus,
+  minus: Minus,
+  locateFixed: LocateFixed,
+  x: X,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

@@ -2,7 +2,7 @@ import { LEVELS } from '@jaeng/shared/levels';
 import {
   beaconAriaLabel,
   beaconView,
-  categoryIconUrl,
+  categoryIcon,
   createBeaconElement,
   createClusterElement,
   pickLabelIds,
@@ -14,7 +14,7 @@ const report = (over: Partial<ReportProps> = {}): ReportProps => ({
   id: 'r1',
   title: 'หลุมลึก',
   category: 'road',
-  icon: '🕳️',
+  icon: 'construction',
   danger_level: 2,
   status: 'open',
   confirm_count: 0,
@@ -76,7 +76,8 @@ describe('createBeaconElement', () => {
     expect(disc.tabIndex).toBe(0);
     expect(disc.dataset['id']).toBe('r1');
     expect(disc.getAttribute('aria-label')).toBe('หลุมลึก ระดับอันตราย ยังไม่ได้แก้');
-    expect(disc.querySelector('img')!.getAttribute('src')).toBe('assets/emoji/hole.png');
+    expect(disc.querySelector('img')).toBeNull();
+    expect(disc.querySelector('svg.icon-construction')).not.toBeNull();
     expect(el.querySelector('.sym')!.getAttribute('data-level')).toBe('2');
   });
 
@@ -85,8 +86,10 @@ describe('createBeaconElement', () => {
     expect(claimed.classList).toContain('st-claimed');
     const done = createBeaconElement(report({ status: 'resolved' }), beaconView(report({ status: 'resolved' }), 13), true);
     expect(done.classList).toContain('st-done');
-    expect(done.querySelector('.disc img')).toBeNull();
-    expect(done.querySelector('.sym')!.textContent).toBe('✓');
+    expect(done.querySelector('.disc svg.icon-construction')).toBeNull();
+    expect(done.querySelector('.tick svg.icon-check')).not.toBeNull();
+    expect(done.querySelector('.sym svg.icon-check')).not.toBeNull();
+    expect(done.textContent).toBe('หลุมลึก');
   });
 
   it('renders a hostile title as text', () => {
@@ -146,8 +149,12 @@ describe('pickLabelIds', () => {
   });
 });
 
-describe('categoryIconUrl', () => {
-  it('maps flood to the water wave', () => {
-    expect(categoryIconUrl('flood')).toBe('assets/emoji/water-wave.png');
+describe('categoryIcon', () => {
+  it('maps flood to the waves icon', () => {
+    expect(categoryIcon('flood')).toBe('waves');
+  });
+
+  it('falls back to the map pin for an unknown slug', () => {
+    expect(categoryIcon('nope' as never)).toBe('mapPin');
   });
 });

@@ -2,25 +2,14 @@
 // MapLibre markers live outside Angular views; styles are in src/theme/map.scss.
 // User text only ever goes in through textContent.
 import { beamHeight } from '@jaeng/shared/beam';
-import type { CategorySlug } from '@jaeng/shared/categories';
+import { CATEGORY_ICONS, CategorySlug } from '@jaeng/shared/categories';
 import { DangerLevel, LEVELS, LevelInfo } from '@jaeng/shared/levels';
-import { EmojiSlug, emojiUrl } from './emoji';
+import { iconElement, IconName } from './icons';
 import { ReportProps, STATUS_TH } from './report';
 import { levelShapeSvg } from './level-shape';
 import { BEAM_ZOOM } from './toy';
 
-const CATEGORY_EMOJI: Record<CategorySlug, EmojiSlug> = {
-  road: 'hole',
-  light: 'light-bulb',
-  water: 'droplet',
-  flood: 'water-wave',
-  waste: 'wastebasket',
-  tree: 'deciduous-tree',
-  hazard: 'warning',
-  other: 'round-pushpin',
-};
-
-export const categoryIconUrl = (slug: CategorySlug) => emojiUrl(CATEGORY_EMOJI[slug] ?? 'round-pushpin');
+export const categoryIcon = (slug: CategorySlug): IconName => CATEGORY_ICONS[slug] ?? 'mapPin';
 
 export type BeaconView = { compact: boolean; height: number; state: 'open' | 'claimed' | 'done'; level: LevelInfo };
 
@@ -60,12 +49,9 @@ function build(root: HTMLElement, p: ReportProps, view: BeaconView) {
   disc.tabIndex = 0;
   disc.dataset['id'] = p.id;
   if (view.state === 'done') {
-    el('span', 'tick', disc).textContent = '✓';
+    el('span', 'tick', disc).appendChild(iconElement('check', 18));
   } else {
-    const img = el('img', 'icon', disc);
-    img.src = categoryIconUrl(p.category);
-    img.alt = '';
-    img.draggable = false;
+    disc.appendChild(iconElement(categoryIcon(p.category), 18));
   }
   disc.appendChild(levelBadge(view.state === 'done' ? null : p.danger_level));
 }
@@ -73,7 +59,7 @@ function build(root: HTMLElement, p: ReportProps, view: BeaconView) {
 /** The small badge at the disc's lower right: the level's shape, or a tick once resolved. */
 function levelBadge(level: DangerLevel | null): HTMLElement {
   const sym = el('i', 'sym');
-  if (level === null) sym.textContent = '✓';
+  if (level === null) sym.appendChild(iconElement('check', 10));
   else {
     sym.setAttribute('data-level', String(level));
     sym.appendChild(levelShapeSvg(level));

@@ -6,7 +6,7 @@ import { iconElement, IconName } from '../features/map/icons';
   selector: 'app-icon',
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { style: 'display:inline-flex;line-height:0' },
+  styles: ':host { display: inline-flex; line-height: 0; }',
 })
 export class IconComponent {
   readonly name = input.required<IconName>();

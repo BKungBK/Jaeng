@@ -26,6 +26,12 @@
     height: 10px;
     fill: currentColor;
   }
+
+  // Lucide icons are stroked, never filled
+  svg.icon {
+    fill: none;
+    stroke-width: 3;
+  }
 }
 
 // MapLibre attribution, themed from the tokens
@@ -122,16 +128,16 @@
     }
   }
 
-  .icon {
-    width: 30px;
-    height: 30px;
+  .disc > .icon,
+  .tick > .icon {
+    width: 24px;
+    height: 24px;
+    color: var(--ink);
     pointer-events: none;
-    user-select: none;
   }
 
   .tick {
-    font: 600 22px/1 'Prompt', sans-serif;
-    color: var(--ink);
+    display: contents;
   }
 
   .sym {

@@ -13,9 +13,9 @@ import {
 } from '@angular/core';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type maplibregl from 'maplibre-gl';
-import { categoryIconUrl } from './beacon';
+import { IconComponent } from '../../shared/icon.component';
+import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
-import { emojiUrl } from './emoji';
 import { FilterBarComponent } from './filter-bar.component';
 import { LevelShapeComponent } from './level-shape';
 import { MAP_FACTORY } from './map-factory';
@@ -34,7 +34,7 @@ const LOAD_DEBOUNCE_MS = 300;
   templateUrl: 'map.page.html',
   styleUrls: ['map.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent],
+  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent, IconComponent],
   host: { class: 'ion-page', '(document:keydown.escape)': 'closePeek()' },
 })
 export class MapPage {
@@ -60,7 +60,6 @@ export class MapPage {
 
   readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length));
   readonly compassOpacity = computed(() => toyOpacity(this.zoom()));
-  protected readonly compassUrl = emojiUrl('compass');
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -215,6 +214,6 @@ export class MapPage {
   // template helpers
   protected level = (p: ReportProps) => LEVELS[p.danger_level];
   protected status = (p: ReportProps) => STATUS_TH[p.status];
-  protected icon = (p: ReportProps) => categoryIconUrl(p.category);
+  protected icon = (p: ReportProps) => categoryIcon(p.category);
   protected photo = (p: ReportProps) => (p.cover_photo_path ? coverPhotoUrl(p.cover_photo_path) : null);
 }

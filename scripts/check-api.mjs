@@ -57,6 +57,14 @@ async function main() {
     return;
   }
 
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuid = (v) => {
+    if (!UUID.test(String(v))) throw new Error(`not a uuid: ${v}`);
+    return v;
+  };
+  const reportId = uuid(open.id);
+  const n1 = `(select id from auth.users where email='neighbor1@jaeng.local')`;
+
   let commentId = null;
   try {
     // 3
@@ -116,9 +124,19 @@ async function main() {
   } finally {
     // 8
     if (commentId) {
-      psql(`delete from public.comments where id = '${commentId}'`);
+      psql(`delete from public.comments where id = '${uuid(commentId)}'`);
       const left = await sb(`public_comments?select=id&id=eq.${commentId}`);
       check('test comment cleaned up', left.length === 0);
+    }
+    // Restore neighbor1's confirmation to the starting state (the counter trigger fixes confirm_count).
+    const now = psql(`select count(*) from public.confirmations where report_id = '${reportId}' and user_id = ${n1}`) === '1';
+    if (now !== wasConfirmed) {
+      psql(
+        wasConfirmed
+          ? `insert into public.confirmations (report_id, user_id) values ('${reportId}', ${n1})`
+          : `delete from public.confirmations where report_id = '${reportId}' and user_id = ${n1}`,
+      );
+      console.log('! restored neighbor1 confirmation to its starting state');
     }
   }
 }

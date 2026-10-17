@@ -27,7 +27,8 @@ export function createQuickLogin(opts: {
   password: string | null;
   fetchFn?: typeof fetch;
 }): QuickLogin {
-  const active = (host: string | null) => opts.enabled && !!opts.password && isLocalHost(host);
+  // Trusts the client-supplied Host header: DEV_QUICK_LOGIN must be false outside local dev.
+  const active =(host: string | null) => opts.enabled && !!opts.password && isLocalHost(host);
   const doFetch = opts.fetchFn ?? fetch;
   return {
     users: (host) => (active(host) ? DEMO_USERS.map(({ who, label_th }) => ({ who, label_th })) : []),

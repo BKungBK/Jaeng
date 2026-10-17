@@ -10,4 +10,5 @@
   1. `ogr2ogr` exported layers `tha_admin1` and `tha_admin2` with the fields renamed: `adm1_pcode → ADM1_PCODE`, `adm1_name1 → ADM1_TH`, `adm1_name → ADM1_EN`, `adm2_pcode → ADM2_PCODE`, `adm2_name1 → ADM2_TH`, `adm2_name → ADM2_EN`.
   2. `mapshaper -simplify 3% keep-shapes` (admin 1) and `-simplify 2% keep-shapes` (admin 2), with `precision=0.0001`.
 - **Result:** 77 provinces (`tha_adm1.geojson`) and 928 districts (`tha_adm2.geojson`)
+- **Web copies:** `scripts/build-web-geo.sh` writes `apps/web/src/assets/geo/provinces.json` (simplified to 12%, fields `pcode, name_th, region`), `land.json` (dissolved outline) and `mask.json` (world box minus Thailand) for the toy map.
 - **Region rule:** provinces `TH30`–`TH49` are `isan`; all others are `other`. This drives the orange Isan colour on the illustrated map.

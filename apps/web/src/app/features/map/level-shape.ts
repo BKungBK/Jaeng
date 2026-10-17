@@ -1,4 +1,4 @@
-// The four danger-level shapes (● ▲ ◆ ⚠, spec 3.3) drawn as one solid SVG set, so they share a
+// The four danger-level shapes (circle, triangle, diamond, alert; spec 3.3) drawn as one solid SVG set, so they share a
 // weight everywhere: chips, beacon and cluster badges, tooltip.
 import { Component, input } from '@angular/core';
 import type { DangerLevel } from '@jaeng/shared/levels';

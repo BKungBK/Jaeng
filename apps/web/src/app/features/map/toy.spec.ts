@@ -1,5 +1,22 @@
-import { toyLabelOpacity, toyOpacity, zoomHint } from './toy';
-import { PROVINCE_LABELS } from './toy-places';
+import { isIconName } from './icons';
+import { clampCenter, MAP_BOUNDS, THAILAND_BOUNDS } from './map-factory';
+import { landmarkPx, toyLabelOpacity, toyOpacity, zoomHint } from './toy';
+import { LANDMARKS, PROVINCE_LABELS, ROUTES } from './toy-places';
+
+describe('landmarkPx', () => {
+  it('grows from 28 px to 44 px between zoom 4 and 8, clamped outside', () => {
+    expect(landmarkPx(2)).toBe(28);
+    expect(landmarkPx(5)).toBe(32);
+    expect(landmarkPx(7)).toBe(40);
+    expect(landmarkPx(12)).toBe(44);
+  });
+});
+
+describe('toy props', () => {
+  it('use Lucide icon names only', () => {
+    for (const { slug } of [...LANDMARKS, ...ROUTES]) expect(isIconName(slug)).toBe(true);
+  });
+});
 
 describe('toyOpacity', () => {
   it.each([
@@ -31,13 +48,26 @@ describe('zoomHint', () => {
   });
 
   it.each([
-    [3, 'มุมมองโลก: ซูมเข้าหาประเทศไทยเพื่อดูสัญญาณไฟ'],
-    [5, 'ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่ ซูมเข้าเพื่อดูแต่ละเรื่อง'],
+    [3, 'ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่ ซูมเข้าเพื่อดูแต่ละเรื่อง'],
+    [5,'ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่ ซูมเข้าเพื่อดูแต่ละเรื่อง'],
     [7, 'ซูมต่อไป ภาพประกอบจะค่อยๆ กลายเป็นแผนที่ปกติ'],
     [10, 'แผนที่ปกติ: เรื่องที่อยู่ใกล้กันรวมเป็นวงตัวเลข'],
     [14, 'ระดับย่าน: ลำแสงยิ่งสูง ยิ่งมีคนเจอเหมือนกันมาก'],
   ])('zoom %d', (zoom, hint) => {
     expect(zoomHint(zoom, 5, 4)).toBe(hint);
+  });
+});
+
+describe('MAP_BOUNDS', () => {
+  it('holds Thailand with at least 1.5 degrees to spare on every side', () => {
+    const [w, s, e, n] = THAILAND_BOUNDS;
+    const [W, S, E, N] = MAP_BOUNDS;
+    expect([w - W, s - S, E - e, N - n].every((d) => d >= 1.5)).toBe(true);
+  });
+
+  it('pulls a centre over another country back to the edge and leaves Thailand alone', () => {
+    expect(clampCenter([90, 28])).toEqual([95.5, 22.5]);
+    expect(clampCenter([100.5, 13.75])).toEqual([100.5, 13.75]);
   });
 });
 

@@ -5,6 +5,7 @@ import maplibregl, { GeoJSONFeature, GeoJSONSource } from 'maplibre-gl';
 import { beaconView, createBeaconElement, createClusterElement, pickLabelIds, updateBeaconElement } from './beacon';
 import { REPORT_SOURCE } from './map-style';
 import type { ReportProps } from './report';
+import { SyncGate } from './sync-gate';
 
 export const MAX_MARKERS = 150;
 
@@ -27,18 +28,36 @@ export class BeaconLayer {
   private queued = false;
   private frame = 0;
   private destroyed = false;
+  private gate = new SyncGate();
   private readonly onRender = () => this.queue();
+  private readonly onSourceData = (e: maplibregl.MapSourceDataEvent) => {
+    if (e.sourceId === REPORT_SOURCE) this.gate.dataChanged();
+  };
 
   constructor(
     private map: maplibregl.Map,
     private handlers: BeaconHandlers,
   ) {
     map.on('render', this.onRender);
+    map.on('sourcedata', this.onSourceData);
   }
 
-  /** Coalesce bursts of render events into one sync per frame. */
+  /** Coalesce bursts of render events into one sync per frame, and skip frames where neither the
+   *  camera nor the reports changed (the animated sea repaints the map while it is idle). */
   private queue() {
     if (this.queued || this.destroyed) return;
+    const c = this.map.getCenter();
+    const canvas = this.map.getCanvas();
+    const view = {
+      lng: c.lng,
+      lat: c.lat,
+      zoom: this.map.getZoom(),
+      bearing: this.map.getBearing(),
+      pitch: this.map.getPitch(),
+      w: canvas.width,
+      h: canvas.height,
+    };
+    if (!this.gate.changed(view)) return;
     this.queued = true;
     this.frame = requestAnimationFrame(() => {
       this.queued = false;
@@ -180,6 +199,7 @@ export class BeaconLayer {
     this.destroyed = true;
     cancelAnimationFrame(this.frame);
     this.map.off('render', this.onRender);
+    this.map.off('sourcedata', this.onSourceData);
     for (const entry of this.entries.values()) entry.marker.remove();
     this.entries.clear();
   }

@@ -12,14 +12,16 @@ import {
   viewChild,
 } from '@angular/core';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
+import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
-import { categoryIconUrl } from './beacon';
+import { IconComponent } from '../../shared/icon.component';
+import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
-import { emojiUrl } from './emoji';
 import { FilterBarComponent } from './filter-bar.component';
 import { LevelShapeComponent } from './level-shape';
 import { MAP_FACTORY } from './map-factory';
-import { REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { holdBaseLabels, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { currentSeaTheme, SEA_HEX, SeaTheme, watchSeaTheme } from './sea/sea-palette';
 import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
@@ -34,7 +36,7 @@ const LOAD_DEBOUNCE_MS = 300;
   templateUrl: 'map.page.html',
   styleUrls: ['map.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent],
+  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent, IconComponent],
   host: { class: 'ion-page', '(document:keydown.escape)': 'closePeek()' },
 })
 export class MapPage {
@@ -47,6 +49,8 @@ export class MapPage {
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
   private toy?: ToyOverlay;
+  private stopSea?: () => void;
+  private stopTheme?: () => void;
   private loadTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
@@ -60,7 +64,6 @@ export class MapPage {
 
   readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length));
   readonly compassOpacity = computed(() => toyOpacity(this.zoom()));
-  protected readonly compassUrl = emojiUrl('compass');
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -71,6 +74,8 @@ export class MapPage {
       clearTimeout(this.toastTimer);
       this.beacons?.destroy();
       this.toy?.destroy();
+      this.stopSea?.();
+      this.stopTheme?.();
       this.map?.remove();
     });
   }
@@ -93,9 +98,12 @@ export class MapPage {
 
   /** Data first, decoration second: a missing toy asset must never cost the reports. */
   private async onLoad(map: maplibregl.Map) {
-    tintBaseMap(map);
+    const tint = (theme: SeaTheme) => tintBaseMap(map, theme, SEA_HEX[theme].shallow);
+    tint(currentSeaTheme());
+    this.stopTheme = watchSeaTheme(tint);
+    holdBaseLabels(map);
     setupReportLayers(map);
-    // phones: start with the attribution folded to its ⓘ so it does not sit under the hint card
+    // phones: start with the attribution folded to its info button so it does not sit under the hint card
     if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
     await Promise.all([this.startBeacons(map), this.startToy(map)]);
@@ -132,14 +140,44 @@ export class MapPage {
       if (this.destroyed) return;
       const sea = getComputedStyle(document.documentElement).getPropertyValue('--sea').trim() || undefined;
       await setupToyLayers(map, { provinces, land, mask }, sea);
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      void this.startSea(map, mask, reducedMotion);
+      this.watchProvinceHover(map);
       const { ToyOverlay } = await import('./toy-overlay');
       if (this.destroyed) return;
-      this.toy = new ToyOverlay(map, matchMedia('(prefers-reduced-motion: reduce)').matches);
+      this.toy = new ToyOverlay(map, reducedMotion);
     } catch (e) {
       // decoration only: the street map and the reports still work without it
       console.warn('toy map unavailable', e);
     }
   }
+  /** Lights up the province under a mouse pointer while the toy map shows (not on touch screens). */
+  private watchProvinceHover(map: maplibregl.Map) {
+    if (!matchMedia('(hover: hover)').matches) return;
+    let current: string | number | undefined;
+    const set = (id: string | number | undefined) => {
+      if (id === current) return;
+      if (current !== undefined) map.setFeatureState({ source: 'toy-provinces', id: current }, { hover: false });
+      current = id;
+      if (id !== undefined) map.setFeatureState({ source: 'toy-provinces', id }, { hover: true });
+    };
+    map.on('mousemove', 'toy-land', (e) => set(toyOpacity(map.getZoom()) > 0.5 ? e.features?.[0]?.id : undefined));
+    map.on('mouseleave', 'toy-land', () => set(undefined));
+  }
+
+  /** The animated cel sea over the flat mask; if it fails the flat sea stays. */
+  private async startSea(map: maplibregl.Map, mask: FeatureCollection, reducedMotion: boolean) {
+    try {
+      const { startSea } = await import('./sea/start-sea');
+      if (this.destroyed) return;
+      const stop = await startSea(map, mask, reducedMotion);
+      if (this.destroyed) stop();
+      else this.stopSea = stop;
+    } catch (e) {
+      console.warn('animated sea unavailable', e);
+    }
+  }
+
   private select(p: ReportProps) {
     this.hover.set(null);
     this.markSelected(false);
@@ -215,6 +253,6 @@ export class MapPage {
   // template helpers
   protected level = (p: ReportProps) => LEVELS[p.danger_level];
   protected status = (p: ReportProps) => STATUS_TH[p.status];
-  protected icon = (p: ReportProps) => categoryIconUrl(p.category);
+  protected icon = (p: ReportProps) => categoryIcon(p.category);
   protected photo = (p: ReportProps) => (p.cover_photo_path ? coverPhotoUrl(p.cover_photo_path) : null);
 }

@@ -26,6 +26,12 @@
     height: 10px;
     fill: currentColor;
   }
+
+  // Lucide icons are stroked, never filled
+  svg.icon {
+    fill: none;
+    stroke-width: 3;
+  }
 }
 
 // MapLibre attribution, themed from the tokens
@@ -122,16 +128,16 @@
     }
   }
 
-  .icon {
-    width: 30px;
-    height: 30px;
+  .disc > .icon,
+  .tick > .icon {
+    width: 24px;
+    height: 24px;
+    color: var(--ink);
     pointer-events: none;
-    user-select: none;
   }
 
   .tick {
-    font: 600 22px/1 'Prompt', sans-serif;
-    color: var(--ink);
+    display: contents;
   }
 
   .sym {
@@ -282,20 +288,31 @@
   visibility: hidden;
 }
 
+// Lucide stickers: cream disc, ink rim, ink icon (DESIGN.md "Cel map"); flat hard shadow, no blur
 .toy-mover {
   pointer-events: none;
 
-  img {
-    display: block;
-    width: 44px;
-    height: 44px;
-    filter: drop-shadow(0 6px 6px rgba(40, 60, 80, 0.25));
+  .sticker {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 2.5px solid #2b2a33;
+    border-radius: 50%;
+    background: #fff8ec;
+    color: #2b2a33;
+    box-shadow: 0 4px 0 rgba(43, 42, 51, 0.35);
   }
 
-  &.cloud img {
-    width: 96px;
-    height: 96px;
-    opacity: 0.92;
+  // clouds float free: a white cel cloud with an ink outline
+  &.cloud svg {
+    display: block;
+    width: 88px;
+    height: 88px;
+    fill: #fff;
+    stroke: #2b2a33;
+    stroke-width: 1.4;
+    filter: drop-shadow(0 6px 0 rgba(43, 42, 51, 0.18));
   }
 }
 

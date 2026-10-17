@@ -7,16 +7,17 @@ export type LevelInfo = {
   nameTh: string;
   nameEn: string;
   color: string;
-  symbol: string;
+  /** Drawn by the web app's level-shape SVG set; never as a text symbol. */
+  shape: 'circle' | 'triangle' | 'diamond' | 'alert';
   pulse: string;
   rings: 1 | 2;
 };
 
 export const LEVELS: readonly LevelInfo[] = [
-  { level: 0, nameTh: 'ทั่วไป', nameEn: 'Minor', color: '#8FD3B6', symbol: '●', pulse: '3s', rings: 1 },
-  { level: 1, nameTh: 'ควรระวัง', nameEn: 'Caution', color: '#F6D983', symbol: '▲', pulse: '2.4s', rings: 1 },
-  { level: 2, nameTh: 'อันตราย', nameEn: 'Danger', color: '#F4A582', symbol: '◆', pulse: '1.6s', rings: 2 },
-  { level: 3, nameTh: 'วิกฤต', nameEn: 'Critical', color: '#E57373', symbol: '⚠', pulse: '1s', rings: 2 },
+  { level: 0, nameTh: 'ทั่วไป', nameEn: 'Minor', color: '#8FD3B6', shape: 'circle', pulse: '3s', rings: 1 },
+  { level: 1, nameTh: 'ควรระวัง', nameEn: 'Caution', color: '#F6D983', shape: 'triangle', pulse: '2.4s', rings: 1 },
+  { level: 2, nameTh: 'อันตราย', nameEn: 'Danger', color: '#F4A582', shape: 'diamond', pulse: '1.6s', rings: 2 },
+  { level: 3, nameTh: 'วิกฤต', nameEn: 'Critical', color: '#E57373', shape: 'alert', pulse: '1s', rings: 2 },
 ];
 
 export const REPORT_STATUSES = ['pending_review', 'open', 'fix_claimed', 'resolved', 'rejected', 'hidden'] as const;

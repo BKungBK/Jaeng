@@ -1,5 +1,5 @@
 begin;
-select plan(9);
+select plan(11);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'categories', 'categories table exists');
@@ -28,6 +28,18 @@ select results_eq(
   $$select default_level::int from public.categories where slug in ('flood','waste') order by slug$$,
   $$values (2), (0)$$,
   'flood defaults to level 2, waste to level 0'
+);
+
+select is(
+  (select array_agg(icon order by sort) from public.categories),
+  array['construction','lightbulb','droplet','waves','trash2','treeDeciduous','triangleAlert','mapPin']::text[],
+  'category icons are Lucide names (plan 2b)'
+);
+select throws_ok(
+  $$update public.categories set icon = '📍' where slug = 'other'$$,
+  '23514',
+  null,
+  'category icon must be a plain icon name'
 );
 
 select throws_ok(

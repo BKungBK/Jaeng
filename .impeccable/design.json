@@ -106,17 +106,18 @@
     "northStar": "เมืองของเล่นยามฟ้าแจ้ง (Toy Town at First Light)",
     "overview": "แจ้ง means both \"to report\" and \"the sky turning bright\". The system is a toy model of Thailand seen at dawn: thick, soft-edged land like a painted wooden puzzle, a bright toy sea, small 3D landmarks, and above it the only lights in the scene, pastel signal beams that rise from each reported problem. The toy world is the welcome; the beams are the information. As the visitor zooms in, the toy dissolves into a calm street map and the beams stay, so the map stops being a picture and becomes a place.\n\nEverything around the map is a working app: floating white cards with soft shadows, 44 px targets, Thai-first type, short warm copy. The interface never imitates the toy; it sits on top of it like a friendly guide holding the map open. Danger is said three ways at once (colour, a solid shape from one SVG set, pulse speed), and status is said by the beam's form, never by colour.\n\nConfirmed anti-references: a dark gaming look, glowing neon on black, and the cold grey forms of a government portal. The owner's reference poster is a style reference only; its artwork is never copied or stored.",
     "keyCharacteristics": [
-      "Toy-model Thailand (stacked soil layers, green land, orange Isan, cream rim) that fades out between zoom 6 and 8; its province names leave first, between zoom 6 and 7.",
+      "Cel-shaded toy Thailand (flat province tones, ink outline, sand rim, stacked soil layers) that fades out between zoom 6 and 8; its province names leave first, between zoom 6 and 7. Only Thailand is ever shown: everything else is an animated cel sea.",
       "Pastel beams as the only light source; height grows with \"เจอเหมือนกัน\".",
       "Floating cards over a full-bleed map; no app chrome bars.",
-      "Microsoft Fluent Emoji 3D (MIT) for every pictogram: landmarks, vehicles, the compass and the eight category icons, so the toy world and the beacons share one object language.",
+      "Lucide (ISC) line icons for every pictogram: landmarks, vehicles, the compass, the controls and the eight category icons. No emoji anywhere (owner decision 2026-10-17); on the map an icon sits on a sticker (cream disc, ink rim).",
       "One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels everywhere they appear.",
       "Prompt for voice, IBM Plex Sans Thai for reading."
     ],
     "rules": [
       { "name": "The Levels Only Mean Danger Rule", "body": "Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.", "section": "colors" },
       { "name": "The Ink On Pastel Rule", "body": "Text on any pastel fill is Slate Ink (#2B2A33), never white and never the theme ink, and the pastel is always mixed into white, never into the theme surface. A chip reads the same in light and dark and every one passes WCAG AA.", "section": "colors" },
-      { "name": "The Toy Stays Toy Rule", "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea darkens to Night Sea; the toy is an object, not a surface.", "section": "colors" },
+      { "name": "The Toy Stays Toy Rule", "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.", "section": "colors" },
+      { "name": "The Cel Rule", "body": "The map has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs.", "section": "colors" },
       { "name": "The Thai First Rule", "body": "Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.", "section": "typography" },
       { "name": "The Names Stay Home Rule", "body": "A toy province name sits on its town, else one row below, else one row above (a name may prefer up), clear of clusters, beacons, landmarks and other names. If none of the three spots is free, it hides rather than drift. Names are short forms (กรุงเทพฯ).", "section": "typography" },
       { "name": "The One Light Rule", "body": "Only beacons glow. No other element gets a coloured shadow or glow.", "section": "elevation" },
@@ -127,8 +128,8 @@
       "Do keep text on pastel fills in Slate Ink (#2B2A33), with the pastel mixed into white, in both themes.",
       "Do show an off filter chip as an outline (transparent, 1px Sand Line, Muted Ink, line-through), not as a faded chip.",
       "Do keep every target at least 44 × 44 px and give every beacon an aria-label of \"{title} ระดับ{level} {status}\".",
-      "Do use Fluent Emoji 3D images for pictograms so they look the same on every device.",
-      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Microsoft Fluent Emoji (MIT) in the map attribution."
+      "Do use Lucide SVG icons for pictograms so they look the same on every device; never emoji.",
+      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution."
     ],
     "donts": [
       "Don't look like a dark game or a cold government form.",

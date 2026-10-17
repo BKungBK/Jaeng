@@ -1,9 +1,9 @@
 // HTML parts of the toy map: Thai province labels (MapLibre's glyph renderer misplaces Thai
 // vowel and tone marks) and the slow movers (train, planes, ships, clouds). All fade with the toy.
 import maplibregl from 'maplibre-gl';
-import { emojiUrl } from './emoji';
+import { iconElement } from './icons';
 import { placeLabels, Rect } from './declutter';
-import { toyLabelOpacity, toyOpacity } from './toy';
+import { landmarkPx, toyLabelOpacity, toyOpacity } from './toy';
 import { LANDMARKS, PROVINCE_LABELS, ROUTES } from './toy-places';
 
 type LngLat = [number, number];
@@ -38,10 +38,13 @@ export class ToyOverlay {
     for (const r of ROUTES) {
       const el = document.createElement('div');
       el.className = `toy-mover ${r.slug}`;
-      const img = document.createElement('img');
-      img.src = emojiUrl(r.slug);
-      img.alt = '';
-      el.appendChild(img);
+      if (r.slug === 'cloud') el.appendChild(iconElement('cloud', 88));
+      else {
+        const sticker = document.createElement('div');
+        sticker.className = 'sticker';
+        sticker.appendChild(iconElement(r.slug, 22));
+        el.appendChild(sticker);
+      }
       const lengths = r.path.slice(1).map((p, i) => dist(r.path[i], p));
       const first = r.path[0];
       const last = r.path[r.path.length - 1];
@@ -116,14 +119,13 @@ export class ToyOverlay {
     });
   }
 
-  /** Screen boxes of the 3D landmarks (symbol layer, bottom-anchored, sized as in map-style). */
+  /** Screen boxes of the landmark stickers (symbol layer, bottom-anchored, sized as in map-style). */
   private landmarkBoxes(): Rect[] {
     const zoom = this.map.getZoom();
-    const scale = zoom <= 4 ? 0.25 : zoom >= 8 ? 0.55 : zoom <= 6 ? 0.25 + ((zoom - 4) / 2) * 0.15 : 0.4 + ((zoom - 6) / 2) * 0.15;
     const origin = this.map.getContainer().getBoundingClientRect();
     return LANDMARKS.map((l) => {
       const p = this.map.project(l.lngLat);
-      const size = 128 * scale * l.size;
+      const size = landmarkPx(zoom) * l.size;
       const x = origin.left + p.x;
       const y = origin.top + p.y;
       return { left: x - size / 2, right: x + size / 2, top: y - size, bottom: y };

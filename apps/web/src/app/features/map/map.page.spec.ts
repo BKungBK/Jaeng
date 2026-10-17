@@ -97,7 +97,7 @@ describe('MapPage', () => {
       id: 'r1',
       title: 'หลุมลึก',
       category: 'road',
-      icon: '🕳️',
+      icon: 'construction',
       danger_level: 2,
       status: 'open',
       confirm_count: 3,

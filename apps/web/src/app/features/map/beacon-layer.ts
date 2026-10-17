@@ -26,6 +26,7 @@ export class BeaconLayer {
   private queued = false;
   private frame = 0;
   private destroyed = false;
+  private selectedId: string | null = null;
   private gate = new SyncGate();
   private readonly onRender = () => this.queue();
   private readonly onSourceData = (e: maplibregl.MapSourceDataEvent) => {
@@ -125,12 +126,38 @@ export class BeaconLayer {
       entry.props = item.props;
       updateBeaconElement(entry.el, item.props, view, label);
       entry.marker.setLngLat(item.lngLat);
+      this.applySelected(entry);
       return;
     }
     const el = createBeaconElement(item.props, view, label);
     const created: Entry = { el, kind: 'beacon', props: item.props, marker: this.place(el, item.lngLat) };
     this.wireBeacon(created);
+    this.applySelected(created);
     this.entries.set(item.key, created);
+  }
+
+  /** The selected report's disc wears the ring now and after every create or rebuild. */
+  setSelected(id: string | null): void {
+    this.selectedId = id;
+    for (const entry of this.entries.values()) this.applySelected(entry);
+  }
+
+  /** Focuses the report's disc; false when it has no marker (clustered or off screen). */
+  focus(id: string): boolean {
+    for (const entry of this.entries.values()) {
+      if (entry.kind === 'beacon' && entry.props?.id === id) {
+        const disc = entry.el.querySelector<HTMLElement>('.disc');
+        if (!disc) return false;
+        disc.focus();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private applySelected(entry: Entry) {
+    if (entry.kind !== 'beacon') return;
+    entry.el.querySelector('.disc')?.classList.toggle('selected', entry.props?.id === this.selectedId);
   }
 
   private wireBeacon(entry: Entry) {

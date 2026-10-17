@@ -1,9 +1,16 @@
-import { Routes } from '@angular/router';
+import { Routes, UrlMatchResult, UrlSegment } from '@angular/router';
+
+/** `/` and `/r/:id` share one route so the map page (and its WebGL context) is never rebuilt. */
+export function mapMatcher(segments: UrlSegment[]): UrlMatchResult | null {
+  if (segments.length === 0) return { consumed: [] };
+  if (segments.length === 2 && segments[0].path === 'r') return { consumed: segments, posParams: { id: segments[1] } };
+  return null;
+}
 
 export const routes: Routes = [
   {
-    path: '',
-    pathMatch: 'full',
+    matcher: mapMatcher,
+    data: { reuse: 'map' },
     loadComponent: () => import('./features/map/map.page').then((m) => m.MapPage),
   },
   {

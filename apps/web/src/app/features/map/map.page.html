@@ -28,7 +28,7 @@
 
 @if (selected(); as s) {
   <aside class="card peek" role="dialog" aria-labelledby="peek-title" [style.--c]="level(s).color">
-    <button type="button" class="ctl close" aria-label="ปิด" #close (click)="closePeek()">
+    <button type="button" class="ctl close" aria-label="ปิด" #closeBtn (click)="close()">
       <app-icon name="x" />
     </button>
     <ng-container *ngTemplateOutlet="summary; context: { $implicit: s, id: 'peek-title' }" />

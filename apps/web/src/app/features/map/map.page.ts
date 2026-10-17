@@ -6,11 +6,15 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
+  input,
   isDevMode,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
@@ -37,14 +41,14 @@ const LOAD_DEBOUNCE_MS = 300;
   styleUrls: ['map.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent, IconComponent, AccountButtonComponent],
-  host: { class: 'ion-page', '(document:keydown.escape)': 'closePeek()' },
+  host: { class: 'ion-page', '(document:keydown.escape)': 'close()' },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
   private reports = inject(ReportsService);
   private loader = new ReportsLoader((bbox, levels) => this.reports.inBbox(bbox, levels));
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
-  private closeButton = viewChild<ElementRef<HTMLButtonElement>>('close');
+  private closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');
 
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
@@ -54,6 +58,11 @@ export class MapPage {
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
 
+  private router = inject(Router);
+  private clicked: ReportProps | null = null;
+
+  /** Bound from the route (`/r/:id`); undefined on `/`. */
+  readonly id = input<string>();
   readonly levels = signal<readonly DangerLevel[]>([0, 1, 2, 3]);
   readonly zoom = signal(5);
   readonly shown = signal<number | null>(null);
@@ -65,6 +74,10 @@ export class MapPage {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    effect(() => {
+      const id = this.id();
+      untracked(() => this.follow(id));
+    });
     afterNextRender(() => void this.start());
     destroyRef.onDestroy(() => {
       this.destroyed = true;
@@ -75,6 +88,16 @@ export class MapPage {
       this.stopTheme?.();
       this.map?.remove();
     });
+  }
+
+  /** The route's report changed. Props are only known when the click came from this page;
+   *  a deep link shows nothing until the detail panel loads it. */
+  private follow(id: string | undefined) {
+    this.beacons?.setSelected(id ?? null);
+    const p = id && this.clicked?.id === id ? this.clicked : null;
+    this.selected.set(p);
+    // move focus into the card so keyboard and screen-reader users land on it
+    if (p) setTimeout(() => this.closeButton()?.nativeElement.focus());
   }
 
   private async start() {
@@ -119,6 +142,7 @@ export class MapPage {
         leave: () => this.hover.set(null),
         select: (p) => this.select(p),
       });
+      this.beacons.setSelected(this.id() ?? null);
     } catch {
       if (!this.destroyed) this.showToast('แผนที่โหลดไม่ครบ ลองรีเฟรชหน้านี้อีกครั้งนะ');
     }
@@ -170,30 +194,23 @@ export class MapPage {
     }
   }
 
-  private select(p: ReportProps) {
+  /** A beacon was chosen: the URL is the state, the `id` effect does the rest. */
+  select(p: ReportProps) {
     this.hover.set(null);
-    this.markSelected(false);
-    this.selected.set(p);
-    this.markSelected(true);
-    // move focus into the card so keyboard and screen-reader users land on it
-    setTimeout(() => this.closeButton()?.nativeElement.focus());
+    this.clicked = p;
+    void this.router.navigate(['/r', p.id]);
   }
 
-  closePeek() {
+  close() {
+    const id = this.id();
     const p = this.selected();
-    if (!p) return;
-    this.markSelected(false);
+    if (!id && !p) return;
     this.selected.set(null);
-    this.discFor(p.id)?.focus();
-  }
-
-  private discFor(id: string) {
-    return this.container().nativeElement.querySelector<HTMLElement>(`.disc[data-id="${CSS.escape(id)}"]`);
-  }
-
-  private markSelected(on: boolean) {
-    const p = this.selected();
-    if (p) this.discFor(p.id)?.classList.toggle('selected', on);
+    this.beacons?.setSelected(null);
+    void this.router.navigate(['/']);
+    const target = id ?? p?.id;
+    if (target && this.beacons?.focus(target)) return;
+    this.map?.getCanvas().focus();
   }
 
   scheduleLoad(delay = LOAD_DEBOUNCE_MS) {

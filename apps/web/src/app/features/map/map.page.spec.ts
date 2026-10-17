@@ -1,6 +1,10 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { RouteReuseStrategy, Router, provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { PopoverController } from '@ionic/angular';
+import { mapMatcher } from '../../app.routes';
+import { AppRouteStrategy } from '../../core/route-strategy';
 import { AuthService } from '../../core/auth.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { MAP_FACTORY } from './map-factory';
@@ -12,8 +16,11 @@ import { ReportsService } from './reports.service';
 function fakeMap() {
   const handlers: Record<string, (() => void)[]> = {};
   const sources: Record<string, unknown> = {};
+  const canvas = { focus: vi.fn() };
   return {
     sources,
+    canvas,
+    getCanvas: () => canvas,
     addSource: (id: string, spec: unknown) => void (sources[id] = spec),
     addLayer: vi.fn(),
     getStyle: () => ({ layers: [] }),
@@ -41,8 +48,10 @@ const authStubs = [
 
 async function setup(inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION)) {
   const map = fakeMap();
+  const navigate = vi.fn().mockResolvedValue(true);
   TestBed.configureTestingModule({
     providers: [
+      { provide: Router, useValue: { navigate } },
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: ReportsService, useValue: { inBbox } },
       ...authStubs,
@@ -53,7 +62,7 @@ async function setup(inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION)) {
   await Promise.resolve(); // the factory result is awaited
   await Promise.resolve();
   const root = fixture.nativeElement as HTMLElement;
-  return { map, fixture, root, inBbox };
+  return { map, fixture, root, inBbox, navigate };
 }
 
 describe('MapPage', () => {
@@ -109,20 +118,25 @@ describe('MapPage', () => {
     expect(order).toEqual(['APP-FILTER-BAR', 'controls', 'map']);
   });
 
-  it('opens the peek as a labelled dialog and closes it with Escape', async () => {
-    const { fixture, root } = await setup();
-    fixture.componentInstance.selected.set({
-      id: 'r1',
-      title: 'หลุมลึก',
-      category: 'road',
-      icon: 'construction',
-      danger_level: 2,
-      status: 'open',
-      confirm_count: 3,
-      comment_count: 0,
-      days_open: 4,
-      cover_photo_path: null,
-    });
+  const report = {
+    id: 'r1',
+    title: 'หลุมลึก',
+    category: 'road',
+    icon: 'construction',
+    danger_level: 2,
+    status: 'open',
+    confirm_count: 3,
+    comment_count: 0,
+    days_open: 4,
+    cover_photo_path: null,
+  } as const;
+
+  it('opens the peek for the clicked report and closes it with Escape', async () => {
+    const { fixture, root, navigate } = await setup();
+    const page = fixture.componentInstance;
+    page.select({ ...report });
+    expect(navigate).toHaveBeenCalledWith(['/r', 'r1']);
+    fixture.componentRef.setInput('id', 'r1'); // what the router does after the navigation
     fixture.detectChanges();
     const peek = root.querySelector('.peek')!;
     expect(peek.getAttribute('role')).toBe('dialog');
@@ -130,6 +144,44 @@ describe('MapPage', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
     expect(root.querySelector('.peek')).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('shows no peek for a deep link it has no props for', async () => {
+    const { fixture, root } = await setup();
+    fixture.componentRef.setInput('id', 'r9');
+    fixture.detectChanges();
+    expect(root.querySelector('.peek')).toBeNull();
+  });
+
+  it('focuses the map canvas when the closed report has no marker', async () => {
+    const { fixture, map } = await setup();
+    fixture.componentRef.setInput('id', 'r9');
+    fixture.detectChanges();
+    fixture.componentInstance.close();
+    expect(map.canvas.focus).toHaveBeenCalled();
+  });
+
+  it('keeps one page and one map from / to /r/x', async () => {
+    const map = fakeMap();
+    const factory = vi.fn(() => map);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RouteReuseStrategy, useClass: AppRouteStrategy },
+        provideRouter([{ matcher: mapMatcher, data: { reuse: 'map' }, component: MapPage }], withComponentInputBinding()),
+        { provide: MAP_FACTORY, useValue: factory },
+        { provide: ReportsService, useValue: { inBbox: vi.fn().mockResolvedValue(EMPTY_COLLECTION) } },
+        ...authStubs,
+      ],
+    });
+    const harness = await RouterTestingHarness.create();
+    const first = await harness.navigateByUrl('/', MapPage);
+    await Promise.resolve();
+    await Promise.resolve();
+    const second = await harness.navigateByUrl('/r/x', MapPage);
+    expect(second).toBe(first);
+    expect(second.id()).toBe('x');
+    expect(factory).toHaveBeenCalledTimes(1);
   });
 
   it('still loads reports when the toy decoration fails to load', async () => {

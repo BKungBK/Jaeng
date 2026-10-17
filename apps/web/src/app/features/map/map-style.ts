@@ -1,21 +1,24 @@
-// MapLibre sources and layers for the toy map and reports (spec 4.4, DESIGN.md "Toy map").
+// MapLibre sources and layers for the toy map and reports (spec 4.4, DESIGN.md "Cel map").
 import type { FeatureCollection } from 'geojson';
 import type { ExpressionSpecification, Map as MlMap } from 'maplibre-gl';
+import { baseTint, INK, paintProvinces } from './cel-land';
 import { addStickerImage, ImageLoader } from './icons';
+import type { SeaTheme } from './sea/sea-palette';
 import { CLUSTER_MAX_ZOOM, LANDMARK_PX, STICKER_PX, TOY_FADE } from './toy';
 import { LANDMARKS } from './toy-places';
 
 export const REPORT_SOURCE = 'reports';
 
 /** The slice of maplibregl.Map this module touches, so tests can pass a recorder. */
-export type MapLike = Pick<MlMap, 'addSource' | 'addLayer' | 'getStyle' | 'setPaintProperty' | 'loadImage' | 'addImage' | 'hasImage'>;
+export type MapLike = Pick<
+  MlMap,
+  'addSource' | 'addLayer' | 'getStyle' | 'setPaintProperty' | 'setLayerZoomRange' | 'loadImage' | 'addImage' | 'hasImage'
+>;
 
 export type ToyGeometry = { provinces: FeatureCollection; land: FeatureCollection; mask: FeatureCollection };
 
 // Toy colours are fixed in both themes (DESIGN.md "The Toy Stays Toy Rule").
 const TOY = {
-  land: '#79B83C',
-  isan: '#F5A04A',
   rim: '#F3E3B0',
   soil: ['#AB7B42', '#946636', '#7B5430'],
 };
@@ -45,7 +48,7 @@ export function setupReportLayers(map: MapLike): void {
 export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA', load?: ImageLoader): Promise<void> {
   map.addSource('toy-mask', { type: 'geojson', data: geo.mask });
   map.addSource('toy-land', { type: 'geojson', data: geo.land });
-  map.addSource('toy-provinces', { type: 'geojson', data: geo.provinces });
+  map.addSource('toy-provinces', { type: 'geojson', data: paintProvinces(geo.provinces), promoteId: 'pcode' });
   map.addSource('toy-landmarks', {
     type: 'geojson',
     data: {
@@ -92,19 +95,36 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
     id: 'toy-land',
     type: 'fill',
     source: 'toy-provinces',
-    paint: { 'fill-color': ['match', ['get', 'region'], 'isan', TOY.isan, TOY.land], 'fill-opacity': fade },
+    // flat cel tones per province, one step lighter under the pointer (feature-state 'hover')
+    paint: {
+      'fill-color': ['case', ['boolean', ['feature-state', 'hover'], false], ['get', 'hover'], ['get', 'fill']],
+      'fill-opacity': fade,
+    },
   });
   map.addLayer({
     id: 'toy-lines',
     type: 'line',
     source: 'toy-provinces',
-    paint: { 'line-color': 'rgba(255,255,255,0.35)', 'line-width': 0.6, 'line-opacity': fade },
+    // faint ink between provinces: 30% of the toy fade (MapLibre only takes zoom at the top level)
+    paint: { 'line-color': INK, 'line-width': 0.6, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 6, 0.3, 8, 0] },
   });
+  // sand beach between the land and the foam, then the ink outline that makes it read as cel
   map.addLayer({
     id: 'toy-rim',
     type: 'line',
     source: 'toy-land',
-    paint: { 'line-color': TOY.rim, 'line-width': 3, 'line-opacity': fade },
+    paint: { 'line-color': TOY.rim, 'line-width': 6, 'line-opacity': fade },
+  });
+  map.addLayer({
+    id: 'toy-ink',
+    type: 'line',
+    source: 'toy-land',
+    layout: { 'line-join': 'round' },
+    paint: {
+      'line-color': INK,
+      'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2, 7, 3],
+      'line-opacity': fade,
+    },
   });
 
   const slugs = [...new Set(LANDMARKS.map((l) => l.slug))];
@@ -131,10 +151,15 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
 }
 
 
-/** Pull the OpenFreeMap positron base into the แจ้ง palette: sand land, misty water. */
-export function tintBaseMap(map: MapLike): void {
-  for (const layer of map.getStyle().layers ?? []) {
-    if (layer.type === 'background') map.setPaintProperty(layer.id, 'background-color', '#F3EBDD');
-    else if (layer.type === 'fill' && layer.id.includes('water')) map.setPaintProperty(layer.id, 'fill-color', '#CFE3F0');
-  }
+/** Repaint the OpenFreeMap positron base in the cel palette for the theme; water takes the sea's
+ *  shallow colour so the gap between the mask and the real coast reads as shallows. */
+export function tintBaseMap(map: MapLike, theme: SeaTheme, shallow: string): void {
+  const ids = new Set((map.getStyle().layers ?? []).map((l) => l.id));
+  for (const [id, prop, value] of baseTint(theme, shallow)) if (ids.has(id)) map.setPaintProperty(id, prop, value);
+}
+
+/** The street map's place names wait until the toy names have gone (zoom 7.5), so the two never double. */
+export function holdBaseLabels(map: MapLike): void {
+  for (const layer of map.getStyle().layers ?? [])
+    if (layer.type === 'symbol' && layer.id.startsWith('label_')) map.setLayerZoomRange(layer.id, 7.5, 24);
 }

@@ -1,4 +1,5 @@
-import { MapLike, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { holdBaseLabels, MapLike, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { validateStyleMin } from '@maplibre/maplibre-gl-style-spec';
 import type { FeatureCollection } from 'geojson';
 import { TOY_FADE } from './toy';
 
@@ -35,8 +36,17 @@ describe('setupToyLayers', () => {
       'toy-land',
       'toy-lines',
       'toy-rim',
+      'toy-ink',
       'toy-landmarks',
     ]);
+  });
+
+  it('builds layers MapLibre accepts', async () => {
+    const r = recorder();
+    setupReportLayers(r.map);
+    await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
+    const errors = validateStyleMin({ version: 8, sources: r.sources, layers: r.layers } as never);
+    expect(errors.map((e: { message: string }) => e.message)).toEqual([]);
   });
 
   it('gives the report source an invisible layer so MapLibre loads its tiles', () => {
@@ -55,18 +65,19 @@ describe('setupToyLayers', () => {
   it('fades every other toy layer out between zoom 6 and 8', async () => {
     const r = recorder();
     await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
-    for (const layer of r.layers.filter((l) => l.id.startsWith('toy-') && l.id !== 'toy-mask')) {
+    for (const layer of r.layers.filter((l) => l.id.startsWith('toy-') && l.id !== 'toy-mask' && l.id !== 'toy-lines')) {
       // sea-foam is not a toy layer: it fades in at street zoom
       const key = Object.keys(layer.paint).find((k) => k.endsWith('-opacity'));
       expect(layer.paint[key!]).toEqual(TOY_FADE);
     }
   });
 
-  it('paints Isan orange and the rest green', async () => {
+  it('paints each province its flat cel tone, lighter on hover', async () => {
     const r = recorder();
     await setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc }, undefined, fakeLoad);
     const land = r.layers.find((l) => l.id === 'toy-land');
-    expect(land.paint['fill-color']).toEqual(['match', ['get', 'region'], 'isan', '#F5A04A', '#79B83C']);
+    expect(land.paint['fill-color']).toEqual(['case', ['boolean', ['feature-state', 'hover'], false], ['get', 'hover'], ['get', 'fill']]);
+    expect(r.sources['toy-provinces'].promoteId).toBe('pcode');
   });
 
   it('stacks the soil layers 8/16/24 px down', async () => {
@@ -102,16 +113,30 @@ describe('setupToyLayers', () => {
 });
 
 describe('tintBaseMap', () => {
-  it('recolours the base background and water into the palette', () => {
+  it('recolours only the base layers that exist, water in the sea shallows', () => {
     const r = recorder([
       { id: 'background', type: 'background' },
       { id: 'water', type: 'fill' },
       { id: 'road', type: 'line' },
     ]);
-    tintBaseMap(r.map);
+    tintBaseMap(r.map, 'light', '#3FD6C8');
     expect(r.paint).toEqual([
-      ['background', 'background-color', '#F3EBDD'],
-      ['water', 'fill-color', '#CFE3F0'],
+      ['background', 'background-color', '#E4EDCC'],
+      ['water', 'fill-color', '#3FD6C8'],
     ]);
+  });
+});
+
+describe('holdBaseLabels', () => {
+  it('keeps the street map place names off until zoom 7.5', () => {
+    const ranges: [string, number, number][] = [];
+    const r = recorder([
+      { id: 'label_city', type: 'symbol' },
+      { id: 'highway-name-major', type: 'symbol' },
+      { id: 'water', type: 'fill' },
+    ]);
+    (r.map as any).setLayerZoomRange = (id: string, min: number, max: number) => ranges.push([id, min, max]);
+    holdBaseLabels(r.map);
+    expect(ranges).toEqual([['label_city', 7.5, 24]]);
   });
 });

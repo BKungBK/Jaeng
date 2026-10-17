@@ -20,7 +20,8 @@ import type { BeaconLayer } from './beacon-layer';
 import { FilterBarComponent } from './filter-bar.component';
 import { LevelShapeComponent } from './level-shape';
 import { MAP_FACTORY } from './map-factory';
-import { REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { holdBaseLabels, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { currentSeaTheme, SEA_HEX, SeaTheme, watchSeaTheme } from './sea/sea-palette';
 import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
@@ -49,6 +50,7 @@ export class MapPage {
   private beacons?: BeaconLayer;
   private toy?: ToyOverlay;
   private stopSea?: () => void;
+  private stopTheme?: () => void;
   private loadTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
@@ -73,6 +75,7 @@ export class MapPage {
       this.beacons?.destroy();
       this.toy?.destroy();
       this.stopSea?.();
+      this.stopTheme?.();
       this.map?.remove();
     });
   }
@@ -95,7 +98,10 @@ export class MapPage {
 
   /** Data first, decoration second: a missing toy asset must never cost the reports. */
   private async onLoad(map: maplibregl.Map) {
-    tintBaseMap(map);
+    const tint = (theme: SeaTheme) => tintBaseMap(map, theme, SEA_HEX[theme].shallow);
+    tint(currentSeaTheme());
+    this.stopTheme = watchSeaTheme(tint);
+    holdBaseLabels(map);
     setupReportLayers(map);
     // phones: start with the attribution folded to its info button so it does not sit under the hint card
     if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
@@ -136,6 +142,7 @@ export class MapPage {
       await setupToyLayers(map, { provinces, land, mask }, sea);
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
       void this.startSea(map, mask, reducedMotion);
+      this.watchProvinceHover(map);
       const { ToyOverlay } = await import('./toy-overlay');
       if (this.destroyed) return;
       this.toy = new ToyOverlay(map, reducedMotion);
@@ -144,6 +151,20 @@ export class MapPage {
       console.warn('toy map unavailable', e);
     }
   }
+  /** Lights up the province under a mouse pointer while the toy map shows (not on touch screens). */
+  private watchProvinceHover(map: maplibregl.Map) {
+    if (!matchMedia('(hover: hover)').matches) return;
+    let current: string | number | undefined;
+    const set = (id: string | number | undefined) => {
+      if (id === current) return;
+      if (current !== undefined) map.setFeatureState({ source: 'toy-provinces', id: current }, { hover: false });
+      current = id;
+      if (id !== undefined) map.setFeatureState({ source: 'toy-provinces', id }, { hover: true });
+    };
+    map.on('mousemove', 'toy-land', (e) => set(toyOpacity(map.getZoom()) > 0.5 ? e.features?.[0]?.id : undefined));
+    map.on('mouseleave', 'toy-land', () => set(undefined));
+  }
+
   /** The animated cel sea over the flat mask; if it fails the flat sea stays. */
   private async startSea(map: maplibregl.Map, mask: FeatureCollection, reducedMotion: boolean) {
     try {

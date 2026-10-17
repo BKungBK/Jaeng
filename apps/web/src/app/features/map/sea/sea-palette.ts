@@ -31,6 +31,19 @@ export function seaPalette(theme: SeaTheme): SeaPalette {
   return Object.fromEntries(Object.entries(hex).map(([k, v]) => [k, rgb(v)])) as SeaPalette;
 }
 
+/** Calls back with the theme whenever it changes (system setting or data-theme); returns a stop. */
+export function watchSeaTheme(onChange: (theme: SeaTheme) => void): () => void {
+  const apply = () => onChange(currentSeaTheme());
+  const media = matchMedia('(prefers-color-scheme: dark)');
+  media.addEventListener('change', apply);
+  const observer = new MutationObserver(apply);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  return () => {
+    media.removeEventListener('change', apply);
+    observer.disconnect();
+  };
+}
+
 /** The theme the page is showing: an explicit data-theme wins, else the system setting. */
 export function currentSeaTheme(root: HTMLElement = document.documentElement): SeaTheme {
   const forced = root.getAttribute('data-theme');

@@ -1,5 +1,6 @@
-// The cel sea (plan 2b): flat depth bands, toon caustics in the shallows, foam that laps the
-// coast and sparkles on open water. Everything is cut into hard steps, never smooth gradients.
+// The sea: a smooth depth gradient anchored to the ground, swell lines that roll in to the coast
+// and wash up as foam, and soft sun sheen on open water. Every pattern is drawn at two zoom
+// octaves and crossfaded, so it stays put on the map and keeps its size on screen while zooming.
 
 export const SEA_VERTEX = /* glsl */ `#version 300 es
 precision highp float;
@@ -21,83 +22,91 @@ uniform vec2 u_anchor;       // mercator of the anchor
 uniform vec3 u_grid;         // sdf grid: x0, y0, size (mercator)
 uniform float u_maxKm;
 uniform vec2 u_center;       // camera centre, relative to the anchor
-uniform vec2 u_centerPx;     // camera centre in world pixels, wrapped to the pattern period
 uniform float u_worldPx;     // 512 * 2^zoom
 uniform float u_kmPerPx;     // ground size of one CSS pixel at the centre
+uniform vec2 u_centerA;      // camera centre in world pixels at zoom floor(z), wrapped to the period
+uniform vec2 u_centerB;      // the same at zoom floor(z) + 1
+uniform float u_octave;      // fract(zoom): weight of octave B
 uniform float u_time;
 uniform float u_foamFade;    // 1 at country zoom, 0 at street zoom (vector foam takes over)
 uniform vec3 u_deep, u_mid, u_shallow, u_foam, u_caustic, u_sparkle;
 
+const float SWELL_PX = 36.0; // swell spacing on screen at an octave's own zoom
+const float SPEED = 0.22;    // swell lines reaching the shore per second
+
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-vec2 hash2(vec2 p) {
-  return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
-}
 float noise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
   vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
 }
-// distance to the nearest cell edge of a moving Voronoi pattern: small along the caustic lines
-float voronoiEdge(vec2 p, float t) {
-  vec2 i = floor(p), f = fract(p);
-  float d1 = 8.0, d2 = 8.0;
-  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
-    vec2 g = vec2(x, y);
-    vec2 o = hash2(i + g);
-    o = 0.5 + 0.5 * sin(t + 6.2831 * o);
-    float d = length(g + o - f);
-    if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
-  }
-  return d2 - d1;
+float fbm(vec2 p) { return 0.5 * noise(p) + 0.3 * noise(p * 2.03 + 1.7) + 0.2 * noise(p * 4.01 + 3.1); }
+
+// One octave of swell: q is pattern space (pixels at the octave's zoom), s its spacing in km.
+// Returns crest strength (x) and shore foam (y).
+vec2 swell(float km, float s, vec2 q, float t) {
+  float bend = (noise(q / 140.0) - 0.5) * 0.9;     // crests wander a little off the coast's shape
+  float x = km / s + t * SPEED + bend;             // grows offshore; crests move in as time grows
+  float f = fract(x);
+  float aa = 1.2 * u_kmPerPx / s;                  // about one screen pixel, in spacings
+  // steep face toward the shore, long soft back
+  float crest = smoothstep(0.0, 0.06 + aa, f) * (1.0 - smoothstep(0.06, 0.42, f));
+  float gaps = smoothstep(0.3, 0.62, noise(q / 64.0 + vec2(t * 0.04, -t * 0.03)));
+  float reach = 1.0 - smoothstep(1.2, 4.5, km / s); // only the last few lines before the coast
+  crest *= gaps * reach * smoothstep(0.05, 0.35, km / s);
+
+  // a line breaks at the shore, washes up to half a spacing and drains back
+  float f0 = fract(t * SPEED + bend);
+  float wash = 0.12 + 0.38 * (1.0 - smoothstep(0.06, 0.95, f0)) * smoothstep(0.0, 0.06, f0);
+  float edge = (noise(q / 18.0 + t * 0.3) - 0.5) * 0.08;
+  float foam = 1.0 - smoothstep(wash + edge - aa, wash + edge + aa, km / s);
+  return vec2(crest, foam);
+}
+
+// Soft sun sheen on the water, in pattern space.
+float sheen(vec2 q, float t) {
+  float v = 0.6 * fbm(q / 110.0 + vec2(t * 0.03, t * 0.018)) + 0.4 * fbm(q / 60.0 - vec2(t * 0.025, -t * 0.02) + 5.2);
+  return smoothstep(0.58, 0.8, v);
+}
+
+// A few slow glints on open water.
+float glint(vec2 q, float t) {
+  vec2 cell = floor(q / 80.0);
+  vec2 spot = (cell + 0.2 + 0.6 * vec2(hash(cell), hash(cell + 7.7))) * 80.0;
+  float phase = fract(t * 0.25 + hash(cell + 3.1));
+  float pulse = smoothstep(0.0, 0.15, phase) * (1.0 - smoothstep(0.15, 0.4, phase));
+  return pulse * (1.0 - smoothstep(0.5, 2.2, length(q - spot)));
 }
 
 void main() {
   vec2 merc = v_rel + u_anchor;
   vec2 uv = (merc - u_grid.xy) / u_grid.z;
-  vec4 s = texture(u_sdf, clamp(uv, 0.0, 1.0));
-  float km = s.r * u_maxKm;
-  float px = km / u_kmPerPx;                     // distance from the coast in screen pixels
-  vec2 p = (v_rel - u_center) * u_worldPx + u_centerPx; // screen-scale pattern space, moves with the map
+  float km = texture(u_sdf, clamp(uv, 0.0, 1.0)).r * u_maxKm;
 
-  // depth bands: hard steps, their edges wobbling slowly so the water looks alive
-  float wob = (noise(p / 96.0 + u_time * 0.05) - 0.5);
-  // shallows 4–30 km wide (about 6 px, more at the country view); the mid band runs to 4× that, inside
-  // the texture's 150 km reach, and the open sea beyond is deep
-  float shallowKm = clamp(6.0 * u_kmPerPx, 4.0, 30.0);
-  float d = km / shallowKm + wob * 0.35;
-  vec3 col = d < 1.0 ? u_shallow : d < 4.0 ? u_mid : u_deep;
-  // a light toon rim where the shallows meet the mid band
-  float rim = abs(d - 1.0) * shallowKm / u_kmPerPx;
-  col = mix(col, mix(col, u_caustic, 0.45), step(rim, 1.2));
+  // pattern space at the two octaves around the current zoom; both are fixed to the ground
+  vec2 rel = (v_rel - u_center) * u_worldPx;
+  float scaleA = exp2(-u_octave);
+  vec2 qA = rel * scaleA + u_centerA;
+  vec2 qB = rel * scaleA * 2.0 + u_centerB;
+  float w = u_octave;
+  float t = u_time;
 
-  // caustics: thin bright cell-edge lines, full in the shallows, faint in the mid band, none at sea
-  // (the bands are wide, so this branch is coherent and open water skips the two Voronoi passes)
-  if (d < 4.0) {
-    float c = voronoiEdge(p / 64.0, u_time * 0.9);
-    float c2 = voronoiEdge(p / 32.0 + 7.3, -u_time * 0.7);
-    float lines = step(c, 0.05) + step(c2, 0.035) * 0.5;
-    float reach = d < 1.0 ? 0.9 : 0.3;
-    col = mix(col, u_caustic, clamp(lines, 0.0, 1.0) * reach);
+  // depth: shallows to open sea by ground distance, its edge wandering slowly
+  float k = max(km + (noise(uv * 90.0 + t * 0.01) - 0.5) * 8.0, 0.0);
+  vec3 col = mix(u_shallow, u_mid, smoothstep(1.0, 28.0, k));
+  col = mix(col, u_deep, smoothstep(28.0, 120.0, k));
+
+  col = mix(col, u_caustic, mix(sheen(qA, t), sheen(qB, t), w) * 0.16 * smoothstep(4.0, 30.0, k));
+
+  if (u_foamFade > 0.0) {
+    float sA = SWELL_PX * u_kmPerPx / scaleA;      // km per spacing at octave A
+    vec2 a = swell(km, sA, qA, t);
+    vec2 b = swell(km, sA * 0.5, qB, t);
+    vec2 sw = mix(a, b, w) * u_foamFade;
+    col = mix(col, u_caustic, sw.x * 0.55);
+    col = mix(col, u_foam, sw.y * 0.92);
   }
 
-  // foam lapping the coast: a solid band that breathes, and a thin line chasing it (within 20 px)
-  if (u_foamFade > 0.0 && px < 20.0) {
-    float wave = sin(u_time * 1.3 - px * 0.18);
-    float band = step(px, 3.5 + 2.5 * (0.5 + 0.5 * wave));
-    float trail = step(abs(px - (11.0 + 5.0 * (0.5 + 0.5 * sin(u_time * 1.3 - 1.4)))), 0.8);
-    float broken = step(0.5, noise(p / 16.0 + u_time * 0.2));
-    col = mix(col, u_foam, max(band, trail * broken) * u_foamFade);
-  }
-
-  // sparkles on open water: one per cell, flashing briefly
-  if (d >= 1.0) {
-    vec2 cell = floor(p / 48.0);
-    vec2 spot = (cell + 0.2 + 0.6 * hash2(cell)) * 48.0;
-    float phase = fract(u_time * 0.3 + hash(cell + 3.1));
-    vec2 q = abs(p - spot);
-    float star = step(q.x + q.y * 3.0, 3.2) + step(q.y + q.x * 3.0, 3.2);
-    col = mix(col, u_sparkle, clamp(star, 0.0, 1.0) * step(0.93, phase));
-  }
-
+  col = mix(col, u_sparkle, mix(glint(qA, t), glint(qB, t), w) * smoothstep(20.0, 60.0, km) * 0.8);
   fragColor = vec4(col, 1.0);
 }`;

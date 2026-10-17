@@ -1,22 +1,5 @@
-import { isIconName } from './icons';
 import { clampCenter, MAP_BOUNDS, THAILAND_BOUNDS } from './map-factory';
-import { landmarkPx, toyLabelOpacity, toyOpacity, zoomHint } from './toy';
-import { LANDMARKS, PROVINCE_LABELS, ROUTES } from './toy-places';
-
-describe('landmarkPx', () => {
-  it('grows from 28 px to 44 px between zoom 4 and 8, clamped outside', () => {
-    expect(landmarkPx(2)).toBe(28);
-    expect(landmarkPx(5)).toBe(32);
-    expect(landmarkPx(7)).toBe(40);
-    expect(landmarkPx(12)).toBe(44);
-  });
-});
-
-describe('toy props', () => {
-  it('use Lucide icon names only', () => {
-    for (const { slug } of [...LANDMARKS, ...ROUTES]) expect(isIconName(slug)).toBe(true);
-  });
-});
+import { toyOpacity, zoomHint } from './toy';
 
 describe('toyOpacity', () => {
   it.each([
@@ -27,14 +10,6 @@ describe('toyOpacity', () => {
     [12, 0],
   ])('zoom %d → %d', (zoom, opacity) => {
     expect(toyOpacity(zoom)).toBeCloseTo(opacity);
-  });
-});
-
-describe('toyLabelOpacity', () => {
-  it('hands names over to the street map by zoom 7', () => {
-    expect(toyLabelOpacity(6)).toBe(1);
-    expect(toyLabelOpacity(6.5)).toBeCloseTo(0.5);
-    expect(toyLabelOpacity(7)).toBe(0);
   });
 });
 
@@ -68,27 +43,5 @@ describe('MAP_BOUNDS', () => {
   it('pulls a centre over another country back to the edge and leaves Thailand alone', () => {
     expect(clampCenter([90, 28])).toEqual([95.5, 22.5]);
     expect(clampCenter([100.5, 13.75])).toEqual([100.5, 13.75]);
-  });
-});
-
-describe('PROVINCE_LABELS', () => {
-  it('names the 15 provinces of spec 3.2.1', () => {
-    expect(PROVINCE_LABELS.map((l) => l.name)).toEqual([
-      'เชียงใหม่',
-      'พิษณุโลก',
-      'นครสวรรค์',
-      'ขอนแก่น',
-      'นครราชสีมา',
-      'อุบลราชธานี',
-      'พระนครศรีอยุธยา',
-      'กรุงเทพฯ',
-      'กาญจนบุรี',
-      'ชลบุรี',
-      'ระยอง',
-      'สุราษฎร์ธานี',
-      'ภูเก็ต',
-      'สงขลา',
-      'ปัตตานี',
-    ]);
   });
 });

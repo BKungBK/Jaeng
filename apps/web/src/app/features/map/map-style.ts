@@ -2,18 +2,13 @@
 import type { FeatureCollection } from 'geojson';
 import type { ExpressionSpecification, Map as MlMap } from 'maplibre-gl';
 import { baseTint, INK, paintProvinces } from './cel-land';
-import { addStickerImage, ImageLoader } from './icons';
 import type { SeaTheme } from './sea/sea-palette';
-import { CLUSTER_MAX_ZOOM, LANDMARK_PX, STICKER_PX, TOY_FADE } from './toy';
-import { LANDMARKS } from './toy-places';
+import { CLUSTER_MAX_ZOOM, TOY_FADE } from './toy';
 
 export const REPORT_SOURCE = 'reports';
 
 /** The slice of maplibregl.Map this module touches, so tests can pass a recorder. */
-export type MapLike = Pick<
-  MlMap,
-  'addSource' | 'addLayer' | 'getStyle' | 'setPaintProperty' | 'setLayerZoomRange' | 'loadImage' | 'addImage' | 'hasImage'
->;
+export type MapLike = Pick<MlMap, 'addSource' | 'addLayer' | 'getStyle' | 'setPaintProperty' | 'setLayerZoomRange'>;
 
 export type ToyGeometry = { provinces: FeatureCollection; land: FeatureCollection; mask: FeatureCollection };
 
@@ -45,37 +40,28 @@ export function setupReportLayers(map: MapLike): void {
 }
 
 /** The toy Thailand, drawn under the reports anchor. Best effort: it is decoration. */
-export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA', load?: ImageLoader): Promise<void> {
+export function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB3EA'): void {
   map.addSource('toy-mask', { type: 'geojson', data: geo.mask });
   map.addSource('toy-land', { type: 'geojson', data: geo.land });
   map.addSource('toy-provinces', { type: 'geojson', data: paintProvinces(geo.provinces), promoteId: 'pcode' });
-  map.addSource('toy-landmarks', {
-    type: 'geojson',
-    data: {
-      type: 'FeatureCollection',
-      features: LANDMARKS.map((l) => ({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: l.lngLat },
-        properties: { slug: l.slug, size: l.size },
-      })),
-    },
-  });
 
   // opaque at every zoom: outside Thailand there is only sea (plan 2b). Added after every base
   // layer, so it also covers the street map's names abroad.
   map.addLayer({ id: 'toy-mask', type: 'fill', source: 'toy-mask', paint: { 'fill-color': sea, 'fill-opacity': 1 } });
   // the animated sea (SeaLayer) slots in here, between the flat mask and this foam line
-  // street-zoom foam along the mask's exact edge; the shader's own foam is too coarse past zoom 9
+  // foam along the mask's edge while the shader's own foam fades (zoom 8–10); gone by street zoom,
+  // where the simplified mask edge no longer follows the real coast
   map.addLayer({
     id: 'sea-foam',
     type: 'line',
     source: 'toy-mask',
     minzoom: 8,
+    maxzoom: 12,
     layout: { 'line-join': 'round', 'line-cap': 'round' },
     paint: {
       'line-color': '#FFFFFF',
-      'line-width': ['interpolate', ['linear'], ['zoom'], 8, 2, 14, 5],
-      'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0, 10, 1],
+      'line-width': ['interpolate', ['linear'], ['zoom'], 8, 2, 11, 3],
+      'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0, 9.5, 0.8, 10.5, 0.8, 11.5, 0],
     },
   });
   for (const n of [3, 2, 1]) {
@@ -126,30 +112,7 @@ export async function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
       'line-opacity': fade,
     },
   });
-
-  const slugs = [...new Set(LANDMARKS.map((l) => l.slug))];
-  await Promise.all(slugs.map((slug) => addStickerImage(map, slug, STICKER_PX, load)));
-  map.addLayer({
-    id: 'toy-landmarks',
-    type: 'symbol',
-    source: 'toy-landmarks',
-    layout: {
-      'icon-image': ['get', 'slug'],
-      // STICKER_PX images scaled to landmarkPx(zoom) × size
-      'icon-size': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        ...LANDMARK_PX.flatMap(([z, px]) => [z, ['*', px / STICKER_PX, ['get', 'size']]]),
-      ] as unknown as ExpressionSpecification,
-      'icon-anchor': 'bottom',
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
-    paint: { 'icon-opacity': fade },
-  });
 }
-
 
 /** Repaint the OpenFreeMap positron base in the cel palette for the theme; water takes the sea's
  *  shallow colour so the gap between the mask and the real coast reads as shallows. */
@@ -158,7 +121,7 @@ export function tintBaseMap(map: MapLike, theme: SeaTheme, shallow: string): voi
   for (const [id, prop, value] of baseTint(theme, shallow)) if (ids.has(id)) map.setPaintProperty(id, prop, value);
 }
 
-/** The street map's place names wait until the toy names have gone (zoom 7.5), so the two never double. */
+/** The street map's place names wait until the toy has gone (zoom 7.5): the country view shows no names. */
 export function holdBaseLabels(map: MapLike): void {
   for (const layer of map.getStyle().layers ?? [])
     if (layer.type === 'symbol' && layer.id.startsWith('label_')) map.setLayerZoomRange(layer.id, 7.5, 24);

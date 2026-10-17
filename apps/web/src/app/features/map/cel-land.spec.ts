@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { FeatureCollection } from 'geojson';
-import { baseTint, neighbours, paintProvinces, provinceRegion, provinceTones, REGION_TONES } from './cel-land';
+import { baseTint, paintProvinces, provinceRegion, REGION_COLOURS } from './cel-land';
 
 const provinces = JSON.parse(
   readFileSync(resolve(process.cwd(), 'src/assets/geo/provinces.json'), 'utf8'),
@@ -10,7 +10,12 @@ const provinces = JSON.parse(
 describe('provinceRegion', () => {
   it.each([
     ['TH10', 'central'],
-    ['TH21', 'central'],
+    ['TH65', 'central'],
+    ['TH20', 'east'],
+    ['TH27', 'east'],
+    ['TH63', 'west'],
+    ['TH71', 'west'],
+    ['TH77', 'west'],
     ['TH30', 'isan'],
     ['TH49', 'isan'],
     ['TH50', 'north'],
@@ -20,35 +25,26 @@ describe('provinceRegion', () => {
   ])('%s is %s', (pcode, region) => {
     expect(provinceRegion(pcode)).toBe(region);
   });
-});
 
-describe('provinceTones', () => {
-  const tones = provinceTones(provinces);
-  const pairs = neighbours(provinces);
-
-  it('gives every province one of three tones, the same every time', () => {
-    expect(tones.size).toBe(77);
-    expect([...tones.values()].every((t) => t === 0 || t === 1 || t === 2)).toBe(true);
-    expect(provinceTones(provinces)).toEqual(tones);
+  it('splits the 77 provinces into the six regions', () => {
+    const count: Record<string, number> = {};
+    for (const f of provinces.features) {
+      const r = provinceRegion(String(f.properties!['pcode']));
+      count[r] = (count[r] ?? 0) + 1;
+    }
+    expect(count).toEqual({ north: 9, isan: 20, central: 22, east: 7, west: 5, south: 14 });
   });
 
-  it('finds the borders between provinces', () => {
-    expect(pairs.length).toBeGreaterThan(150);
-    expect(pairs).toContainEqual(['TH10', 'TH12']); // Bangkok and Nonthaburi
-  });
-
-  it('colours neighbours differently almost everywhere', () => {
-    const differ = pairs.filter(([a, b]) => tones.get(a) !== tones.get(b)).length;
-    expect(differ / pairs.length).toBeGreaterThanOrEqual(0.9);
+  it('gives every region its own colour', () => {
+    expect(new Set(Object.values(REGION_COLOURS)).size).toBe(6);
   });
 });
 
 describe('paintProvinces', () => {
-  it('adds a flat fill and a lighter hover colour from the region tones', () => {
+  it('fills each province in its region colour, lighter on hover', () => {
     const painted = paintProvinces(provinces);
     const bkk = painted.features.find((f) => f.properties!['pcode'] === 'TH10')!;
-    const tone = provinceTones(provinces).get('TH10')!;
-    expect(bkk.properties!['fill']).toBe(REGION_TONES.central[tone]);
+    expect(bkk.properties!['fill']).toBe(REGION_COLOURS.central);
     expect(bkk.properties!['hover']).toMatch(/^#[0-9a-f]{6}$/i);
     expect(bkk.properties!['hover']).not.toBe(bkk.properties!['fill']);
   });

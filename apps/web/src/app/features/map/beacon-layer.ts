@@ -13,8 +13,6 @@ export type BeaconHandlers = {
   hover(p: ReportProps, el: HTMLElement): void;
   leave(): void;
   select(p: ReportProps): void;
-  /** After each sync, with the screen boxes of every cluster and disc (for decluttering labels). */
-  synced?(obstacles: DOMRect[]): void;
 };
 
 type Entry = { marker: maplibregl.Marker; el: HTMLElement; kind: 'beacon' | 'cluster'; props?: ReportProps; count?: number; maxLevel?: number };
@@ -91,12 +89,6 @@ export class BeaconLayer {
         entry.marker.remove();
         this.entries.delete(key);
       }
-    }
-    if (this.handlers.synced) {
-      const boxes = [...this.entries.values()].flatMap((e) =>
-        [...e.el.querySelectorAll('.disc, .count, .base')].map((n) => n.getBoundingClientRect()),
-      );
-      this.handlers.synced(boxes);
     }
   }
 

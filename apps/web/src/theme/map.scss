@@ -262,60 +262,6 @@
   }
 }
 
-// ---------- toy overlay ----------
-.toy-label {
-  --k: 1;
-  font: 600 calc(13px + 8px * var(--k)) / 1 'Prompt', sans-serif;
-  color: #fff;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  // dark halo, so white Thai text reads on green, orange and blue
-  text-shadow:
-    0 0 3px #2b2a33,
-    0 0 3px #2b2a33,
-    1px 1px 0 #2b2a33,
-    -1px -1px 0 #2b2a33,
-    1px -1px 0 #2b2a33,
-    -1px 1px 0 #2b2a33;
-}
-
-.toy-label span {
-  display: inline-block;
-}
-
-.toy-label.clash {
-  visibility: hidden;
-}
-
-// Lucide stickers: cream disc, ink rim, ink icon (DESIGN.md "Cel map"); flat hard shadow, no blur
-.toy-mover {
-  pointer-events: none;
-
-  .sticker {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border: 2.5px solid #2b2a33;
-    border-radius: 50%;
-    background: #fff8ec;
-    color: #2b2a33;
-    box-shadow: 0 4px 0 rgba(43, 42, 51, 0.35);
-  }
-
-  // clouds float free: a white cel cloud with an ink outline
-  &.cloud svg {
-    display: block;
-    width: 88px;
-    height: 88px;
-    fill: #fff;
-    stroke: #2b2a33;
-    stroke-width: 1.4;
-    filter: drop-shadow(0 6px 0 rgba(43, 42, 51, 0.18));
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .beacon .ring,
   .cluster .ring {

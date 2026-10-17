@@ -104,23 +104,6 @@
   line-height: 1.5;
 }
 
-.compass {
-  position: absolute;
-  z-index: 3;
-  right: 16px;
-  bottom: 40px;
-  width: 72px;
-  height: 72px;
-  display: grid;
-  place-items: center;
-  border: 2.5px solid #2b2a33;
-  border-radius: 50%;
-  background: #fff8ec;
-  color: #2b2a33;
-  pointer-events: none;
-  transition: opacity 200ms ease-out;
-}
-
 .tip,
 .peek {
   display: grid;
@@ -222,11 +205,6 @@
     bottom: calc(52px + env(safe-area-inset-bottom, 0px));
     right: 68px;
     max-width: none;
-  }
-
-  // decoration only; the phone needs the corner for the hint
-  .compass {
-    display: none;
   }
 
   .peek {

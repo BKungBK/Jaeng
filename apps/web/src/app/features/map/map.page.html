@@ -19,8 +19,6 @@
 
 <div class="map" #map></div>
 
-<app-icon class="compass" name="compass" [size]="56" [style.opacity]="compassOpacity()" />
-
 @if (hover(); as h) {
   <div class="card tip" role="tooltip" [style.left.px]="h.x" [style.top.px]="h.y" [style.--c]="level(h.p).color">
     <ng-container *ngTemplateOutlet="summary; context: { $implicit: h.p, id: null }" />

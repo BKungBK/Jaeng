@@ -1,7 +1,7 @@
-// When the animated sea draws its next frame: at most 30 frames a second, never with reduced
-// motion or a hidden tab (the map then repaints only when it moves, with time frozen).
+// When the animated sea draws its next frame: at most 60 frames a second (rolling swell judders at
+// 30), never with reduced motion or a hidden tab (the map then repaints only when it moves).
 
-export const SEA_FRAME_MS = 1000 / 30;
+export const SEA_FRAME_MS = 1000 / 60;
 
 export class SeaClock {
   private last = -Infinity;

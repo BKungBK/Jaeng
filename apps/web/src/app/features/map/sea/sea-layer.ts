@@ -10,9 +10,8 @@ import { SEA_FRAGMENT, SEA_VERTEX } from './sea.glsl';
 export type SeaGrid = { x0: number; y0: number; size: number; px: number; maxKm: number };
 
 const EARTH_KM = 40075.016686;
-// Pattern space is wrapped to this period so it stays small in float32. Every pattern cell (16, 32,
-// 48, 64, 96 px) divides it; the hash-based patterns still jump once per period crossed, which
-// is ~100,000 px of panning.
+// Pattern space is wrapped to this period so it stays small in float32; the patterns jump once
+// per period crossed, which is ~100,000 px of panning.
 const PATTERN_PERIOD = 96 * 1024;
 
 /** Fades the shader's foam out between zoom 8 and 10, where the texture is too coarse. */
@@ -91,7 +90,7 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     this.gl = gl;
     try {
       this.program = this.link(gl);
-      for (const name of ['u_matrix', 'u_sdf', 'u_anchor', 'u_grid', 'u_maxKm', 'u_center', 'u_centerPx', 'u_worldPx', 'u_kmPerPx', 'u_time', 'u_foamFade', 'u_deep', 'u_mid', 'u_shallow', 'u_foam', 'u_caustic', 'u_sparkle'])
+      for (const name of ['u_matrix', 'u_sdf', 'u_anchor', 'u_grid', 'u_maxKm', 'u_center', 'u_centerA', 'u_centerB', 'u_octave', 'u_worldPx', 'u_kmPerPx', 'u_time', 'u_foamFade', 'u_deep', 'u_mid', 'u_shallow', 'u_foam', 'u_caustic', 'u_sparkle'])
         this.uniforms.set(name, gl.getUniformLocation(this.program, name));
 
       this.vao = gl.createVertexArray()!;
@@ -169,7 +168,13 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     gl.uniform3f(u('u_grid'), this.grid.x0, this.grid.y0, this.grid.size);
     gl.uniform1f(u('u_maxKm'), this.grid.maxKm);
     gl.uniform2f(u('u_center'), center[0] - SEA_ANCHOR[0], center[1] - SEA_ANCHOR[1]);
-    gl.uniform2f(u('u_centerPx'), (center[0] * worldPx) % PATTERN_PERIOD, (center[1] * worldPx) % PATTERN_PERIOD);
+    // pattern space at the two whole zooms around this one, so patterns stay on the ground while zooming
+    const octave = Math.floor(zoom);
+    for (const [name, z] of [['u_centerA', octave], ['u_centerB', octave + 1]] as const) {
+      const px = 512 * 2 ** z;
+      gl.uniform2f(u(name), (center[0] * px) % PATTERN_PERIOD, (center[1] * px) % PATTERN_PERIOD);
+    }
+    gl.uniform1f(u('u_octave'), zoom - octave);
     gl.uniform1f(u('u_worldPx'), worldPx);
     gl.uniform1f(u('u_kmPerPx'), (EARTH_KM * Math.cos((c.lat * Math.PI) / 180)) / worldPx);
     gl.uniform1f(u('u_time'), this.clock.time());

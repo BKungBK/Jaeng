@@ -15,15 +15,16 @@ colors:
   sea-mid: "#1FA2E0"
   sea-deep: "#1556B8"
   sea-caustic: "#B9F3EC"
-  sticker-paper: "#FFF8EC"
   level-minor-mint: "#8FD3B6"
   level-caution-butter: "#F6D983"
   level-danger-peach: "#F4A582"
   level-critical-rose: "#E57373"
-  cel-north: "#7DBE4A"
-  cel-isan: "#F5A04A"
-  cel-central: "#9BD067"
-  cel-south: "#4FB47A"
+  cel-north: "#5DAA55"
+  cel-isan: "#F39C3C"
+  cel-central: "#F3CF55"
+  cel-east: "#E57A8C"
+  cel-west: "#9E86D6"
+  cel-south: "#D7684F"
   toy-rim-cream: "#F3E3B0"
   toy-soil-light: "#AB7B42"
   toy-soil-mid: "#946636"
@@ -171,10 +172,10 @@ Everything around the map is a working app: floating white cards with soft shado
 Confirmed anti-references: a dark gaming look, glowing neon on black, and the cold grey forms of a government portal. The owner's reference poster is a style reference only; its artwork is never copied or stored.
 
 **Key Characteristics:**
-- Cel-shaded toy Thailand (flat province tones, ink outline, sand rim, stacked soil layers) that fades out between zoom 6 and 8; its province names leave first, between zoom 6 and 7. Only Thailand is ever shown: everything else is an animated cel sea.
+- Cel-shaded toy Thailand (one flat colour per region, ink outline, sand rim, stacked soil layers) that fades out between zoom 6 and 8. No names, landmarks or props on it (owner, 2026-10-17): place names arrive with the street map at zoom 7.5. Only Thailand is ever shown: everything else is an animated sea.
 - Pastel beams as the only light source; height grows with "เจอเหมือนกัน".
 - Floating cards over a full-bleed map; no app chrome bars.
-- Lucide (ISC) line icons for every pictogram: landmarks, vehicles, the compass, the controls and the eight category icons. No emoji anywhere (owner decision 2026-10-17); on the map an icon sits on a "sticker" (cream disc, ink rim).
+- Lucide (ISC) line icons for every pictogram: the controls and the eight category icons. No emoji anywhere (owner decision 2026-10-17).
 - One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels everywhere they appear.
 - Prompt for voice, IBM Plex Sans Thai for reading.
 
@@ -192,14 +193,14 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 - **Level Critical Rose** (#E57373): danger level 3 วิกฤต. The only red in the system.
 
 ### Tertiary (illustration only)
-- **Cel Land** tones, three per region so neighbouring provinces never match: north #6FAF3E / #7DBE4A / #8CC957, Isan #EE9339 / #F5A04A / #F8B061, central #8CC458 / #9BD067 / #ABDA7B, south #43A86D / #4FB47A / #60C089. Hover lifts a province 30% toward white. **Toy Rim Cream** (#F3E3B0) is the 6px sand beach under the 2–3px Slate Ink outline.
+- **Cel Land**, one flat colour for each of the six geographic regions: north #5DAA55, Isan #F39C3C, central #F3CF55, east #E57A8C, west #9E86D6, south #D7684F (warm, so the long coast never melts into the sea). Faint ink lines still mark the provinces. Hover lifts a province 30% toward white. **Toy Rim Cream** (#F3E3B0) is the 6px sand beach under the 2–3px Slate Ink outline.
 - **Toy Soil** light / mid / deep (#AB7B42 / #946636 / #7B5430): the three stacked side layers that make the land look thick.
 - **Cel Sea** (from the owner's reference): Shallow Turquoise #3FD6C8, Mid Blue #1FA2E0, Deep Blue #1556B8, Caustic #B9F3EC, white foam and sparkles; Night: #1F8A8C / #145C93 / #0E2F6B / #58C2C0, foam #CFE8F0. **Toy Sea** (#4FB3EA, Night #2F6F9F) stays as the flat fallback under it.
 
 ### Neutral
 - **Cream Ground** (#FBF7F2): page background, icon-button hover fill, toast text.
 - **Card White** (#FFFFFF): cards, chip tray, discs, tooltips, sheets, and the white base every chip pastel is mixed into.
-- **Slate Ink** (#2B2A33): all text, including text on pastel chips and level badges in both themes; the halo behind toy province names; the toast fill.
+- **Slate Ink** (#2B2A33): all text, including text on pastel chips and level badges in both themes; the toast fill.
 - **Muted Ink** (#6B6878): secondary text, hints, meta lines, off chips, map attribution.
 - **Sand Line** (#E8E0D5): dividers, icon-button borders, the 1px outline of an off chip.
 - **Street map (cel):** ground #E4EDCC, parks #BFE09A, woods #A9D483, homes #EEEBD6, buildings #FFF8EC with an ink edge, roads white with Slate Ink casings, water in Shallow Turquoise; Night ground #29321F with the same roles darkened.
@@ -212,7 +213,7 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 
 **The Toy Stays Toy Rule.** Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.
 
-**The Cel Rule.** The map has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs.
+**The Cel Rule.** The land has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs. The sea is the exception: it is soft and moving (owner, 2026-10-17), so the land reads as the solid object in it.
 
 ## Typography
 
@@ -228,13 +229,10 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 - **Label** (500, 14px, 1.4): level chips (13px under 420px), toast.
 - **Caption** (400, 13px, 1.5): brand tagline, hint card, meta and age lines. An age past 30 days switches to ink at 500 ("ค้างนาน").
 - **Count** (Prompt 600, 18px, tabular figures): cluster counts.
-- **Map Label** (Prompt 600): toy province names grow from 13px at zoom 4 to 21px by zoom 6.5, white with a Slate Ink halo (3px blur plus a 1px outline); beacon short labels are Plex 12px on a 22px white pill, max 150px, ellipsised.
+- **Map Label**: beacon short labels are Plex 12px on a 22px white pill, max 150px, ellipsised.
 
 ### Named Rules
 **The Thai First Rule.** Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.
-
-**The Names Stay Home Rule.** A toy province name sits on its town, else one row below, else one row above (a name may prefer up), clear of clusters, beacons, landmarks and other names. If none of the three spots is free, it hides rather than drift. Names are short forms (กรุงเทพฯ).
-
 ## Layout
 
 A full-bleed map with floating controls. No top app bar and no tab bar on the map.
@@ -242,7 +240,6 @@ A full-bleed map with floating controls. No top app bar and no tab bar on the ma
 - Top-left: brand card, with the level chip tray beside it (wrapping below on narrow screens). The group stops 72px from the right edge on desktop to clear the controls.
 - Right edge: zoom-in, zoom-out and my-location icon buttons in an 8px stack, vertically centred on desktop and bottom-right on phones.
 - Bottom-left: the zoom-level hint card (max 340px on desktop). On phones it stretches to the control column and both sit 52px above the bottom so the attribution fits beneath.
-- Lower right on desktop: the Lucide compass on a 72px sticker, fading with the toy. Hidden under 820px; it is decoration and the phone needs the corner.
 - Attribution: bottom-right MapLibre strip; folded to its ⓘ button under 820px.
 - Report detail: a peek card at the right (300px, 72px from the edge, 96px from the top) on desktop, docked to the bottom edge with 12px gutters on phones. The full detail panel (380px right panel at ≥ 820px, bottom sheet at about 64% height below) replaces it in a later plan.
 - Toast: centred, 84px from the top.
@@ -251,15 +248,13 @@ A full-bleed map with floating controls. No top app bar and no tab bar on the ma
 
 ## Elevation & Depth
 
-Two depth systems that never mix. The UI floats with one soft, warm shadow. The toy map has physical depth made of stacked soil layers offset downward (8 / 16 / 24px at zoom 6), which flatten to zero by zoom 8 so the coast never ghosts as the toy fades. Toy props that move above the land (planes, clouds, train, ships) carry a soft drop to show they are off the ground.
+Two depth systems that never mix. The UI floats with one soft, warm shadow. The toy map has physical depth made of stacked soil layers offset downward (8 / 16 / 24px at zoom 6), which flatten to zero by zoom 8 so the coast never ghosts as the toy fades.
 
 ### Shadow Vocabulary
 - **Float** (`box-shadow: 0 8px 28px rgba(60,50,40,.18)`): every floating card, the chip tray, icon buttons, tooltip, peek card and sheet.
 - **Pill** (`box-shadow: 0 2px 8px rgba(0,0,0,.15)`): beacon short labels.
 - **Glow** (`box-shadow: 0 0 0 6px color-mix(in srgb, <level> 30%, transparent), 0 0 28px <level>`): beacon and cluster discs only; it is the light the beam gives off.
 - **Selected** (`box-shadow: 0 0 0 3px <surface>, 0 0 0 6px <Trust Blue>, 0 0 28px <level>`): the beacon whose peek card is open; a solid blue ring replaces the level halo, the glow stays.
-- **Prop Lift** (a flat, unblurred offset: `box-shadow: 0 4px 0 rgba(43,42,51,.35)` on stickers, `drop-shadow(0 6px 0 rgba(43,42,51,.18))` on clouds): moving toy props only.
-
 ### Named Rules
 **The One Light Rule.** Only beacons glow. No other element gets a coloured shadow or glow.
 
@@ -305,10 +300,10 @@ The Bat-Signal beacon. Bottom to top: a 14px base dot in the level colour with a
 A 52px surface disc with the count in Count type, a 3px border and one pulse ring in the highest level inside, the Glow, and that level's badge at the lower right. Its label names the count and the highest level. Clicking flies in.
 
 ### Toy map
-Province polygons on real coordinates, three soil layers that flatten with zoom, flat Cel Land tones, faint ink province lines (30%, 0.6px), a 6px sand rim under the ink outline, fifteen white province names, and Lucide stickers for landmarks (28→44px between zoom 4 and 8) and vehicles placed on real coordinates. Clouds, planes, a train and ships drift slowly over it and pass under the names; all motion stops under `prefers-reduced-motion`. Every toy layer fades from 100% at zoom 6 to 0% at zoom 8; the province names fade from zoom 6 to 7 so they never double with the street map's own names.
+Province polygons on real coordinates, three soil layers that flatten with zoom, one flat Cel Land colour per region, faint ink province lines (30%, 0.6px), and a 6px sand rim under the ink outline. Nothing stands on it: no names, landmarks, vehicles or compass. Every toy layer fades from 100% at zoom 6 to 0% at zoom 8; the street map's place names start at zoom 7.5.
 
-### Cel sea
-A MapLibre custom WebGL layer (`features/map/sea/`) over everything outside Thailand at every zoom, with the flat Toy Sea fill under it as the fallback. Hard depth bands from a coast-distance texture: shallows 4–30 km (about 6px at the country view), mid to four times that, deep beyond, their edges wobbling slowly; thin caustic cell lines in the shallows (faint in the mid band); foam that laps the coast with a broken line chasing it (faded out past zoom 9, where a static white line on the exact mask edge takes over); brief star sparkles on open water. Animation is capped at 30 fps, stops in a hidden tab and freezes under `prefers-reduced-motion`. The camera centre is held inside Thailand plus about 2 degrees, and the zoom floor is the whole country.
+### Sea
+A MapLibre custom WebGL layer (`features/map/sea/`) over everything outside Thailand at every zoom, with the flat Toy Sea fill under it as the fallback. A smooth depth gradient by ground distance from a coast-distance texture (shallows to about 28 km, mid to 120 km, deep beyond, its edge wandering slowly), soft sun sheen, broken swell lines that roll in toward the coast and wash up as foam that drains back, and a few slow glints on open water. Every pattern is fixed to the ground and drawn at the two whole zooms around the camera, crossfaded, so nothing swims or pops while zooming. The swell fades out between zoom 8 and 10 (the texture is too coarse past that); a white line on the mask edge stands in from zoom 8 and is gone by 11.5, where the simplified mask no longer follows the real coast. Animation is capped at 60 fps, stops in a hidden tab and freezes under `prefers-reduced-motion`. The camera centre is held inside Thailand plus about 2 degrees, and the zoom floor is the whole country.
 
 ### Attribution
 MapLibre's strip on the surface at 88%, Muted Ink text and links, Trust Blue focus ring on its ⓘ toggle.

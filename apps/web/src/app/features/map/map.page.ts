@@ -26,7 +26,6 @@ import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
 import { toyOpacity, zoomHint } from './toy';
-import type { ToyOverlay } from './toy-overlay';
 
 const LOAD_DEBOUNCE_MS = 300;
 
@@ -48,7 +47,6 @@ export class MapPage {
 
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
-  private toy?: ToyOverlay;
   private stopSea?: () => void;
   private stopTheme?: () => void;
   private loadTimer?: ReturnType<typeof setTimeout>;
@@ -63,7 +61,6 @@ export class MapPage {
   readonly toast = signal<string | null>(null);
 
   readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length));
-  readonly compassOpacity = computed(() => toyOpacity(this.zoom()));
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -73,7 +70,6 @@ export class MapPage {
       clearTimeout(this.loadTimer);
       clearTimeout(this.toastTimer);
       this.beacons?.destroy();
-      this.toy?.destroy();
       this.stopSea?.();
       this.stopTheme?.();
       this.map?.remove();
@@ -121,7 +117,6 @@ export class MapPage {
         },
         leave: () => this.hover.set(null),
         select: (p) => this.select(p),
-        synced: (boxes) => this.toy?.declutter(boxes),
       });
     } catch {
       if (!this.destroyed) this.showToast('แผนที่โหลดไม่ครบ ลองรีเฟรชหน้านี้อีกครั้งนะ');
@@ -139,13 +134,9 @@ export class MapPage {
       );
       if (this.destroyed) return;
       const sea = getComputedStyle(document.documentElement).getPropertyValue('--sea').trim() || undefined;
-      await setupToyLayers(map, { provinces, land, mask }, sea);
-      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      void this.startSea(map, mask, reducedMotion);
+      setupToyLayers(map, { provinces, land, mask }, sea);
+      void this.startSea(map, mask, matchMedia('(prefers-reduced-motion: reduce)').matches);
       this.watchProvinceHover(map);
-      const { ToyOverlay } = await import('./toy-overlay');
-      if (this.destroyed) return;
-      this.toy = new ToyOverlay(map, reducedMotion);
     } catch (e) {
       // decoration only: the street map and the reports still work without it
       console.warn('toy map unavailable', e);

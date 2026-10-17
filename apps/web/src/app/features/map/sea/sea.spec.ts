@@ -87,7 +87,7 @@ describe('SeaClock', () => {
     expect(clock.nextFrameIn(false)).toBeNull();
   });
 
-  it('caps the animation at 30 frames a second and stops while hidden', () => {
+  it('caps the animation at 60 frames a second and stops while hidden', () => {
     let t = 1000;
     const clock = new SeaClock(false, () => t);
     expect(clock.nextFrameIn(false)).toBe(0);

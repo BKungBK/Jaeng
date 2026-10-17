@@ -261,15 +261,3 @@
     }
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .beacon .ring,
-  .cluster .ring {
-    animation: none;
-    opacity: 0.5;
-    transform: scale(1, 0.45);
-  }
-  .beacon .stand {
-    transition: none;
-  }
-}

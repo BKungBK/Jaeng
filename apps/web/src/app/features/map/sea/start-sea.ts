@@ -18,7 +18,7 @@ function landSampler(sdf: HTMLImageElement): LandSampler | undefined {
 }
 
 /** Returns a cleanup that stops the theme watcher (the layer itself goes with the map). */
-export async function startSea(map: maplibregl.Map, mask: FeatureCollection, reducedMotion: boolean): Promise<() => void> {
+export async function startSea(map: maplibregl.Map, mask: FeatureCollection): Promise<() => void> {
   const [grid, sdf] = await Promise.all([
     fetch('assets/geo/coast-sdf.json').then((r) => {
       if (!r.ok) throw new Error(`coast-sdf.json ${r.status}`);
@@ -31,7 +31,7 @@ export async function startSea(map: maplibregl.Map, mask: FeatureCollection, red
       img.src = 'assets/geo/coast-sdf.png';
     }),
   ]);
-  const layer = new SeaLayer(seaTriangles(mask), sdf, grid, seaPalette(currentSeaTheme()), new SeaClock(reducedMotion), landSampler(sdf));
+  const layer = new SeaLayer(seaTriangles(mask), sdf, grid, seaPalette(currentSeaTheme()), new SeaClock(), landSampler(sdf));
   map.addLayer(layer, map.getLayer('sea-foam') ? 'sea-foam' : undefined);
 
   const apply = (t: SeaTheme) => {

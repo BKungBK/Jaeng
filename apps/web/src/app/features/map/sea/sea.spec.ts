@@ -78,18 +78,17 @@ describe('seaFoamFade', () => {
 });
 
 describe('SeaClock', () => {
-  it('freezes time and never asks for frames under reduced motion', () => {
+  it('always moves: time runs on with the page clock', () => {
     let t = 1000;
-    const clock = new SeaClock(true, () => t);
+    const clock = new SeaClock(() => t);
     const first = clock.time();
     t = 9000;
-    expect(clock.time()).toBe(first);
-    expect(clock.nextFrameIn(false)).toBeNull();
+    expect(clock.time()).toBe(first + 8);
   });
 
-  it('caps the animation at 60 frames a second and stops while hidden', () => {
+  it('caps the animation at 30 frames a second and stops while hidden', () => {
     let t = 1000;
-    const clock = new SeaClock(false, () => t);
+    const clock = new SeaClock(() => t);
     expect(clock.nextFrameIn(false)).toBe(0);
     clock.drew();
     t += 10;

@@ -1,19 +1,18 @@
-// When the animated sea draws its next frame: at most 60 frames a second (rolling swell judders at
-// 30), never with reduced motion or a hidden tab (the map then repaints only when it moves).
+// When the animated sea draws its next frame: at most 30 frames a second (each one repaints the
+// whole map, and the sea only drifts slowly, so 60 cost a lot for nothing), never in a hidden tab
+// (the map then repaints only when it moves). The sea always moves: the owner ruled out honouring
+// prefers-reduced-motion (2026-10-17).
 
-export const SEA_FRAME_MS = 1000 / 60;
+export const SEA_FRAME_MS = 1000 / 30;
 
 export class SeaClock {
   private last = -Infinity;
 
-  constructor(
-    private reducedMotion: boolean,
-    private now: () => number = () => performance.now(),
-  ) {}
+  constructor(private now: () => number = () => performance.now()) {}
 
-  /** Seconds for the shader; constant under reduced motion so the sea is a still picture. */
+  /** Seconds for the shader. */
   time(): number {
-    return this.reducedMotion ? 12.5 : (this.now() / 1000) % 3600;
+    return (this.now() / 1000) % 3600;
   }
 
   /** Call once per drawn frame. */
@@ -21,9 +20,9 @@ export class SeaClock {
     this.last = this.now();
   }
 
-  /** Milliseconds until the next animation frame is due, or null when the sea should hold still. */
+  /** Milliseconds until the next animation frame is due, or null while the tab is hidden. */
   nextFrameIn(hidden: boolean): number | null {
-    if (this.reducedMotion || hidden) return null;
+    if (hidden) return null;
     return Math.max(0, SEA_FRAME_MS - (this.now() - this.last));
   }
 }

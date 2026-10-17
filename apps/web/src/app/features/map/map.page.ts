@@ -135,7 +135,7 @@ export class MapPage {
       if (this.destroyed) return;
       const sea = getComputedStyle(document.documentElement).getPropertyValue('--sea').trim() || undefined;
       setupToyLayers(map, { provinces, land, mask }, sea);
-      void this.startSea(map, mask, matchMedia('(prefers-reduced-motion: reduce)').matches);
+      void this.startSea(map, mask);
       this.watchProvinceHover(map);
     } catch (e) {
       // decoration only: the street map and the reports still work without it
@@ -157,11 +157,11 @@ export class MapPage {
   }
 
   /** The animated cel sea over the flat mask; if it fails the flat sea stays. */
-  private async startSea(map: maplibregl.Map, mask: FeatureCollection, reducedMotion: boolean) {
+  private async startSea(map: maplibregl.Map, mask: FeatureCollection) {
     try {
       const { startSea } = await import('./sea/start-sea');
       if (this.destroyed) return;
-      const stop = await startSea(map, mask, reducedMotion);
+      const stop = await startSea(map, mask);
       if (this.destroyed) stop();
       else this.stopSea = stop;
     } catch (e) {

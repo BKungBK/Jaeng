@@ -6,19 +6,19 @@ import type { SeaTheme } from './sea/sea-palette';
 /** The six geographic regions (National Research Council, 1977). */
 export type Region = 'north' | 'isan' | 'central' | 'east' | 'west' | 'south';
 
-/** One flat warm pastel per region, fixed in both themes. All sit lighter and greyer than the four
- *  level colours, so a beacon always stands out from the land under it. */
+/** One flat pastel per region, fixed in both themes. Lighter and softer than the level colours, so
+ *  the land never reads as a danger level; south is lime so the coast never melts into the sea. */
 export const REGION_COLOURS: Record<Region, string> = {
-  north: '#B7D7A0',
-  isan: '#F5C7A1',
-  central: '#F3E3B2',
-  east: '#EFBCC6',
-  west: '#CEC1E6',
-  south: '#E9B9A2',
+  north: '#B4DCAB',
+  isan: '#F9CDA2',
+  central: '#F5E7B2',
+  east: '#F3C3D0',
+  west: '#D0C4EF',
+  south: '#DAEBA8',
 };
 
-/** The map's outline colour: a warm cocoa, softer on pastels than the UI's slate ink. */
-export const INK = '#6B5242';
+/** The land's outline: a soft plum ink, gentler than Slate Ink on pastel. */
+export const INK = '#4A4458';
 
 const EAST = new Set([20, 21, 22, 23, 24, 25, 27]); // Chon Buri … Sa Kaeo
 const WEST = new Set([63, 70, 71, 76, 77]); // Tak, Ratchaburi, Kanchanaburi, Phetchaburi, Prachuap
@@ -58,12 +58,12 @@ export function paintProvinces(provinces: FeatureCollection): FeatureCollection 
 
 type Tint = [layer: string, property: string, value: string];
 
-/** The street map (OpenFreeMap positron) in the cel palette: flat colours, ink road casings. */
+/** The street map (OpenFreeMap positron) in the pastel palette: flat colours, soft lilac road casings. */
 export function baseTint(theme: SeaTheme, shallow: string): Tint[] {
   const c =
     theme === 'light'
-      ? { ground: '#F4ECDC', park: '#D6E8BC', wood: '#C6DEAA', home: '#F3E6D4', building: '#FFF9F0', edge: INK, casing: INK, road: '#FFFFFF', minor: '#FFFFFF' }
-      : { ground: '#33302B', park: '#3D4A34', wood: '#384530', home: '#3A3530', building: '#4A4340', edge: '#1A1612', casing: '#1A1612', road: '#D8CFC2', minor: '#968C80' };
+      ? { ground: '#EFF3E1', park: '#D2EAC0', wood: '#C2E0AD', home: '#F6F0E3', building: '#FFFAF2', edge: '#B7AEC6', casing: '#A49BB6', road: '#FFFFFF', minor: '#FFFFFF' }
+      : { ground: '#2C3328', park: '#38503A', wood: '#334A35', home: '#33352F', building: '#3D3A4A', edge: '#16141C', casing: '#16141C', road: '#D3CEDD', minor: '#8E8A99' };
   return [
     ['background', 'background-color', c.ground],
     ['park', 'fill-color', c.park],

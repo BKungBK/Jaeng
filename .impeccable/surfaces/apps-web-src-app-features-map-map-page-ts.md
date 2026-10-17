@@ -14,7 +14,7 @@ related_targets: []
 - **Job:** at a glance, see where problems are and how dangerous, with no hover required; zoom from the whole country to a street.
 - **Content:** real public reports from `reports_in_bbox` (38 demo reports nationwide, mixed levels and statuses). Real geometry from OCHA COD-AB.
 - **States:** loading (map shows, beacons fade in), empty filter result (hint says nothing matches and how to reset), network error (toast, retry on next move), all four chips off.
-- **Constraints:** MapLibre GL v5 globe; OpenFreeMap positron; HTML-marker beacons capped at 150; 44 px targets; keyboard reachable beacons; `prefers-reduced-motion` stops pulses and drifting objects.
+- **Constraints:** MapLibre GL v5 globe; OpenFreeMap positron; HTML-marker beacons capped at 150; 44 px targets; keyboard reachable beacons; motion never stops for `prefers-reduced-motion` (owner decision).
 - **Out of scope now:** detail panel content (plan 3), report flow (plan 4), globe intro flight, i18n switch and dark toggle UI (plan 6).
 
 ## Direction contract

@@ -1,26 +1,25 @@
-// Sea colours (DESIGN.md "Sea"): warm pastels, mint shallows to a soft periwinkle deep, cream-white
-// foam. `caustic` is the pale line colour (band contours, wave marks). Fixed per theme.
+// Sea colours (DESIGN.md "Sea"), after the owner's contour-chart reference: a glowing teal in the
+// shallows easing out to a deep tone, pale contour lines (`caustic`) and white foam. Daylight keeps
+// it pastel; night is the reference's navy and teal. Fixed per theme, like the toy colours.
 
 export type SeaTheme = 'light' | 'dark';
 export type Rgb = [number, number, number];
-export type SeaPalette = { deep: Rgb; mid: Rgb; shallow: Rgb; foam: Rgb; caustic: Rgb; sparkle: Rgb };
+export type SeaPalette = { deep: Rgb; mid: Rgb; shallow: Rgb; foam: Rgb; caustic: Rgb };
 
 export const SEA_HEX: Record<SeaTheme, Record<keyof SeaPalette, string>> = {
   light: {
-    deep: '#8AAEDD',
-    mid: '#A5D4E4',
-    shallow: '#C3EBDD',
-    foam: '#FFFBF2',
-    caustic: '#E9FAF2',
-    sparkle: '#FFF4D6',
+    deep: '#86A6D4',
+    mid: '#9FCFDD',
+    shallow: '#C8F0E6',
+    foam: '#FFFFFF',
+    caustic: '#F2FCF9',
   },
   dark: {
-    deep: '#2F4068',
-    mid: '#3A6479',
-    shallow: '#4E8C86',
-    foam: '#ECE5D6',
-    caustic: '#93CCC2',
-    sparkle: '#F5E7C4',
+    deep: '#16234D',
+    mid: '#1F5A6E',
+    shallow: '#4DB0AA',
+    foam: '#D8F7F0',
+    caustic: '#86DCD2',
   },
 };
 

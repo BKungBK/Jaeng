@@ -66,4 +66,4 @@ Every problem is a signal light (Bat-Signal style): a beam rising from the pin t
 
 ## Accessibility & Inclusion
 
-WCAG 2.1 AA contrast. 44 px minimum touch targets. Full keyboard access to beacons. A list view as an alternative to the map. Respect `prefers-reduced-motion`. Redundant encoding for color-blind users. Thai-first typography.
+WCAG 2.1 AA contrast. 44 px minimum touch targets. Full keyboard access to beacons. A list view as an alternative to the map. Redundant encoding for color-blind users. Thai-first typography.

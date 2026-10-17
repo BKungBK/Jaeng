@@ -16,7 +16,6 @@ const PATTERN_PERIOD = 96 * 1024;
 
 /** Fades the shader's foam out between zoom 8 and 10, where the texture is too coarse. */
 export const seaFoamFade = (zoom: number) => Math.max(0, Math.min(1, (10 - zoom) / 2));
-
 /** Is land at this texture position (0..1)? Built from a downsampled copy of the land channel. */
 export type LandSampler = (u: number, v: number) => boolean;
 
@@ -90,7 +89,7 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     this.gl = gl;
     try {
       this.program = this.link(gl);
-      for (const name of ['u_matrix', 'u_sdf', 'u_anchor', 'u_grid', 'u_maxKm', 'u_center', 'u_centerA', 'u_centerB', 'u_octave', 'u_worldPx', 'u_kmPerPx', 'u_time', 'u_foamFade', 'u_deep', 'u_mid', 'u_shallow', 'u_foam', 'u_caustic', 'u_sparkle'])
+      for (const name of ['u_matrix', 'u_sdf', 'u_anchor', 'u_grid', 'u_maxKm', 'u_center', 'u_centerA', 'u_centerB', 'u_octave', 'u_worldPx', 'u_kmPerPx', 'u_time', 'u_foamFade', 'u_deep', 'u_mid', 'u_shallow', 'u_foam', 'u_caustic'])
         this.uniforms.set(name, gl.getUniformLocation(this.program, name));
 
       this.vao = gl.createVertexArray()!;
@@ -185,7 +184,6 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
     gl.uniform3fv(u('u_shallow'), p.shallow);
     gl.uniform3fv(u('u_foam'), p.foam);
     gl.uniform3fv(u('u_caustic'), p.caustic);
-    gl.uniform3fv(u('u_sparkle'), p.sparkle);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture!);
     gl.uniform1i(u('u_sdf'), 0);

@@ -66,6 +66,11 @@ describe('setupToyLayers', () => {
     }
   });
 
+  it('keeps the toy out of the opaque pass, so the sea never paints over the soil', () => {
+    expect(TOY_FADE[4]).toBeLessThan(1);
+    expect(TOY_FADE[4]).toBeGreaterThan(0.99);
+  });
+
   it('paints each province its flat cel tone, lighter on hover', () => {
     const r = recorder();
     setupToyLayers(r.map, { provinces: fc, land: fc, mask: fc });
@@ -81,9 +86,9 @@ describe('setupToyLayers', () => {
     // full depth on the toy, flattening as it fades so the coast does not ghost at zoom 7
     const depth = (px: number) => ['interpolate', ['linear'], ['zoom'], 6, ['literal', [0, px]], 8, ['literal', [0, 0]]];
     expect([soil(1), soil(2), soil(3)].map((p) => [p['fill-color'], p['fill-translate']])).toEqual([
-      ['#DDB487', depth(8)],
-      ['#C99E72', depth(16)],
-      ['#B0855C', depth(24)],
+      ['#DDBB98', depth(8)],
+      ['#CBA582', depth(16)],
+      ['#B8916F', depth(24)],
     ]);
   });
 
@@ -108,7 +113,7 @@ describe('tintBaseMap', () => {
     ]);
     tintBaseMap(r.map, 'light', '#3FD6C8');
     expect(r.paint).toEqual([
-      ['background', 'background-color', '#F4ECDC'],
+      ['background', 'background-color', '#EFF3E1'],
       ['water', 'fill-color', '#3FD6C8'],
     ]);
   });

@@ -1,7 +1,9 @@
 // Zoom rules for the toy map (spec 3.2, 4.4).
 
-/** Toy layers are fully shown up to zoom 6 and gone at zoom 8. */
-export const TOY_FADE = ['interpolate', ['linear'], ['zoom'], 6, 1, 8, 0] as const;
+/** Toy layers are fully shown up to zoom 6 and gone at zoom 8. Never quite 1: a fully opaque fill
+ *  goes into MapLibre's opaque pass, which runs before the custom sea layer, so the sea would paint
+ *  over the soil layers that hang over the water. */
+export const TOY_FADE = ['interpolate', ['linear'], ['zoom'], 6, 0.999, 8, 0] as const;
 
 /** Clusters stop forming above this zoom. */
 export const CLUSTER_MAX_ZOOM = 11;

@@ -5,7 +5,8 @@ import { SupabaseService } from './supabase.service';
 const session = (token = 'at') => ({ access_token: token, refresh_token: 'rt', user: { id: 'u1' } });
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
-function setup(opts: { session?: unknown; profile?: unknown } = {}) {
+function setup(opts: { session?: unknown; profile?: unknown; failClientTimes?: number } = {}) {
+  let failures = opts.failClientTimes ?? 0;
   let authCb: (event: string, s: unknown) => void = () => {};
   const maybeSingle = vi.fn().mockResolvedValue({ data: opts.profile ?? null, error: null });
   const eq = vi.fn(() => ({ maybeSingle }));
@@ -24,9 +25,19 @@ function setup(opts: { session?: unknown; profile?: unknown } = {}) {
     refreshSession: vi.fn().mockResolvedValue({ data: { session: session('fresh') }, error: null }),
   };
   TestBed.configureTestingModule({
-    providers: [{ provide: SupabaseService, useValue: { client: async () => ({ auth, from }) } }],
+    providers: [
+      {
+        provide: SupabaseService,
+        useValue: {
+          client: async () => {
+            if (failures-- > 0) throw new Error('config 503');
+            return { auth, from };
+          },
+        },
+      },
+    ],
   });
-  return { auth, from, eq, emit: (e: string, s: unknown) => authCb(e, s), service: TestBed.inject(AuthService) };
+  return { auth, from, eq, maybeSingle, emit: (e: string, s: unknown) => authCb(e, s), service: TestBed.inject(AuthService) };
 }
 
 describe('AuthService', () => {
@@ -47,6 +58,32 @@ describe('AuthService', () => {
     await flush();
     expect(service.profile()).toBeNull();
     expect(service.signedIn()).toBe(false);
+  });
+
+  it('subscribes later when the API was down at start, so a login still updates the session', async () => {
+    const { service, auth, emit } = setup({ failClientTimes: 1 });
+    await service.ready; // first start failed
+    expect(auth.onAuthStateChange).not.toHaveBeenCalled();
+    await service.verifyCode('a@b.co', '123456'); // API is back: retries start
+    expect(auth.onAuthStateChange).toHaveBeenCalledTimes(1);
+    emit('SIGNED_IN', session('late'));
+    expect(service.session()?.access_token).toBe('late');
+    await service.accessToken();
+    expect(auth.onAuthStateChange).toHaveBeenCalledTimes(1); // subscribed once only
+  });
+
+  it('drops the previous profile when another user signs in, even if the new load fails', async () => {
+    const a = { id: 'u1', display_name: 'A', role: 'admin' };
+    const { service, emit, maybeSingle } = setup({ profile: a });
+    await service.ready;
+    emit('SIGNED_IN', session());
+    await flush();
+    expect(service.profile()).toEqual(a);
+    maybeSingle.mockRejectedValue(new Error('boom'));
+    emit('SIGNED_IN', { access_token: 'b', refresh_token: 'r', user: { id: 'u2' } });
+    expect(service.profile()).toBeNull(); // immediately, before B's row loads
+    await flush();
+    expect(service.profile()).toBeNull(); // and still null after the failed load
   });
 
   it('picks up an existing session on start', async () => {

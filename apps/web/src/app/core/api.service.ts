@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-const UNAUTHORIZED = new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+const MSG_INTERNAL = 'มีบางอย่างขัดข้อง ลองใหม่อีกครั้งนะ';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -20,7 +20,7 @@ export class ApiService {
 
   async post<T>(path: string, body?: unknown): Promise<T> {
     const token = await this.auth.accessToken();
-    if (!token) throw UNAUTHORIZED;
+    if (!token) throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
     let res = await this.send(path, body, token);
     if (res.status === 401) {
       // token may have expired mid-session: refresh once, retry once
@@ -28,17 +28,25 @@ export class ApiService {
       if (fresh) res = await this.send(path, body, fresh);
     }
     if (!res.ok) throw await this.toError(res);
-    return (await res.json()) as T;
+    try {
+      return (await res.json()) as T;
+    } catch {
+      throw new ApiError(res.status, 'internal', MSG_INTERNAL);
+    }
   }
 
-  private send(path: string, body: unknown, token: string): Promise<Response> {
+  private async send(path: string, body: unknown, token: string): Promise<Response> {
     const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
-    return fetch(`/api${path}`, {
-      method: 'POST',
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    try {
+      return await fetch(`/api${path}`, {
+        method: 'POST',
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch {
+      throw new ApiError(0, 'network', 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ');
+    }
   }
 
   private async toError(res: Response): Promise<ApiError> {
@@ -48,6 +56,6 @@ export class ApiService {
     } catch {
       // not JSON
     }
-    return new ApiError(res.status, 'internal', 'มีบางอย่างขัดข้อง ลองใหม่อีกครั้งนะ');
+    return new ApiError(res.status, 'internal', MSG_INTERNAL);
   }
 }

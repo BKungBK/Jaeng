@@ -78,6 +78,26 @@ describe('ApiService', () => {
     expect(err).toMatchObject({ status: 404, code: 'report_not_found', messageTh: 'ไม่พบเรื่องนี้' });
   });
 
+  it('wraps a failed fetch as a network ApiError', async () => {
+    const { service, fetchMock } = setup({ access: 't' });
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const err = await service.post('/x').catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ code: 'network', messageTh: 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ' });
+  });
+
+  it('wraps a non-JSON 2xx body as internal', async () => {
+    const { service } = setup({ access: 't' }, new Response('ok', { status: 200 }));
+    await expect(service.post('/x')).rejects.toMatchObject({ code: 'internal' });
+  });
+
+  it('throws a fresh ApiError each time', async () => {
+    const { service } = setup({ access: null });
+    const a = await service.post('/x').catch((e) => e);
+    const b = await service.post('/x').catch((e) => e);
+    expect(a).not.toBe(b);
+  });
+
   it('uses code internal when the body is not JSON', async () => {
     const { service } = setup({ access: 't' }, new Response('<html>oops</html>', { status: 502 }));
     await expect(service.post('/x')).rejects.toMatchObject({ status: 502, code: 'internal' });

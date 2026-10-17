@@ -46,7 +46,11 @@ export class RealtimeService {
     const ch = this.channel;
     if (!ch) return;
     this.channel = undefined;
-    const client = await this.supabase.client();
-    await client.removeChannel(ch);
+    try {
+      const client = await this.supabase.client();
+      await client.removeChannel(ch);
+    } catch {
+      // nothing to clean up if the client is gone
+    }
   }
 }

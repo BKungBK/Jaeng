@@ -32,20 +32,39 @@ export class AuthService {
   readonly signedIn = computed(() => this.sessionSig() !== null);
   readonly ready: Promise<void>;
 
+  private started?: Promise<void>;
+  private subscribed = false;
+
   constructor() {
-    this.ready = this.init();
+    this.ready = this.start().catch(() => {
+      // offline or API down: stay signed out; the next call retries
+    });
+  }
+
+  /** Idempotent and retryable: a failed start is forgotten so the next caller tries again. */
+  private start(): Promise<void> {
+    this.started ??= this.init().catch((e) => {
+      this.started = undefined;
+      throw e;
+    });
+    return this.started;
   }
 
   private async init(): Promise<void> {
-    try {
-      const client = await this.supabase.client();
+    const client = await this.supabase.client();
+    if (!this.subscribed) {
+      this.subscribed = true;
       // callback must not await supabase calls (it runs inside the auth lock), so load async
       client.auth.onAuthStateChange((_event, s) => this.apply(s));
-      const { data } = await client.auth.getSession();
-      this.apply(data.session);
-    } catch {
-      // offline or API down: stay signed out
     }
+    const { data } = await client.auth.getSession();
+    this.apply(data.session);
+  }
+
+  /** The client, after making sure the auth subscription exists (when it can be made). */
+  private async clientReady() {
+    await this.start().catch(() => {});
+    return this.supabase.client();
   }
 
   private apply(s: Session | null): void {
@@ -54,6 +73,8 @@ export class AuthService {
       this.profileSig.set(null);
       return;
     }
+    // never keep the previous user's profile (and role) attached to a new user
+    if (this.profileSig()?.id !== s.user.id) this.profileSig.set(null);
     setTimeout(() => void this.loadProfile(s.user.id), 0);
   }
 
@@ -64,18 +85,18 @@ export class AuthService {
       // ignore a stale answer if the user changed meanwhile
       if (this.sessionSig()?.user.id === id) this.profileSig.set((data as Profile | null) ?? null);
     } catch {
-      // profile stays as it was
+      if (this.sessionSig()?.user.id === id) this.profileSig.set(null);
     }
   }
 
   async sendCode(email: string): Promise<void> {
-    const client = await this.supabase.client();
+    const client = await this.clientReady();
     const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
     if (error) throw thaiError(error);
   }
 
   async verifyCode(email: string, code: string): Promise<void> {
-    const client = await this.supabase.client();
+    const client = await this.clientReady();
     const { error } = await client.auth.verifyOtp({ email, token: code, type: 'email' });
     if (error) throw thaiError(error);
   }
@@ -88,25 +109,25 @@ export class AuthService {
     });
     if (!res.ok) throw new Error(MSG_GENERIC);
     const { access_token, refresh_token } = (await res.json()) as { access_token: string; refresh_token: string };
-    const client = await this.supabase.client();
+    const client = await this.clientReady();
     const { error } = await client.auth.setSession({ access_token, refresh_token });
     if (error) throw new Error(MSG_GENERIC);
   }
 
   async signOut(): Promise<void> {
-    const client = await this.supabase.client();
+    const client = await this.clientReady();
     await client.auth.signOut();
   }
 
   /** getSession() makes supabase-js refresh a token that is close to expiry. */
   async accessToken(): Promise<string | null> {
-    const client = await this.supabase.client();
+    const client = await this.clientReady();
     const { data } = await client.auth.getSession();
     return data.session?.access_token ?? null;
   }
 
   async refresh(): Promise<string | null> {
-    const client = await this.supabase.client();
+    const client = await this.clientReady();
     const { data, error } = await client.auth.refreshSession();
     return error ? null : (data.session?.access_token ?? null);
   }

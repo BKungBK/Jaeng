@@ -1,4 +1,6 @@
+import type { ReportSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
+import { reportRoutes } from './routes/reports';
 import type { Verify } from './auth';
 import { ApiError, ERRORS, errorBody, type ErrorCode } from './errors';
 import type { Store } from './store';
@@ -8,6 +10,7 @@ export type AppDeps = {
   anonKey: string;
   verify: Verify;
   store: Store;
+  broadcast: (signal: ReportSignal) => Promise<void>;
 };
 
 function reply(set: { status?: number | string }, code: ErrorCode) {
@@ -20,7 +23,7 @@ export function createApp(deps: AppDeps) {
   return new Elysia()
     .onError(({ code, error, set }) => {
       if (error instanceof ApiError) return reply(set, error.code);
-      if (code === 'VALIDATION') return reply(set, 'invalid_request');
+      if (code === 'VALIDATION' || code === 'PARSE') return reply(set, 'invalid_request');
       if (code === 'NOT_FOUND') return reply(set, 'not_found');
       console.error('unhandled error', error);
       return reply(set, 'internal');
@@ -30,5 +33,6 @@ export function createApp(deps: AppDeps) {
       if (!db) set.status = 503;
       return { ok: db, db };
     })
-    .get('/config', () => ({ supabaseAnonKey: deps.anonKey }));
+    .get('/config', () => ({ supabaseAnonKey: deps.anonKey }))
+    .use(reportRoutes(deps));
 }

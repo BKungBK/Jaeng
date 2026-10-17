@@ -14,6 +14,7 @@ const deps = (over: Partial<AppDeps> = {}): AppDeps => ({
       throw new Error('unused');
     },
   },
+  broadcast: async () => {},
   ...over,
 });
 

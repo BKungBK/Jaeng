@@ -1,5 +1,4 @@
-<div class="map" #map></div>
-
+<!-- DOM order is tab order: chips and controls first, then the map's markers -->
 <div class="top">
   <header class="card brand">
     <h1>แจ้ง</h1>
@@ -24,20 +23,22 @@
 
 <p class="card hint" aria-live="polite">{{ hint() }}</p>
 
+<div class="map" #map></div>
+
 <img class="compass" [src]="compassUrl" alt="" [style.opacity]="compassOpacity()" />
 
 @if (hover(); as h) {
   <div class="card tip" role="tooltip" [style.left.px]="h.x" [style.top.px]="h.y" [style.--c]="level(h.p).color">
-    <ng-container *ngTemplateOutlet="summary; context: { $implicit: h.p }" />
+    <ng-container *ngTemplateOutlet="summary; context: { $implicit: h.p, id: null }" />
   </div>
 }
 
 @if (selected(); as s) {
-  <aside class="card peek" [style.--c]="level(s).color" aria-label="สรุปเรื่องที่เลือก">
-    <button type="button" class="ctl close" aria-label="ปิด" (click)="selected.set(null)">
+  <aside class="card peek" role="dialog" aria-labelledby="peek-title" [style.--c]="level(s).color">
+    <button type="button" class="ctl close" aria-label="ปิด" #close (click)="closePeek()">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
     </button>
-    <ng-container *ngTemplateOutlet="summary; context: { $implicit: s }" />
+    <ng-container *ngTemplateOutlet="summary; context: { $implicit: s, id: 'peek-title' }" />
   </aside>
 }
 
@@ -45,7 +46,7 @@
   <div class="toast" role="status">{{ t }}</div>
 }
 
-<ng-template #summary let-p>
+<ng-template #summary let-p let-id="id">
   <div class="thumb">
     @if (photo(p); as src) {
       <img [src]="src" alt="" />
@@ -53,11 +54,14 @@
       <img class="cat" [src]="icon(p)" alt="" />
     }
   </div>
-  <strong class="title">{{ p.title }}</strong>
+  <strong class="title" [attr.id]="id">{{ p.title }}</strong>
   <span class="meta">
-    {{ level(p).symbol }} {{ level(p).nameTh }} · {{ status(p) }} · เจอเหมือนกัน {{ p.confirm_count }}
+    <app-level-shape class="shape" [level]="p.danger_level" />
+    {{ level(p).nameTh }} · {{ status(p) }} · เจอเหมือนกัน {{ p.confirm_count }}
   </span>
   @if (p.status === 'open') {
-    <span class="age" [class.long]="p.days_open > 30">ค้างมา {{ p.days_open }} วัน</span>
+    <span class="age" [class.long]="p.days_open > 30">
+      {{ p.days_open > 30 ? 'ค้างนาน · ' : '' }}ค้างมา {{ p.days_open }} วัน
+    </span>
   }
 </ng-template>

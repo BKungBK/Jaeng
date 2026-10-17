@@ -6,6 +6,43 @@
   color: var(--ink);
 }
 
+// the level badge at a disc's lower right: solid shape (or tick) in Slate Ink on the level colour
+@mixin level-badge {
+  position: absolute;
+  right: -8px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--c);
+  color: #2b2a33;
+  font: 600 12px/18px 'IBM Plex Sans Thai', sans-serif;
+  font-style: normal;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+  }
+}
+
+// MapLibre attribution, themed from the tokens
+.maplibregl-ctrl.maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--surf) 88%, transparent);
+  color: var(--ink2);
+
+  a {
+    color: var(--ink2);
+  }
+}
+
+.maplibregl-ctrl-attrib-button:focus-visible {
+  outline: 3px solid var(--pri);
+  outline-offset: 2px;
+}
+
 // ---------- beacon ----------
 .beacon {
   position: absolute;
@@ -98,17 +135,14 @@
   }
 
   .sym {
-    position: absolute;
-    right: -8px;
-    bottom: -4px;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    background: var(--c);
-    color: #2b2a33;
-    font: 600 12px/18px 'IBM Plex Sans Thai', sans-serif;
-    font-style: normal;
-    text-align: center;
+    @include level-badge;
+  }
+
+  .disc.selected {
+    box-shadow:
+      0 0 0 3px var(--surf),
+      0 0 0 6px var(--pri),
+      0 0 28px var(--c);
   }
 
   .lbl {
@@ -209,6 +243,12 @@
     font-variant-numeric: tabular-nums;
     cursor: pointer;
 
+    .sym {
+      @include level-badge;
+      right: -6px;
+      bottom: -2px;
+    }
+
     &:focus-visible {
       outline: 3px solid var(--pri);
       outline-offset: 4px;
@@ -232,6 +272,10 @@
     -1px -1px 0 #2b2a33,
     1px -1px 0 #2b2a33,
     -1px 1px 0 #2b2a33;
+}
+
+.toy-label.clash {
+  visibility: hidden;
 }
 
 .toy-mover {

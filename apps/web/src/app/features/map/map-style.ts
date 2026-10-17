@@ -44,7 +44,12 @@ export async function setupMapLayers(map: MapLike, geo: ToyGeometry, sea = '#4FB
       id: `toy-soil-${n}`,
       type: 'fill',
       source: 'toy-land',
-      paint: { 'fill-color': TOY.soil[n - 1], 'fill-translate': [0, n * 8], 'fill-opacity': fade },
+      paint: {
+        'fill-color': TOY.soil[n - 1],
+        // full depth on the toy, flattening as it fades so the coast does not ghost at zoom 7
+        'fill-translate': ['interpolate', ['linear'], ['zoom'], 6, ['literal', [0, n * 8]], 8, ['literal', [0, 0]]],
+        'fill-opacity': fade,
+      },
     });
   }
   map.addLayer({

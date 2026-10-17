@@ -6,6 +6,7 @@ import type { CategorySlug } from '@jaeng/shared/categories';
 import { DangerLevel, LEVELS, LevelInfo } from '@jaeng/shared/levels';
 import { EmojiSlug, emojiUrl } from './emoji';
 import { ReportProps, STATUS_TH } from './report';
+import { levelShapeSvg } from './level-shape';
 import { BEAM_ZOOM } from './toy';
 
 const CATEGORY_EMOJI: Record<CategorySlug, EmojiSlug> = {
@@ -48,7 +49,7 @@ function setLevelVars(node: HTMLElement, level: LevelInfo) {
   node.style.setProperty('--d', level.pulse);
 }
 
-function build(root: HTMLElement, p: ReportProps, view: BeaconView, showLabel: boolean) {
+function build(root: HTMLElement, p: ReportProps, view: BeaconView) {
   root.replaceChildren();
   for (let i = 0; i < view.level.rings; i++) el('i', i ? 'ring two' : 'ring', root);
   el('i', 'base', root);
@@ -66,25 +67,40 @@ function build(root: HTMLElement, p: ReportProps, view: BeaconView, showLabel: b
     img.alt = '';
     img.draggable = false;
   }
-  el('i', 'sym', disc).textContent = view.state === 'done' ? '✓' : view.level.symbol;
-  if (showLabel) el('span', 'lbl', disc);
+  disc.appendChild(levelBadge(view.state === 'done' ? null : p.danger_level));
 }
 
-const structureKey = (p: ReportProps, view: BeaconView, showLabel: boolean) =>
-  `${p.category}|${p.danger_level}|${view.state}|${showLabel}`;
+/** The small badge at the disc's lower right: the level's shape, or a tick once resolved. */
+function levelBadge(level: DangerLevel | null): HTMLElement {
+  const sym = el('i', 'sym');
+  if (level === null) sym.textContent = '✓';
+  else {
+    sym.setAttribute('data-level', String(level));
+    sym.appendChild(levelShapeSvg(level));
+  }
+  return sym;
+}
+
+// Rebuild only when the look changes; label and height update in place so a focused disc survives.
+const structureKey = (p: ReportProps, view: BeaconView) => `${p.category}|${p.danger_level}|${view.state}`;
 
 export function updateBeaconElement(root: HTMLElement, p: ReportProps, view: BeaconView, showLabel: boolean): void {
-  const key = structureKey(p, view, showLabel);
+  const key = structureKey(p, view);
   if (root.dataset['key'] !== key) {
-    build(root, p, view, showLabel);
+    build(root, p, view);
     root.dataset['key'] = key;
+  }
+  const disc = root.querySelector<HTMLElement>('.disc')!;
+  let lbl = root.querySelector('.lbl');
+  if (showLabel && !lbl) lbl = el('span', 'lbl', disc);
+  if (!showLabel && lbl) {
+    lbl.remove();
+    lbl = null;
   }
   root.className = `beacon st-${view.state}${view.compact ? ' compact' : ''}`;
   setLevelVars(root, view.level);
   root.style.setProperty('--h', `${view.height}px`);
-  const disc = root.querySelector<HTMLElement>('.disc')!;
   disc.setAttribute('aria-label', beaconAriaLabel(p));
-  const lbl = root.querySelector('.lbl');
   if (lbl) lbl.textContent = p.title;
 }
 
@@ -101,7 +117,8 @@ export function createClusterElement(count: number, maxLevel: DangerLevel): HTML
   const btn = el('button', 'count', root);
   btn.type = 'button';
   btn.textContent = String(count);
-  btn.setAttribute('aria-label', `${count} เรื่องในพื้นที่นี้`);
+  btn.setAttribute('aria-label', `${count} เรื่องในพื้นที่นี้ ระดับสูงสุด${LEVELS[maxLevel].nameTh}`);
+  btn.appendChild(levelBadge(maxLevel));
   return root;
 }
 

@@ -65,10 +65,12 @@ describe('setupMapLayers', () => {
     const r = recorder();
     await setupMapLayers(r.map, { provinces: fc, land: fc, mask: fc });
     const soil = (n: number) => r.layers.find((l) => l.id === `toy-soil-${n}`).paint;
+    // full depth on the toy, flattening as it fades so the coast does not ghost at zoom 7
+    const depth = (px: number) => ['interpolate', ['linear'], ['zoom'], 6, ['literal', [0, px]], 8, ['literal', [0, 0]]];
     expect([soil(1), soil(2), soil(3)].map((p) => [p['fill-color'], p['fill-translate']])).toEqual([
-      ['#AB7B42', [0, 8]],
-      ['#946636', [0, 16]],
-      ['#7B5430', [0, 24]],
+      ['#AB7B42', depth(8)],
+      ['#946636', depth(16)],
+      ['#7B5430', depth(24)],
     ]);
   });
 

@@ -11,7 +11,8 @@ function setup() {
 describe('FilterBarComponent', () => {
   it('shows the four levels, all on', () => {
     const { buttons } = setup();
-    expect(buttons().map((b) => b.textContent?.trim())).toEqual(['● ทั่วไป', '▲ ควรระวัง', '◆ อันตราย', '⚠ วิกฤต']);
+    expect(buttons().map((b) => b.textContent?.trim())).toEqual(['ทั่วไป', 'ควรระวัง', 'อันตราย', 'วิกฤต']);
+    expect(buttons().map((b) => b.querySelector('svg')?.getAttribute('data-level'))).toEqual(['0', '1', '2', '3']);
     expect(buttons().every((b) => b.getAttribute('aria-pressed') === 'true')).toBe(true);
   });
 

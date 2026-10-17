@@ -22,7 +22,7 @@ THESIS: The map is a toy model of Thailand at first light where the only lights 
 OWN-WORLD: Toy Sea #4FB3EA ground, stacked soil-brown land with green top and orange Isan, Fluent Emoji 3D landmarks; pastel level beams (mint, butter, peach, rose) with white discs; white floating cards, Prompt + Plex Sans Thai, 14–24 px radii, one warm Float shadow.
 STORY: The visitor sees all of Thailand lit by counted clusters, understands colour + shape = danger from the chips, zooms, watches the toy dissolve into streets, and finds individual beams whose height says how many neighbors agree.
 FIRST VIEWPORT: Full-bleed globe-masked Thailand filling the height; brand card top-left with the level chip group beside it; zoom and locate buttons on the right; zoom-level hint card bottom-left; compass lower right; clusters and compact beams over the land. No bars.
-FORM: Pinned by the owner (prototype v2 + toy-poster style), not rolled. seed: none (unavailable)
+FORM: Owner-pinned world (prototype v2 + toy-poster style, spec 3.11.1 "decisions marked ตัดสินแล้ว win"); concept-seed was never run because a pinned direction beats the roll. seed: none (owner-pinned, no roll)
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Signature interaction

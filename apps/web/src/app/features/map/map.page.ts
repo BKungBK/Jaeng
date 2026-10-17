@@ -17,6 +17,7 @@ import { categoryIconUrl } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
 import { emojiUrl } from './emoji';
 import { FilterBarComponent } from './filter-bar.component';
+import { LevelShapeComponent } from './level-shape';
 import { MAP_FACTORY } from './map-factory';
 import { REPORT_SOURCE, setupMapLayers, tintBaseMap } from './map-style';
 import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
@@ -33,14 +34,15 @@ const LOAD_DEBOUNCE_MS = 300;
   templateUrl: 'map.page.html',
   styleUrls: ['map.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FilterBarComponent, NgTemplateOutlet],
-  host: { class: 'ion-page', '(document:keydown.escape)': 'selected.set(null)' },
+  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent],
+  host: { class: 'ion-page', '(document:keydown.escape)': 'closePeek()' },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
   private reports = inject(ReportsService);
   private loader = new ReportsLoader((bbox, levels) => this.reports.inBbox(bbox, levels));
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
+  private closeButton = viewChild<ElementRef<HTMLButtonElement>>('close');
 
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
@@ -100,12 +102,38 @@ export class MapPage {
         this.hover.set({ p, x: Math.min(innerWidth - 256, r.right + 10), y: Math.max(76, r.top) });
       },
       leave: () => this.hover.set(null),
-      select: (p) => {
-        this.hover.set(null);
-        this.selected.set(p);
-      },
+      select: (p) => this.select(p),
+      synced: (boxes) => this.toy?.declutter(boxes),
     });
+    // phones: start with the attribution folded to its ⓘ so it does not sit under the hint card
+    if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
+  }
+
+  private select(p: ReportProps) {
+    this.hover.set(null);
+    this.markSelected(false);
+    this.selected.set(p);
+    this.markSelected(true);
+    // move focus into the card so keyboard and screen-reader users land on it
+    setTimeout(() => this.closeButton()?.nativeElement.focus());
+  }
+
+  closePeek() {
+    const p = this.selected();
+    if (!p) return;
+    this.markSelected(false);
+    this.selected.set(null);
+    this.discFor(p.id)?.focus();
+  }
+
+  private discFor(id: string) {
+    return this.container().nativeElement.querySelector<HTMLElement>(`.disc[data-id="${CSS.escape(id)}"]`);
+  }
+
+  private markSelected(on: boolean) {
+    const p = this.selected();
+    if (p) this.discFor(p.id)?.classList.toggle('selected', on);
   }
 
   scheduleLoad(delay = LOAD_DEBOUNCE_MS) {

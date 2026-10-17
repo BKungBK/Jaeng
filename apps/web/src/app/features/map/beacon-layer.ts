@@ -12,6 +12,8 @@ export type BeaconHandlers = {
   hover(p: ReportProps, el: HTMLElement): void;
   leave(): void;
   select(p: ReportProps): void;
+  /** After each sync, with the screen boxes of every cluster and disc (for decluttering labels). */
+  synced?(obstacles: DOMRect[]): void;
 };
 
 type Entry = { marker: maplibregl.Marker; el: HTMLElement; kind: 'beacon' | 'cluster'; props?: ReportProps; count?: number; maxLevel?: number };
@@ -64,9 +66,14 @@ export class BeaconLayer {
     }
     for (const [key, entry] of this.entries) {
       if (!keep.has(key)) {
+        if (entry.el.contains(document.activeElement)) this.handlers.leave();
         entry.marker.remove();
         this.entries.delete(key);
       }
+    }
+    if (this.handlers.synced) {
+      const boxes = [...this.entries.values()].map((e) => e.el.querySelector('.disc, .count')!.getBoundingClientRect());
+      this.handlers.synced(boxes);
     }
   }
 
@@ -117,7 +124,15 @@ export class BeaconLayer {
       const d = disc();
       if (e.pointerType === 'mouse' && d && d.contains(e.target as Node)) this.handlers.hover(entry.props!, d);
     });
-    entry.el.addEventListener('pointerout', () => this.handlers.leave());
+    entry.el.addEventListener('pointerout', (e) => {
+      if (!entry.el.contains(e.relatedTarget as Node)) this.handlers.leave();
+    });
+    // keyboard users get the same summary as mouse hover
+    entry.el.addEventListener('focusin', () => {
+      const d = disc();
+      if (d) this.handlers.hover(entry.props!, d);
+    });
+    entry.el.addEventListener('focusout', () => this.handlers.leave());
     entry.el.addEventListener('click', (e) => {
       if (disc()?.contains(e.target as Node)) this.handlers.select(entry.props!);
     });
@@ -142,7 +157,12 @@ export class BeaconLayer {
   }
 
   private place(el: HTMLElement, lngLat: [number, number]) {
-    return new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(lngLat).addTo(this.map);
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat(lngLat).addTo(this.map);
+    // MapLibre names every marker wrapper "Map marker"; the disc or count button inside is the real control
+    el.removeAttribute('role');
+    el.removeAttribute('aria-label');
+    el.removeAttribute('tabindex');
+    return marker;
   }
 
   private async expand(clusterId: number, center: [number, number]) {

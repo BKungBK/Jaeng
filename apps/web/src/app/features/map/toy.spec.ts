@@ -1,4 +1,4 @@
-import { toyOpacity, zoomHint } from './toy';
+import { toyLabelOpacity, toyOpacity, zoomHint } from './toy';
 import { PROVINCE_LABELS } from './toy-places';
 
 describe('toyOpacity', () => {
@@ -10,6 +10,14 @@ describe('toyOpacity', () => {
     [12, 0],
   ])('zoom %d → %d', (zoom, opacity) => {
     expect(toyOpacity(zoom)).toBeCloseTo(opacity);
+  });
+});
+
+describe('toyLabelOpacity', () => {
+  it('hands names over to the street map by zoom 7', () => {
+    expect(toyLabelOpacity(6)).toBe(1);
+    expect(toyLabelOpacity(6.5)).toBeCloseTo(0.5);
+    expect(toyLabelOpacity(7)).toBe(0);
   });
 });
 
@@ -43,7 +51,7 @@ describe('PROVINCE_LABELS', () => {
       'นครราชสีมา',
       'อุบลราชธานี',
       'พระนครศรีอยุธยา',
-      'กรุงเทพมหานคร',
+      'กรุงเทพฯ',
       'กาญจนบุรี',
       'ชลบุรี',
       'ระยอง',

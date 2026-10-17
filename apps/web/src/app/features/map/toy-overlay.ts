@@ -2,7 +2,8 @@
 // vowel and tone marks) and the slow movers (train, planes, ships, clouds). All fade with the toy.
 import maplibregl from 'maplibre-gl';
 import { emojiUrl } from './emoji';
-import { toyOpacity } from './toy';
+import { declutter, Rect } from './declutter';
+import { toyLabelOpacity, toyOpacity } from './toy';
 import { PROVINCE_LABELS, ROUTES } from './toy-places';
 
 type LngLat = [number, number];
@@ -67,12 +68,13 @@ export class ToyOverlay {
   private applyZoom() {
     const zoom = this.map.getZoom();
     const opacity = toyOpacity(zoom);
+    const labelOpacity = toyLabelOpacity(zoom);
     const k = Math.max(0, Math.min(1, (zoom - 4) / 2.5));
     for (const m of this.labels) {
       const el = m.getElement();
-      el.style.opacity = String(opacity);
+      el.style.opacity = String(labelOpacity);
       el.style.setProperty('--k', String(k));
-      el.style.visibility = opacity === 0 ? 'hidden' : '';
+      el.style.visibility = labelOpacity === 0 ? 'hidden' : '';
     }
     for (const m of this.movers) {
       const el = m.marker.getElement();
@@ -81,6 +83,16 @@ export class ToyOverlay {
     }
     if (this.reducedMotion) this.place(0.3);
     else if (opacity > 0 && !this.raf) this.raf = requestAnimationFrame(this.tick);
+  }
+
+  /** Hide province names that would sit under a cluster, a beacon disc or another name. */
+  declutter(obstacles: readonly Rect[]): void {
+    const els = this.labels.map((m) => m.getElement());
+    const show = declutter(
+      els.map((el) => el.getBoundingClientRect()),
+      obstacles,
+    );
+    els.forEach((el, i) => el.classList.toggle('clash', !show[i]));
   }
 
   private place(fixed?: number) {

@@ -13,6 +13,11 @@ export function toyOpacity(zoom: number): number {
   return Math.max(0, Math.min(1, (8 - zoom) / 2));
 }
 
+/** Toy province names leave first (zoom 6–7), so they never double with the street map's names. */
+export function toyLabelOpacity(zoom: number): number {
+  return Math.max(0, Math.min(1, 7 - zoom));
+}
+
 /** The status line in the corner card: what the visitor is looking at and what to do next. */
 export function zoomHint(zoom: number, shown: number, levelsOn: number): string {
   if (levelsOn === 0) return 'ปิดตัวกรองครบทุกระดับแล้ว แตะชิปด้านบนเพื่อดูเรื่องอีกครั้ง';

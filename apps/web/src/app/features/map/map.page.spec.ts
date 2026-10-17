@@ -78,6 +78,35 @@ describe('MapPage', () => {
     expect(root.querySelector('[role="status"]')?.textContent).toContain('โหลดข้อมูลไม่สำเร็จ');
   });
 
+  it('puts the chips and controls before the map in tab order', async () => {
+    const { root } = await setup();
+    const order = [...root.querySelectorAll('app-filter-bar, .controls, .map')].map((e) => e.className || e.tagName);
+    expect(order).toEqual(['APP-FILTER-BAR', 'controls', 'map']);
+  });
+
+  it('opens the peek as a labelled dialog and closes it with Escape', async () => {
+    const { fixture, root } = await setup();
+    fixture.componentInstance.selected.set({
+      id: 'r1',
+      title: 'หลุมลึก',
+      category: 'road',
+      icon: '🕳️',
+      danger_level: 2,
+      status: 'open',
+      confirm_count: 3,
+      comment_count: 0,
+      days_open: 4,
+      cover_photo_path: null,
+    });
+    fixture.detectChanges();
+    const peek = root.querySelector('.peek')!;
+    expect(peek.getAttribute('role')).toBe('dialog');
+    expect(peek.querySelector(`#${peek.getAttribute('aria-labelledby')}`)?.textContent).toBe('หลุมลึก');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(root.querySelector('.peek')).toBeNull();
+  });
+
   it('zooms with the buttons', async () => {
     const { map, root } = await setup();
     root.querySelector<HTMLButtonElement>('button[aria-label="ซูมเข้า"]')!.click();

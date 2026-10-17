@@ -11,7 +11,7 @@ export const PROVINCE_LABELS: { name: string; lngLat: LngLat }[] = [
   { name: 'นครราชสีมา', lngLat: [102.1, 14.97] },
   { name: 'อุบลราชธานี', lngLat: [104.86, 15.24] },
   { name: 'พระนครศรีอยุธยา', lngLat: [100.57, 14.35] },
-  { name: 'กรุงเทพมหานคร', lngLat: [100.5, 13.75] },
+  { name: 'กรุงเทพฯ', lngLat: [100.5, 13.75] },
   { name: 'กาญจนบุรี', lngLat: [99.53, 14.02] },
   { name: 'ชลบุรี', lngLat: [100.98, 13.36] },
   { name: 'ระยอง', lngLat: [101.28, 12.68] },
@@ -34,8 +34,8 @@ export const LANDMARKS: { slug: EmojiSlug; lngLat: LngLat; size: number }[] = [
   { slug: 'elephant', lngLat: [103.75, 15.05], size: 1 },
   { slug: 'hindu-temple', lngLat: [103.2, 14.6], size: 0.9 },
   // centre and west
-  { slug: 'hindu-temple', lngLat: [100.85, 14.65], size: 0.9 },
-  { slug: 'elephant', lngLat: [99.1, 14.8], size: 0.8 },
+  { slug: 'hindu-temple', lngLat: [99.75, 17.05], size: 0.9 }, // Sukhothai
+  { slug: 'elephant', lngLat: [98.95, 15.3], size: 0.8 },
   // east
   { slug: 'umbrella-on-ground', lngLat: [100.93, 12.85], size: 0.8 },
   { slug: 'palm-tree', lngLat: [102.25, 12.4], size: 0.8 },
@@ -46,12 +46,14 @@ export const LANDMARKS: { slug: EmojiSlug; lngLat: LngLat; size: number }[] = [
   { slug: 'speedboat', lngLat: [98.05, 8.35], size: 0.8 },
 ];
 
-/** Things that drift slowly over the toy map along a path, looping every `seconds`. */
+/** Things that drift slowly over the toy map along a path, looping every `seconds`.
+ *  Paths keep clear of the province labels; reduced motion parks each one at 30% of its path. */
 export const ROUTES: { slug: EmojiSlug; path: LngLat[]; seconds: number }[] = [
-  // northern railway: Bangkok → Ayutthaya → Phitsanulok → Lampang → Chiang Mai
-  { slug: 'locomotive', path: [[100.52, 13.75], [100.57, 14.35], [100.26, 16.82], [99.5, 18.29], [98.98, 18.79]], seconds: 90 },
-  { slug: 'airplane', path: [[100.75, 13.69], [99.6, 16.4], [98.97, 18.77]], seconds: 60 },
-  { slug: 'airplane', path: [[100.75, 13.69], [99.3, 10.8], [98.31, 8.11]], seconds: 60 },
+  // the northern line, drawn a little east of the towns it serves
+  { slug: 'locomotive', path: [[100.95, 14.75], [101.05, 15.7], [100.75, 16.35], [100.2, 17.6], [99.55, 18.35]], seconds: 90 },
+  // planes cross the sea and the borders, away from the labels
+  { slug: 'airplane', path: [[97.2, 15.6], [97.7, 11.4], [97.3, 9.2]], seconds: 60 },
+  { slug: 'airplane', path: [[104.4, 18.6], [105.9, 16.6], [106.3, 13.2]], seconds: 60 },
   { slug: 'passenger-ship', path: [[100.85, 12.4], [101.6, 10.6], [100.6, 9.9], [100.2, 11.6], [100.85, 12.4]], seconds: 120 },
   { slug: 'sailboat', path: [[101.9, 11.6], [102.4, 10.2], [101.4, 9.4], [101.9, 11.6]], seconds: 120 },
   { slug: 'cloud', path: [[95.6, 17.5], [97.2, 17.5]], seconds: 150 },

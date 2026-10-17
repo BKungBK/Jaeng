@@ -4,6 +4,7 @@
 
 .map {
   position: absolute;
+  z-index: 0;
   inset: 0;
   background: var(--sea);
 }
@@ -139,8 +140,9 @@
 
 .close {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  z-index: 1;
+  top: 16px;
+  right: 18px;
   box-shadow: none;
 }
 
@@ -165,9 +167,6 @@
   }
 }
 
-.peek .thumb {
-  margin-right: 52px;
-}
 
 .title {
   font: 500 15px/1.4 'Prompt', sans-serif;

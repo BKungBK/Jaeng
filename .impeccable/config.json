@@ -5,5 +5,20 @@
       "maxFindings": 5,
       "maxChars": 8000
     }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "apps/web/src/app/features/map/map.page.html"
+        ],
+        "createdAt": "2026-10-17T03:36:46.241Z",
+        "reason": "Agent: every img uses an Angular [src] binding (compass, cover photo, category icon); all render in the Playwright captures"
+      }
+    ]
   }
 }

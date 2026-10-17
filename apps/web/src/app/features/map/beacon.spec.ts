@@ -77,7 +77,7 @@ describe('createBeaconElement', () => {
     expect(disc.dataset['id']).toBe('r1');
     expect(disc.getAttribute('aria-label')).toBe('หลุมลึก ระดับอันตราย ยังไม่ได้แก้');
     expect(disc.querySelector('img')!.getAttribute('src')).toBe('assets/emoji/hole.png');
-    expect(el.querySelector('.sym')!.textContent).toBe('◆');
+    expect(el.querySelector('.sym')!.getAttribute('data-level')).toBe('2');
   });
 
   it('marks fix_claimed and resolved by shape classes and a tick', () => {
@@ -96,6 +96,24 @@ describe('createBeaconElement', () => {
     expect(el.querySelector('.lbl')!.textContent).toBe(title);
   });
 
+  it('keeps the same focusable disc when only the label or height changes', () => {
+    const p = report();
+    const el = createBeaconElement(p, beaconView(p, 13), false);
+    const disc = el.querySelector('.disc');
+    updateBeaconElement(el, { ...p, confirm_count: 5 }, beaconView({ ...p, confirm_count: 5 }, 13), true);
+    expect(el.querySelector('.disc')).toBe(disc);
+    updateBeaconElement(el, p, beaconView(p, 13), false);
+    expect(el.querySelector('.disc')).toBe(disc);
+    expect(el.querySelector('.lbl')).toBeNull();
+  });
+
+  it('draws the level badge as a solid SVG shape', () => {
+    const el = createBeaconElement(report({ danger_level: 3 }), beaconView(report({ danger_level: 3 }), 13), true);
+    const sym = el.querySelector('.sym')!;
+    expect(sym.querySelector('svg')).not.toBeNull();
+    expect(sym.getAttribute('data-level')).toBe('3');
+  });
+
   it('shows the label only when asked, and updates in place', () => {
     const p = report();
     const el = createBeaconElement(p, beaconView(p, 13), false);
@@ -112,7 +130,12 @@ describe('createClusterElement', () => {
     expect(el.style.getPropertyValue('--c')).toBe(LEVELS[3].color);
     const btn = el.querySelector('button')!;
     expect(btn.textContent).toBe('7');
-    expect(btn.getAttribute('aria-label')).toBe('7 เรื่องในพื้นที่นี้');
+    expect(btn.getAttribute('aria-label')).toBe('7 เรื่องในพื้นที่นี้ ระดับสูงสุดวิกฤต');
+  });
+
+  it('says the highest level by shape too', () => {
+    const el = createClusterElement(7, 1);
+    expect(el.querySelector('.sym')!.getAttribute('data-level')).toBe('1');
   });
 });
 

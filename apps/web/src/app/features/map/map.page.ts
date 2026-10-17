@@ -43,6 +43,9 @@ const DETAIL_ZOOM = 15;
 /** Room the right panel takes: 380 px plus its two 12 px gutters. */
 const PANEL_SPACE = 404;
 const WIDE = '(min-width: 820px)';
+/** Ionic's dismiss roles for the reader closing the sheet: a drag ('gesture'), the backdrop or Escape.
+ *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
+const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
 
 /** The map centre that shows `target` at `offset` px from the middle of the view at `zoom` (Web Mercator,
  *  512 px tiles; close enough to the globe at street zoom). */
@@ -283,6 +286,22 @@ export class MapPage {
     this.hover.set(null);
     this.clicked = p;
     void this.router.navigate(['/r', p.id]);
+  }
+
+  /** The sheet ends the report only when the reader closes it: a drag to 0 (Ionic asks with 'gesture'),
+   *  the backdrop at full height or Escape ('backdrop'), or this page closing it (the close button,
+   *  Back, a missing report). Ionic may dismiss it on its own while another overlay (the account
+   *  menu, the login sheet) opens over it, with no role; that would close the report the reader is in.
+   *  'parent-removed' (this page went away) always passes, so no orphaned sheet stays behind. */
+  protected readonly sheetCanDismiss = async (_data?: unknown, role?: string) => {
+    const id = this.id();
+    return !id || this.closing === id || SHEET_CLOSE_ROLES.has(role ?? '') || role === 'parent-removed';
+  };
+
+  /** `didDismiss` after a dismissal `sheetCanDismiss` allowed: navigate only for the reader's own close. */
+  protected onSheetDismissed(e: Event) {
+    const role = (e as CustomEvent<{ role?: string } | undefined>).detail?.role;
+    if (role === 'handler' || SHEET_CLOSE_ROLES.has(role ?? '')) this.close();
   }
 
   /** Close the panel or sheet; focus goes back to the report's disc once the URL is `/` again. */

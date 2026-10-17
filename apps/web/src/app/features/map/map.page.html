@@ -47,7 +47,8 @@
     [breakpoints]="[0, 0.64, 1]"
     [initialBreakpoint]="0.64"
     [backdropBreakpoint]="0.64"
-    (didDismiss)="close()"
+    [canDismiss]="sheetCanDismiss"
+    (didDismiss)="onSheetDismissed($event)"
   >
     <ng-template>
       <div class="sheet-scroll ion-content-scroll-host">

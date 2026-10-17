@@ -268,6 +268,48 @@ describe('MapPage', () => {
     expect(sheet.getAttribute('aria-labelledby')).toBe('report-detail-title');
   });
 
+  // Ionic can dismiss the sheet on its own (role undefined) while another overlay opens over it; only the
+  // reader's own close (drag to 0, the backdrop at full height, Escape, the close button) may end the report
+  type Sheet = HTMLElement & { canDismiss: (data?: unknown, role?: string) => Promise<boolean> | boolean };
+  const openSheet = async () => {
+    const s = await setup(undefined, { wide: false });
+    s.fixture.componentRef.setInput('id', DETAIL.id);
+    s.fixture.detectChanges();
+    const sheet = s.root.querySelector('ion-modal.detail-sheet') as Sheet; // Ionic moves it out once presented
+    await settle(s.fixture);
+    return { ...s, sheet };
+  };
+  const dismissed = (sheet: HTMLElement, role?: string) =>
+    sheet.dispatchEvent(new CustomEvent('didDismiss', { detail: { data: undefined, role } }));
+
+  it('keeps the report sheet open when something other than the reader dismisses it', async () => {
+    const { sheet, navigate } = await openSheet();
+    expect(await sheet.canDismiss(undefined, undefined)).toBe(false);
+    expect(await sheet.canDismiss(undefined, 'cancel')).toBe(false);
+    dismissed(sheet, undefined);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('lets the reader close the report sheet by dragging, the backdrop or Escape', async () => {
+    const { sheet, navigate } = await openSheet();
+    for (const role of ['gesture', 'backdrop']) expect(await sheet.canDismiss(undefined, role)).toBe(true);
+    dismissed(sheet, 'handler'); // Ionic's role once canDismiss allowed a drag to 0
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith(['/']);
+    dismissed(sheet, 'backdrop');
+    expect(navigate).toHaveBeenCalledTimes(1); // no second navigation for the same report
+  });
+
+  it('lets the sheet go once the page closes the report itself', async () => {
+    const { fixture, sheet, navigate } = await openSheet();
+    fixture.componentInstance.close(); // the close button
+    expect(await sheet.canDismiss(undefined, undefined)).toBe(true);
+    fixture.componentRef.setInput('id', undefined); // the router landed on '/'
+    await settle(fixture);
+    dismissed(sheet, undefined); // [isOpen] went false
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+
   it('returns focus to the report’s disc after closing', async () => {
     const { fixture, map, navigate } = await setup(undefined, { wide: true });
     const beacons = { focus: vi.fn(() => true), setSelected: vi.fn(), destroy: vi.fn() };

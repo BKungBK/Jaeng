@@ -5,8 +5,14 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
+  CircleCheck,
   CircleUser,
+  CircleX,
+  Clock,
+  Eye,
+  EyeOff,
   FileText,
+  Wrench,
   Image,
   RefreshCw,
   Upload,
@@ -23,6 +29,7 @@ import {
   MapPin,
   MessageCircle,
   Minus,
+  Pencil,
   Phone,
   Plus,
   Send,
@@ -62,6 +69,14 @@ export const ICONS = {
   upload: Upload,
   refreshCw: RefreshCw,
   fileText: FileText,
+  // one icon per report status on /me (with the word, never colour alone)
+  clock: Clock,
+  eye: Eye,
+  wrench: Wrench,
+  circleCheck: CircleCheck,
+  circleX: CircleX,
+  eyeOff: EyeOff,
+  pencil: Pencil,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

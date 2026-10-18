@@ -13,7 +13,6 @@ import { MapReturnService } from './map-return.service';
     <h2 id="rn-sent-title" tabindex="-1">ส่งแล้ว รอผู้ดูแลตรวจ</h2>
     <p class="lede">ขอบคุณที่แจ้งนะ เดี๋ยวผู้ดูแลตรวจให้ พอผ่านแล้วเรื่องนี้จะขึ้นเป็นสัญญาณไฟบนแผนที่</p>
     <div class="actions">
-      <!-- /me arrives with plan 4 Task 12 -->
       <button type="button" class="btn primary big" (click)="mine()">ดูเรื่องของฉัน</button>
       <button type="button" class="btn big" (click)="home()">กลับไปแผนที่</button>
     </div>

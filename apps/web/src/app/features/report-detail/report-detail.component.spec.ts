@@ -554,6 +554,17 @@ describe('ReportDetailComponent', () => {
     });
   });
 
+  it('shows the photo of a comment as a thumb with a fixed alt', async () => {
+    const { root } = await setup({
+      comments: [comment({ id: 'p1', photo_path: 'u1/abc.webp' }), comment({ id: 'p2', photo_path: null })],
+    });
+    const items = root.querySelectorAll('.comments li');
+    const img = items[0].querySelector('img');
+    expect(img?.getAttribute('src')).toMatch(/\/photos-public\/u1\/abc_thumb\.webp$/);
+    expect(img?.getAttribute('alt')).toBe('รูปที่แนบในความคิดเห็น');
+    expect(items[1].querySelector('img')).toBeNull();
+  });
+
   it('emits closed from its close button', async () => {
     const { root, out } = await setup();
     root.querySelector<HTMLButtonElement>('button[aria-label="ปิด"]')!.click();

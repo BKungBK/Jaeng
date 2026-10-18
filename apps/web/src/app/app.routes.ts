@@ -20,6 +20,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/report-new/report-new.page').then((m) => m.ReportNewPage),
   },
   {
+    path: 'me',
+    canActivate: [signedInGuard],
+    loadComponent: () => import('./features/me/me.page').then((m) => m.MePage),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/auth/login.page').then((m) => m.LoginPage),
   },

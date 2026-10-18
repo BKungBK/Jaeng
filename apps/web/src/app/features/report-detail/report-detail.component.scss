@@ -403,6 +403,17 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+// a photo attached to a comment: the 400 px thumb, shown small
+.attached {
+  display: block;
+  width: auto;
+  max-width: min(160px, 100%);
+  height: auto;
+  max-height: 160px;
+  margin-top: 6px;
+  border-radius: 12px;
+}
+
 .composer {
   display: grid;
   gap: 6px;

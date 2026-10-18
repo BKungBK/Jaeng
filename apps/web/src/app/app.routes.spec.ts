@@ -8,6 +8,13 @@ describe('routes', () => {
     expect(report?.canActivate).toEqual([signedInGuard]);
     expect(report?.loadComponent).toBeDefined();
   });
+
+  it('puts /me behind the signed-in guard, before the catch-all', () => {
+    const me = routes.find((r) => r.path === 'me');
+    expect(me?.canActivate).toEqual([signedInGuard]);
+    expect(me?.loadComponent).toBeDefined();
+    expect(routes.indexOf(me!)).toBeLessThan(routes.findIndex((r) => r.path === '**'));
+  });
 });
 
 const segs = (...paths: string[]) => paths.map((p) => new UrlSegment(p, {}));

@@ -1,0 +1,130 @@
+<div class="scroller">
+  <main class="card">
+    <header class="head">
+      <button type="button" class="ctl" aria-label="กลับไปแผนที่" (click)="goBack()">
+        <app-icon name="chevronLeft" [size]="22" />
+      </button>
+      <h1 id="me-title" tabindex="-1">เรื่องของฉัน</h1>
+    </header>
+
+    <section class="who" aria-label="ชื่อที่แสดง">
+      @if (editing()) {
+        <form class="edit" (submit)="$event.preventDefault(); save()">
+          <label class="field" for="me-name-input">ชื่อที่แสดง</label>
+          <input
+            id="me-name-input"
+            type="text"
+            autocomplete="nickname"
+            aria-label="ชื่อที่แสดง"
+            [attr.aria-describedby]="nameError() ? 'me-name-error' : 'me-name-hint'"
+            [attr.aria-invalid]="nameError() ? 'true' : null"
+            [attr.maxlength]="max"
+            [value]="name()"
+            (input)="onInput($event)"
+          />
+          <div class="count-row">
+            <span class="caption" id="me-name-hint">{{ min }}–{{ max }} ตัวอักษร</span>
+            <span class="caption count">{{ name().length }}/{{ max }}</span>
+          </div>
+          @if (nameError()) {
+            <p class="error" id="me-name-error" role="alert">{{ nameError() }}</p>
+          }
+          <div class="pair">
+            <button type="submit" class="btn primary" [disabled]="!canSave()" [attr.aria-busy]="saving()">
+              {{ saving() ? 'กำลังบันทึก…' : 'บันทึก' }}
+            </button>
+            <button type="button" class="btn" (click)="cancel()">ยกเลิก</button>
+          </div>
+        </form>
+      } @else {
+        <div class="name-row">
+          <div class="name-text">
+            <span class="caption">ชื่อที่แสดง</span>
+            <strong class="name">{{ auth.profile()?.display_name ?? 'บัญชีของฉัน' }}</strong>
+          </div>
+          <button type="button" class="btn" id="me-edit-btn" (click)="edit()">
+            <app-icon name="pencil" [size]="18" />แก้ชื่อ
+          </button>
+        </div>
+        <p class="caption">คนอื่นเห็นชื่อนี้ในเรื่องที่คุณแจ้งและความคิดเห็น (ถ้าคุณไม่ได้เลือกซ่อนชื่อ)</p>
+      }
+    </section>
+
+    <section class="mine" aria-labelledby="me-list-title">
+      <h2 id="me-list-title">เรื่องที่แจ้ง@if (state() === 'ready' && reports().length) { · {{ reports().length }}}</h2>
+
+      @switch (state()) {
+        @case ('loading') {
+          <p class="note" role="status">กำลังเปิดเรื่องของคุณ…</p>
+          <ul class="reports wait" aria-hidden="true">
+            <li class="ghost"></li>
+            <li class="ghost"></li>
+            <li class="ghost"></li>
+          </ul>
+        }
+        @case ('error') {
+          <p class="status" role="status">{{ msgLoad }}</p>
+          <button type="button" class="btn" (click)="load()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+        }
+        @case ('ready') {
+          @if (reports().length) {
+            <ul class="reports">
+              @for (r of reports(); track r.id) {
+                <li [class.plain]="!isPublic(r)">
+                  @if (isPublic(r)) {
+                    <a class="row" [routerLink]="['/r', r.id]">
+                      <ng-container *ngTemplateOutlet="body; context: { $implicit: r }" />
+                    </a>
+                  } @else {
+                    <div class="row">
+                      <ng-container *ngTemplateOutlet="body; context: { $implicit: r }" />
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty">
+              <span class="disc" aria-hidden="true"><app-icon name="fileText" [size]="30" /></span>
+              <p>ยังไม่มีเรื่องที่แจ้ง กดปุ่ม แจ้ง ได้เลยนะ</p>
+              <button type="button" class="btn primary big" (click)="newReport()">
+                <app-icon name="plus" [size]="20" />แจ้ง
+              </button>
+            </div>
+          }
+        }
+      }
+    </section>
+
+    <button type="button" class="btn out" [disabled]="signingOut()" (click)="signOut()">
+      <app-icon name="logOut" [size]="20" />ออกจากระบบ
+    </button>
+  </main>
+</div>
+
+<ng-template #body let-r>
+  <div class="thumb" [style.--c]="level(r).color">
+    @if (r.thumb_url) {
+      <img [src]="r.thumb_url" alt="" width="72" height="72" loading="lazy" />
+    } @else {
+      <app-icon [name]="icon(r)" [size]="30" />
+    }
+  </div>
+  <div class="text">
+    <strong class="title">{{ r.title }}</strong>
+    <span class="state"><app-icon [name]="statusIcon(r)" [size]="16" />{{ statusWord(r) }}</span>
+    @if (r.status === 'rejected') {
+      <span class="reason">ไม่ผ่านเพราะ: {{ reason(r) }}</span>
+    }
+    <span class="meta">
+      <span class="lvl"><app-level-shape [level]="level(r).level" />{{ level(r).nameTh }}</span>
+      @if (r.place_name) {
+        · <span class="place">{{ r.place_name }}</span>
+      }
+      · <time [attr.datetime]="r.created_at" [title]="date(r.created_at)">{{ ago(r.created_at) }}</time>
+      @if (isPublic(r)) {
+        · เจอเหมือนกัน {{ r.confirm_count }}
+      }
+    </span>
+  </div>
+</ng-template>

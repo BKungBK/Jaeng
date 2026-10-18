@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { COMMENT_MAX, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { LEVELS } from '@jaeng/shared/levels';
+import { thumbPath } from '@jaeng/shared/report';
 import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { RealtimeService } from '../../core/realtime.service';
@@ -272,6 +273,7 @@ export class ReportDetailComponent {
   protected icon = (d: ReportDetail) => categoryIcon(d.category);
   protected longWait = (d: ReportDetail) => d.days_open > LONG_WAIT_DAYS;
   protected photoUrl = coverPhotoUrl;
+  protected thumbUrl = (path: string) => coverPhotoUrl(thumbPath(path));
   protected kind = PHOTO_KIND_TH;
   protected ago = formatAgo;
   protected date = formatDate;

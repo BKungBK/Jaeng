@@ -59,23 +59,23 @@ select throws_ok(format($q$select * from public.toggle_confirmation(%L, %L)$q$, 
   'P0001', 'report_resolved', 'resolved report cannot be confirmed');
 
 -- add_comment
-select throws_ok(format($q$select * from public.add_comment(%L, %L, %L)$q$, :'r2', :'b', '   '),
+select throws_ok(format($q$select * from public.add_comment(%L, %L, %L, 1000)$q$, :'r2', :'b', '   '),
   '23514', null, 'blank comment is rejected');
-select throws_ok(format($q$select * from public.add_comment(%L, %L, %L)$q$, :'r5', :'b', 'hi'),
+select throws_ok(format($q$select * from public.add_comment(%L, %L, %L, 1000)$q$, :'r5', :'b', 'hi'),
   'P0001', 'report_not_found', 'hidden report cannot be commented');
-select is((select comment_count from public.add_comment(:'r2', :'b', '  สวัสดี  ')),
+select is((select comment_count from public.add_comment(:'r2', :'b', '  สวัสดี  ', 1000)),
   2, 'comment added and counted');
 
 -- Roles cannot call the functions
 select tests.as_anon();
 select throws_ok(format($q$select * from public.toggle_confirmation(%L, %L)$q$, :'r2', :'b'),
   '42501', null, 'anon cannot toggle');
-select throws_ok(format($q$select * from public.add_comment(%L, %L, %L)$q$, :'r2', :'b', 'hi'),
+select throws_ok(format($q$select * from public.add_comment(%L, %L, %L, 1000)$q$, :'r2', :'b', 'hi'),
   '42501', null, 'anon cannot comment');
 select tests.as_user(:'a');
 select throws_ok(format($q$select * from public.toggle_confirmation(%L, %L)$q$, :'r2', :'a'),
   '42501', null, 'member cannot toggle through SQL');
-select throws_ok(format($q$select * from public.add_comment(%L, %L, %L)$q$, :'r2', :'a', 'hi'),
+select throws_ok(format($q$select * from public.add_comment(%L, %L, %L, 1000)$q$, :'r2', :'a', 'hi'),
   '42501', null, 'member cannot comment through SQL');
 select tests.as_owner();
 

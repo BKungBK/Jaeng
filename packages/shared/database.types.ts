@@ -285,14 +285,14 @@ isOneToOne: false
                   ]
                 },"reports": {
                   Row: {
-                    "approved_at": string | null,"author_id": string,"category_id": number,"comment_count": number,"confirm_count": number,"created_at": string,"danger_level": number,"description": string | null,"hide_author": boolean,"id": string,"location": unknown,"place_name": string | null,"public_location": unknown,"reject_reason": string | null,"resolved_at": string | null,"status": string,"title": string,"updated_at": string
+                    "approved_at": string | null,"author_id": string,"category_id": number,"comment_count": number,"confirm_count": number,"created_at": string,"danger_level": number,"description": string | null,"hide_author": boolean,"id": string,"location": unknown,"place_name": string | null,"profanity_flag": boolean,"public_location": unknown,"reject_reason": string | null,"resolved_at": string | null,"status": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "approved_at"?: string | null,"author_id": string,"category_id": number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level": number,"description"?: string | null,"hide_author"?: boolean,"id"?: string,"location": unknown,"place_name"?: string | null,"public_location": unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title": string,"updated_at"?: string
+                    "approved_at"?: string | null,"author_id": string,"category_id": number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level": number,"description"?: string | null,"hide_author"?: boolean,"id"?: string,"location": unknown,"place_name"?: string | null,"profanity_flag"?: boolean,"public_location": unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "approved_at"?: string | null,"author_id"?: string,"category_id"?: number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level"?: number,"description"?: string | null,"hide_author"?: boolean,"id"?: string,"location"?: unknown,"place_name"?: string | null,"public_location"?: unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
+                    "approved_at"?: string | null,"author_id"?: string,"category_id"?: number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level"?: number,"description"?: string | null,"hide_author"?: boolean,"id"?: string,"location"?: unknown,"place_name"?: string | null,"profanity_flag"?: boolean,"public_location"?: unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -328,7 +328,7 @@ isOneToOne: false
           Views: {
             "public_comments": {
                   Row: {
-                    "author_name": string | null,"body": string | null,"by_reporter": boolean | null,"created_at": string | null,"id": string | null,"report_id": string | null
+                    "author_name": string | null,"body": string | null,"by_reporter": boolean | null,"created_at": string | null,"id": string | null,"photo_path": string | null,"report_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -358,7 +358,7 @@ isOneToOne: false
           }
           Functions: {
             "add_comment":
-{ Args: { "p_body": string,"p_report": string,"p_user": string }; Returns: {
+{ Args: { "p_body": string,"p_limit": number,"p_photo"?: string,"p_report": string,"p_user": string }; Returns: {
               "comment_count": number,"comment_id": string,"confirm_count": number,"status": string
             }[]
                            },
@@ -368,14 +368,43 @@ isOneToOne: false
 "area_province_at":
 { Args: { "lat": number,"lng": number }; Returns: string
                            },
+"claim_photos":
+{ Args: { "p_photo_ids": (string)[],"p_user": string }; Returns: undefined
+                           },
+"create_report":
+{ Args: { "p_category": string,"p_danger": number,"p_description": string,"p_flagged": boolean,"p_hide_author": boolean,"p_lat": number,"p_limit": number,"p_lng": number,"p_photo_ids": (string)[],"p_tags": (string)[],"p_title": string,"p_user": string }; Returns: {
+              "id": string,"status": string
+            }[]
+                           },
+"delete_orphan_photos":
+{ Args: { "p_older_than": string }; Returns: {
+              "id": string,"storage_path": string
+            }[]
+                           },
 "escape_like":
 { Args: { "s": string }; Returns: string
+                           },
+"find_duplicates":
+{ Args: { "p_category": string,"p_lat": number,"p_lng": number,"p_radius"?: number }; Returns: {
+              "category": string,"confirm_count": number,"cover_photo_path": string,"danger_level": number,"id": string,"status": string,"title": string
+            }[]
                            },
 "fuzz_point":
 { Args: { "max_m": number,"p": unknown }; Returns: unknown
                            },
+"lock_profile":
+{ Args: { "p_user": string }; Returns: undefined
+                           },
+"merge_duplicate":
+{ Args: { "p_limit": number,"p_photo_ids": (string)[],"p_target": string,"p_user": string }; Returns: {
+              "comment_count": number,"comment_id": string,"confirm_count": number,"confirmed": boolean,"moved": Json,"status": string
+            }[]
+                           },
 "merge_hash_tags":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"register_photo":
+{ Args: { "p_blurred": boolean,"p_height": number,"p_id": string,"p_limit": number,"p_path": string,"p_uploader": string,"p_width": number }; Returns: undefined
                            },
 "reports_in_bbox":
 { Args: { "categories"?: (string)[],"levels"?: (number)[],"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"q"?: string,"statuses"?: (string)[] }; Returns: Json
@@ -384,6 +413,9 @@ isOneToOne: false
 { Args: { "max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number }; Returns: {
               "open_count": number,"resolved_this_month": number
             }[]
+                           },
+"suggest_tags":
+{ Args: { "max_rows"?: number,"q": string }; Returns: string[]
                            },
 "toggle_confirmation":
 { Args: { "p_report": string,"p_user": string }; Returns: {

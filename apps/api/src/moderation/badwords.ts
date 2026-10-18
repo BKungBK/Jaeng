@@ -13,9 +13,6 @@ export const BAD_WORDS: { th: readonly string[]; en: readonly string[] } = {
     'กะหรี่',
     'จัญไร',
     'เฮงซวย',
-    'ส้นตีน',
-    'ตีน',
-    'ไอ้สัส',
     'เสือก',
     'ฉิบหาย',
     'ถ่อย',
@@ -56,10 +53,9 @@ export const BAD_WORDS: { th: readonly string[]; en: readonly string[] } = {
 const ZERO_WIDTH = /[​-‍﻿]/g;
 const LEET: Record<string, string> = { '@': 'a', '0': 'o', '1': 'i', '3': 'e', $: 's', '!': 'i' };
 
-const collapseAll = (s: string) => s.replace(/(.)\1+/g, '$1');
-
 const thSet = new Set(BAD_WORDS.th);
 const enSet = new Set(BAD_WORDS.en);
+const collapseAll = (s: string) => s.replace(/(.)\1+/g, '$1');
 const enCollapsed = new Set(BAD_WORDS.en.map(collapseAll));
 const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
 
@@ -78,10 +74,12 @@ function englishHit(text: string): boolean {
   // Check both the raw text and the leetspeak-mapped one so "shit!" is not turned into "shiti".
   const mapped = text.replace(/[@0-9$!]/g, (c) => LEET[c] ?? c);
   for (const variant of [text, mapped]) {
-    // Cap runs of a repeated letter at two ("fuuuuck" -> "fuuck").
-    const squeezed = variant.replace(/([a-z])\1{2,}/g, '$1$1');
-    for (const token of squeezed.match(/[a-z]+/g) ?? []) {
-      if (enSet.has(token) || enCollapsed.has(collapseAll(token))) return true;
+    for (const token of variant.match(/[a-z]+/g) ?? []) {
+      // Cap runs of a repeated letter at two ("fuuuuck" -> "fuuck").
+      const capped = token.replace(/([a-z])\1{2,}/g, '$1$1');
+      if (enSet.has(capped)) return true;
+      // Only a stretched word ("fuuuck") is compared fully collapsed, so "Niger" stays clean.
+      if (capped !== token && enCollapsed.has(collapseAll(token))) return true;
     }
   }
   return false;

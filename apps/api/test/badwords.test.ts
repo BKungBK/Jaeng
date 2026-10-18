@@ -19,6 +19,11 @@ describe('containsBadWord', () => {
     ['ถนนพังหน้าโรงเรียน'],
     ['class assassin'],
     ['Scunthorpe'],
+    ['Niger'],
+    ['I live in Niger'],
+    ['ตีนเขา'],
+    ['ตีนสะพานชำรุด'],
+    ['ตีนเสาไฟล้ม'],
     ['grassy'],
     ['ถนนเป็นหลุมใหญ่ ช่วยดูหน่อย'],
     [''],
@@ -26,8 +31,13 @@ describe('containsBadWord', () => {
     expect(containsBadWord(text)).toBe(false);
   });
 
+  test.each([...BAD_WORDS.th])('Thai entry stays one segmenter word (not dead): %s', (word) => {
+    const words = [...new Intl.Segmenter('th', { granularity: 'word' }).segment(word)].filter((s) => s.isWordLike);
+    expect(words.map((s) => s.segment)).toEqual([word]);
+  });
+
   test('lists are populated', () => {
-    expect(BAD_WORDS.th.length).toBeGreaterThanOrEqual(20);
+    expect(BAD_WORDS.th.length).toBeGreaterThanOrEqual(15);
     expect(BAD_WORDS.en.length).toBeGreaterThanOrEqual(20);
   });
 

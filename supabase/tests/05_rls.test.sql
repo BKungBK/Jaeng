@@ -32,9 +32,9 @@ select tests.as_owner();
 select tests.as_user(:'a');
 select ok(exists (select 1 from public.reports where id = :'a_pending'), 'A sees own pending report');
 select ok(not exists (select 1 from public.reports where id = :'b_pending'), 'A does not see B''s pending report');
-select lives_ok(
+select throws_ok(
   format($q$update public.profiles set display_name = 'ใหม่นะ' where id = %L$q$, :'a'),
-  'A renames themself');
+  '42501', null, 'A cannot rename themself directly (PATCH /me does it)');
 select throws_ok(
   format($q$update public.profiles set role = 'admin' where id = %L$q$, :'a'),
   '42501', null, 'A cannot make themself admin');
@@ -48,7 +48,7 @@ select throws_ok(
 select is((select count(*)::int from public.profiles where id = :'b'), 0, 'A cannot read B''s profile');
 select tests.as_owner();
 
-select is((select display_name from public.profiles where id = :'a'), 'ใหม่นะ', 'rename stuck');
+select isnt((select display_name from public.profiles where id = :'a'), 'ใหม่นะ', 'rename did not stick');
 
 select * from finish();
 rollback;

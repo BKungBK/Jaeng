@@ -368,8 +368,14 @@ isOneToOne: false
 "area_province_at":
 { Args: { "lat": number,"lng": number }; Returns: string
                            },
+"escape_like":
+{ Args: { "s": string }; Returns: string
+                           },
 "fuzz_point":
 { Args: { "max_m": number,"p": unknown }; Returns: unknown
+                           },
+"merge_hash_tags":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "reports_in_bbox":
 { Args: { "categories"?: (string)[],"levels"?: (number)[],"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"q"?: string,"statuses"?: (string)[] }; Returns: Json

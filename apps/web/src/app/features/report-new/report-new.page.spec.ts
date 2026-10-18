@@ -1,5 +1,7 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
 import { ApiError, ApiService } from '../../core/api.service';
 import { CategoriesService } from '../../core/categories.service';
@@ -54,6 +56,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
       { provide: TagSuggestService, useValue: { suggest: vi.fn().mockResolvedValue([]) } },
       { provide: LoginPromptService, useValue: prompt },
       { provide: MapReturnService, useValue: back },
+      { provide: AuthService, useValue: { session: signal({ user: { id: 'user-a' } }) } },
     ],
   });
   const draft = TestBed.inject(ReportDraftService);
@@ -133,6 +136,19 @@ describe('ReportNewPage', () => {
     const { toStep3, button } = await setup({ position: { lng: 100.6, lat: 13.8 } });
     await toStep3();
     expect(button('ส่งเรื่อง')!.disabled).toBe(false);
+  });
+
+  it('holds the send button below zoom 14 even with a suggested pin (no sending from the national view)', async () => {
+    const { toStep3, button, root, map, settle } = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    await toStep3();
+    expect(map.cam.zoom).toBeGreaterThanOrEqual(14); // the suggestion opens close in: still three taps
+    map.cam.zoom = 6; // dragged and zoomed out across the country
+    map.cam.center = { lng: 99, lat: 16 };
+    map.fire('zoom');
+    map.fire('moveend');
+    await settle();
+    expect(button('ส่งเรื่อง')!.disabled).toBe(true);
+    expect(root.textContent).toContain('ซูมเข้าไปอีกหน่อยเพื่อปักหมุดให้แม่น');
   });
 
   it('puts the "talk about the problem" line right under the send button and folds the details', async () => {

@@ -72,11 +72,9 @@ export class ReportNewPage {
   protected readonly steps: Step[] = [1, 2, 3];
   private scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 
-  /** a pin nobody placed for us: hold the send button until the map is close in */
-  protected readonly needsZoom = computed(() => {
-    const at = this.draft.location();
-    return (!at || at.source === 'fallback') && this.zoom() < PIN_MIN_ZOOM;
-  });
+  /** the pin only counts close in, wherever it came from: an EXIF or device pin dragged across the
+   *  country at zoom 5 is as vague as none. A suggested pin opens at PIN_ZOOM (17), so three taps stay three. */
+  protected readonly needsZoom = computed(() => this.zoom() < PIN_MIN_ZOOM);
   protected readonly photosWhy = computed(() => {
     const photos = this.draft.photos();
     if (photos.length === 0) return 'ยังไม่มีรูป กลับไปขั้นที่ 1 เพื่อใส่รูปก่อนนะ';

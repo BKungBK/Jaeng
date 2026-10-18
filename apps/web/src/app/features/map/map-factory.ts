@@ -41,6 +41,8 @@ export function lockToThailand(map: maplibregl.Map, padding?: number): void {
   map.on('resize', update);
   map.on('move', () => {
     const c = map.getCenter();
+    // a map too small for its padding reports a NaN centre; setting it would fire `move` again forever
+    if (!Number.isFinite(c.lng) || !Number.isFinite(c.lat)) return;
     const [lng, lat] = clampCenter([c.lng, c.lat]);
     if (lng !== c.lng || lat !== c.lat) map.setCenter([lng, lat]);
   });

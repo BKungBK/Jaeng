@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal, type Signal, type WritableSignal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked, type Signal, type WritableSignal } from '@angular/core';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import {
   inThailand,
@@ -9,6 +9,7 @@ import {
 } from '@jaeng/shared/report';
 import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
 import { ApiError, ApiService } from '../../core/api.service';
+import { AuthService } from '../../core/auth.service';
 import { DeviceService, type LngLat } from '../../core/device.service';
 import { PHOTO_PIPELINE, PhotoTooLargeError } from './photo-tools';
 
@@ -73,6 +74,23 @@ export class ReportDraftService {
   /** files past the four-photo limit were left out of the last pick */
   readonly overflowed = signal(false);
 
+  /** who the draft belongs to; undefined until the first look at the session */
+  private owner: string | null | undefined;
+
+  constructor() {
+    // The draft is one user's: their photos are uploaded under their id and only they may send them.
+    // Signing out or switching user drops it, so the next person never sees or sends someone else's
+    // photos. A token refresh keeps the same user id and keeps the draft.
+    const auth = inject(AuthService);
+    effect(() => {
+      const id = auth.session()?.user.id ?? null;
+      untracked(() => {
+        if (this.owner !== undefined && id !== this.owner) this.reset();
+        this.owner = id;
+      });
+    });
+  }
+
   /** Takes up to the free slots; each photo goes through EXIF → compress → upload on its own. */
   async addFiles(files: File[]): Promise<void> {
     const room = Math.max(0, PHOTOS_PER_REPORT_MAX - this._photos().length);
@@ -100,8 +118,9 @@ export class ReportDraftService {
   }
 
   async retry(localId: string): Promise<void> {
-    if (this.find(localId)?.state !== 'error') return;
-    await this.process(localId, false);
+    const photo = this.find(localId);
+    if (photo?.state !== 'error') return;
+    await this.process(localId, photo.gps === null); // a GPS read that failed gets another go
   }
 
   remove(localId: string): void {

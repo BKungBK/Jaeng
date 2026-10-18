@@ -1,6 +1,8 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
 import { ApiError, ApiService } from '../../core/api.service';
+import { AuthService } from '../../core/auth.service';
 import { DeviceService } from '../../core/device.service';
 import { photoFile } from './gps-jpeg.testing';
 import { PHOTO_PIPELINE, readGps, type CompressedPhoto } from './photo-tools';
@@ -21,8 +23,16 @@ const CANDIDATE: DuplicateCandidate = {
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
-function setup(opts: { failUpload?: (n: number) => boolean; position?: { lng: number; lat: number } | null } = {}) {
+type Opts = {
+  failUpload?: (n: number) => boolean;
+  position?: { lng: number; lat: number } | null;
+  readGps?: (file: Blob) => Promise<{ lng: number; lat: number } | null>;
+};
+
+function setup(opts: Opts = {}) {
   let uploads = 0;
+  // the signed-in user, as AuthService exposes it
+  const session = signal<{ user: { id: string } } | null>({ user: { id: 'user-a' } });
   const api = {
     upload: vi.fn(async () => {
       const n = ++uploads;
@@ -43,11 +53,13 @@ function setup(opts: { failUpload?: (n: number) => boolean; position?: { lng: nu
     providers: [
       { provide: ApiService, useValue: api },
       { provide: DeviceService, useValue: device },
-      { provide: PHOTO_PIPELINE, useValue: { readGps, compress } },
+      { provide: PHOTO_PIPELINE, useValue: { readGps: opts.readGps ?? readGps, compress } },
+      { provide: AuthService, useValue: { session } },
     ],
   });
   const draft = TestBed.inject(ReportDraftService);
-  return { draft, api, device, compress };
+  TestBed.tick(); // the draft notes who is signed in
+  return { draft, api, device, compress, session };
 }
 
 /** A draft with ready photos, a category and a pin: ready to send. */
@@ -250,6 +262,48 @@ describe('ReportDraftService', () => {
     expect(s.draft.category()).toBeNull();
     expect(s.draft.location()).toBeNull();
     expect(s.draft.details()).toEqual({ title: '', description: '', danger: null, tags: [], hideAuthor: false });
+  });
+
+  it('drops the draft when another user signs in, so B never sees or sends A’s photos', async () => {
+    const s = setup();
+    await ready(s, [photoFile('a.jpg'), photoFile('b.jpg')]);
+    const previews = s.draft.photos().map((p) => p.previewUrl);
+    s.session.set({ user: { id: 'user-b' } });
+    TestBed.tick();
+    expect(s.draft.photos()).toEqual([]);
+    expect(s.draft.category()).toBeNull();
+    expect(s.draft.location()).toBeNull();
+    for (const url of previews) expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
+  });
+
+  it('drops the draft on sign-out', async () => {
+    const s = setup();
+    await ready(s);
+    s.session.set(null);
+    TestBed.tick();
+    expect(s.draft.photos()).toEqual([]);
+  });
+
+  it('keeps the draft when the same user’s session is refreshed', async () => {
+    const s = setup();
+    await ready(s);
+    s.session.set({ user: { id: 'user-a' } }); // a new session object: TOKEN_REFRESHED
+    TestBed.tick();
+    expect(s.draft.photos()).toHaveLength(1);
+  });
+
+  it('reads the GPS again on retry when the first read gave nothing', async () => {
+    const readGpsOnce = vi
+      .fn<(file: Blob) => Promise<{ lng: number; lat: number } | null>>()
+      .mockRejectedValueOnce(new Error('exif broke'))
+      .mockResolvedValue({ lng: 100.5, lat: 13.75 });
+    const s = setup({ readGps: readGpsOnce });
+    await s.draft.addFiles([photoFile('a.jpg')]);
+    const [p] = s.draft.photos();
+    expect(p.state).toBe('error');
+    await s.draft.retry(p.localId);
+    expect(s.draft.photos()[0]).toMatchObject({ state: 'ready', gps: { lng: 100.5, lat: 13.75 } });
+    expect(readGpsOnce).toHaveBeenCalledTimes(2);
   });
 
   it('forgets the sent report on reset, so the next draft is sent again', async () => {

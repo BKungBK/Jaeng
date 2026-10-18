@@ -132,12 +132,12 @@ components:
     rounded: "{rounded.card}"
     padding: "10px 12px 12px"
     width: "240px"
-  peek-card:
+  detail-panel:
     backgroundColor: "{colors.card-white}"
     textColor: "{colors.slate-ink}"
     rounded: "{rounded.card}"
     padding: "12px"
-    width: "300px"
+    width: "380px"
   toast:
     backgroundColor: "{colors.slate-ink}"
     textColor: "{colors.cream-ground}"
@@ -225,7 +225,7 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 
 ### Hierarchy
 - **Headline** (Prompt 600, 24px, 1.2): the brand word แจ้ง in the brand card; sheet titles.
-- **Title** (Prompt 500, 15px, 1.4): buttons and card headings, the report title in the tooltip and peek card (wraps anywhere, never truncates).
+- **Title** (Prompt 500, 15px, 1.4): buttons and card headings, the report title in the tooltip and detail panel (wraps anywhere, never truncates).
 - **Body** (400, 16px, 1.6): descriptions and comments.
 - **Label** (500, 14px, 1.4): level chips (13px under 420px), toast.
 - **Caption** (400, 13px, 1.5): brand tagline, hint card, meta and age lines. An age past 30 days switches to ink at 500 ("ค้างนาน").
@@ -239,10 +239,10 @@ A full pastel palette on a warm cream ground, with one trustworthy blue for acti
 A full-bleed map with floating controls. No top app bar and no tab bar on the map.
 
 - Top-left: brand card, with the level chip tray beside it (wrapping below on narrow screens). The group stops 72px from the right edge on desktop to clear the controls.
-- Right edge: zoom-in, zoom-out and my-location icon buttons in an 8px stack, vertically centred on desktop and bottom-right on phones.
+- Right edge: zoom-in, zoom-out, my-location and account icon buttons in an 8px stack, vertically centred on desktop and bottom-right on phones. While a report is open on desktop the stack, the chip group and MapLibre's bottom-right controls step left of the panel.
 - Bottom-left: the zoom-level hint card (max 340px on desktop). On phones it stretches to the control column and both sit 52px above the bottom so the attribution fits beneath.
 - Attribution: bottom-right MapLibre strip; folded to its ⓘ button under 820px.
-- Report detail: a peek card at the right (300px, 72px from the edge, 96px from the top) on desktop, docked to the bottom edge with 12px gutters on phones. The full detail panel (380px right panel at ≥ 820px, bottom sheet at about 64% height below) replaces it in a later plan.
+- Report detail: at ≥ 820px a 380px panel on the right (12px from the top, right and bottom edges, scrolling inside); below 820px a bottom sheet (24px top corners) that opens at 64% height and can be dragged to full height or away. It sits on `/r/:id` on the same map page, so the map is never rebuilt. The login form opens as a sheet over the map (auto-height under 820px, a centred 420px card from 820px), and `/login` is a page of its own for direct links.
 - Toast: centred, 84px from the top.
 - Gutters are 12px from every edge plus the safe-area inset. Gaps between floating elements are 8px.
 - Breakpoint: 820px is the only layout breakpoint; under 420px the chip tray tightens (4px gaps, 8px chip padding, no wrap).
@@ -252,16 +252,16 @@ A full-bleed map with floating controls. No top app bar and no tab bar on the ma
 Two depth systems that never mix. The UI floats with one soft, warm shadow. The toy map has physical depth made of stacked soil layers offset downward (8 / 16 / 24px at zoom 6), which flatten to zero by zoom 8 so the coast never ghosts as the toy fades.
 
 ### Shadow Vocabulary
-- **Float** (`box-shadow: 0 8px 28px rgba(60,50,40,.18)`): every floating card, the chip tray, icon buttons, tooltip, peek card and sheet.
+- **Float** (`box-shadow: 0 8px 28px rgba(60,50,40,.18)`): every floating card, the chip tray, icon buttons, tooltip, detail panel and sheets.
 - **Pill** (`box-shadow: 0 2px 8px rgba(0,0,0,.15)`): beacon short labels.
 - **Glow** (`box-shadow: 0 0 0 6px color-mix(in srgb, <level> 30%, transparent), 0 0 28px <level>`): beacon and cluster discs only; it is the light the beam gives off.
-- **Selected** (`box-shadow: 0 0 0 3px <surface>, 0 0 0 6px <Trust Blue>, 0 0 28px <level>`): the beacon whose peek card is open; a solid blue ring replaces the level halo, the glow stays.
+- **Selected** (`box-shadow: 0 0 0 3px <surface>, 0 0 0 6px <Trust Blue>, 0 0 28px <level>`): the beacon whose detail panel is open; a solid blue ring replaces the level halo, the glow stays.
 ### Named Rules
 **The One Light Rule.** Only beacons glow. No other element gets a coloured shadow or glow.
 
 ## Shapes
 
-Soft and rounded, like toys: 9px level badges, 10px label pills, 12px picture tiles, 14px chips, buttons and toast, 18px cards, tooltip and peek card, 24px sheets, perfect circles for discs and pulse rings. The beam is a narrow cone (a polygon from the full width at the top to 8% at the base). Pulse rings are flattened ellipses, as if light falls on the ground.
+Soft and rounded, like toys: 9px level badges, 10px label pills, 12px picture tiles, 14px chips, buttons and toast, 18px cards, tooltip and detail panel, 24px sheets, perfect circles for discs and pulse rings. The beam is a narrow cone (a polygon from the full width at the top to 8% at the base). Pulse rings are flattened ellipses, as if light falls on the ground.
 
 The four level shapes are one solid SVG set on a 12-unit grid: a filled circle (ทั่วไป), triangle (ควรระวัง), diamond (อันตราย), and a triangle with a cut-out exclamation (วิกฤต). They fill with currentColor at 0.85em inline and 10px inside badges, so their weight matches wherever they appear. Every other icon is Lucide (`apps/web/src/app/features/map/icons.ts`, `<app-icon>`): 22px in icon buttons, 24px in beacon discs, stroke 2, round caps, currentColor.
 
@@ -274,7 +274,7 @@ The four level shapes are one solid SVG set on a 12-unit grid: a filled circle (
 - **Shape:** gently rounded (14px), at least 44 × 44 px.
 - **Primary:** Trust Blue fill, white Prompt 500 15px label.
 - **Secondary:** Card White with a 1px Sand Line border.
-- **Icon button:** 44px square, Card White, 1px Sand Line border, Float shadow, a 22px line icon; hover fills Cream Ground. Inside a card (the peek card's close) it drops the shadow.
+- **Icon button:** 44px square, Card White, 1px Sand Line border, Float shadow, a 22px line icon; hover fills Cream Ground. The account button shows the first letter of the signed-in name (Prompt 600, 19px, Trust Blue on a 14% Trust Blue tint) instead of the person icon, so signed in reads by shape as well as colour. Over the detail panel's picture the close button keeps its own white fill and has no shadow.
 - **Focus:** 3px Trust Blue outline with 2px offset on every interactive element (4px offset on discs).
 
 ### Chips
@@ -285,7 +285,12 @@ The four level shapes are one solid SVG set on a 12-unit grid: a filled circle (
 ### Cards / Containers
 - **Floating card:** Card White, 18px radius, Float shadow, 8–14px padding (brand card 8px 16px 10px).
 - **Tooltip:** Card White, 18px radius, Float shadow, 240px wide, no pointer events. Top to bottom, 4px apart: a 120px picture tile (cover photo, else the category's Lucide icon at 40px in ink on the level colour mixed 45% into the surface), the title, a meta line (level shape, level name · status · เจอเหมือนกัน N), and for open reports an age line.
-- **Peek card:** the same summary at 300px in a `role="dialog"` labelled by its title, with an icon-button close in its own column beside the picture. It is a stand-in for the detail panel and inherits its slot.
+- **Detail panel:** Card White, 18px radius, Float shadow, 380px wide (a `role="dialog"` labelled by the report title); on phones the same content fills a bottom sheet (24px top corners, 0.64 / full breakpoints, dragging to the bottom closes it). Top to bottom, 12px apart: a picture (a scroll-snapping strip of photos with ก่อนแก้ / หลังแก้ pills, else the category tile at 48px; 180px high on the panel, 132px in the sheet so the me-too button sits inside the first 64%) with the 44px close button over its corner; the title (Prompt 600 22px, wraps anywhere); tags (level pill with its solid shape, category, status, age, user `#tags`); the description (line breaks kept); a byline "แจ้งโดย {name or ผู้ใช้นิรนาม} · {age}" with the place; for level 3 the emergency box; the me-too row; and the comments. Loading and error states keep the same frame, with a retry button.
+- **Emergency box:** level 3 only. Critical Rose mixed 24% into white, Slate Ink text, 14px radius: "ระบบนี้ไม่ใช่ช่องทางฉุกเฉิน หากมีอันตรายทันที โทร 191 / 199 / 1669", each number a white 44px `tel:` link. This is the one place rose fills an area, because it means danger there.
+- **Me-too button ("เจอเหมือนกัน"):** a 44px secondary button in Trust Blue (outline and label) with a hand icon and the count in tabular figures; pressed (`aria-pressed`) fills Trust Blue with white text. It is disabled at 60% opacity while the request is in flight and always shows the count the server last answered. A resolved report shows "มีคนเจอเหมือนกัน N คน" in Muted Ink instead. "คัดลอกลิงก์" sits beside it.
+- **Comments:** a hairline above, heading "ความคิดเห็น · N" (Prompt 500 15px), then each comment as name (500), a "ผู้แจ้ง" badge (9px radius, Sand Line outline) when the author is the reporter, the age, and the body (Body, line breaks kept, user text only through text interpolation). The composer is a 14px-radius textarea with a `n/500` counter and a 44px Trust Blue send icon button, disabled while blank. Signed out, a secondary button "เข้าสู่ระบบเพื่อแสดงความคิดเห็น" takes its place. Hidden author names show as "ผู้ใช้นิรนาม", never the real name.
+- **Login form:** the same form in a bottom sheet over the map and on the `/login` page: heading, a short lede, one field per step (email, then the 6-digit code with `autocomplete="one-time-code"`), a 44px Trust Blue primary button, "เปลี่ยนอีเมล" and "ส่งรหัสใหม่" (locked for 60 seconds with a countdown) as text links, and errors in `role="alert"` directly under the field. When quick login is configured, a "สลับผู้ใช้สำหรับเดโม" section lists one secondary button per demo user.
+- **Account button and menu:** the account icon button above (person icon when signed out, opens the login sheet; the name's initial when signed in, opens the menu). The menu is an 18px-radius Card White popover, 240px wide, with the name (and a "ผู้ดูแล" tag for admins), "สลับผู้ใช้" and "ออกจากระบบ" as 44px rows.
 - **Toast:** Slate Ink fill, Cream Ground text, 14px radius, `role="status"`.
 
 ### Beacon (signature component)
@@ -294,7 +299,7 @@ The Bat-Signal beacon. Bottom to top: a 14px base dot in the level colour with a
 - **fix_claimed:** beam at 28% opacity, dashed disc border, no pulse.
 - **resolved:** no beam, no pulse; mint border, a tick in place of the icon and the badge shape, disc at 85% opacity.
 - **Compact:** below zoom 12 an isolated report draws a 60px beam, an 82% disc and no label; it becomes full height at zoom ≥ 12.
-- **Selected:** the Selected ring (see Elevation) while its peek card is open.
+- **Selected:** the Selected ring (see Elevation) while its detail panel is open.
 - **Labels:** at most 12 labels on screen, kept for the reports with the most "เจอเหมือนกัน".
 
 ### Cluster

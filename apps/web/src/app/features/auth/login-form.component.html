@@ -1,0 +1,86 @@
+<form class="steps" novalidate [attr.aria-labelledby]="id + '-title'" (submit)="submit($event)">
+  @if (step() === 'email') {
+    <h2 class="head" [id]="id + '-title'">เข้าสู่ระบบ</h2>
+    <p class="lede">ใส่อีเมลไว้ เดี๋ยวเราส่งรหัส 6 หลักไปให้ <span class="nowrap">ไม่ต้องจำรหัสผ่าน</span></p>
+
+    <label class="field" [for]="id + '-email'">อีเมล</label>
+    <input
+      #emailInput
+      class="input"
+      type="email"
+      inputmode="email"
+      autocomplete="email"
+      autocapitalize="off"
+      spellcheck="false"
+      placeholder="name@example.com"
+      [id]="id + '-email'"
+      [value]="email()"
+      [attr.aria-describedby]="error() ? id + '-error' : null"
+      [attr.aria-invalid]="error() ? true : null"
+      (input)="onEmail($event)"
+    />
+    <ng-container *ngTemplateOutlet="stepError" />
+
+    <button type="submit" class="primary" [disabled]="!emailOk() || busy() !== null">
+      <app-icon name="send" [size]="20" />
+      {{ busy() === 'send' ? 'กำลังส่งรหัส…' : 'ส่งรหัส' }}
+    </button>
+  } @else {
+    <h2 class="head" [id]="id + '-title'">ใส่รหัสจากอีเมล</h2>
+    <p class="lede">
+      เราส่งรหัสไปที่ <strong class="sent">{{ sentTo() }}</strong> แล้ว ถ้ายังไม่เห็น ลองดูในกล่องสแปมนะ
+    </p>
+
+    <label class="field" [for]="id + '-code'">รหัส 6 หลัก</label>
+    <input
+      #codeInput
+      class="input code"
+      type="text"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      pattern="[0-9]*"
+      maxlength="6"
+      [id]="id + '-code'"
+      [value]="code()"
+      [attr.aria-describedby]="error() ? id + '-error' : null"
+      [attr.aria-invalid]="error() ? true : null"
+      (input)="onCode($event)"
+    />
+    <ng-container *ngTemplateOutlet="stepError" />
+
+    <button type="submit" class="primary" [disabled]="!codeOk() || busy() !== null">
+      {{ busy() === 'verify' ? 'กำลังตรวจรหัส…' : 'ยืนยัน' }}
+    </button>
+
+    <div class="links">
+      <button type="button" class="link" [disabled]="busy() !== null" (click)="back()">เปลี่ยนอีเมล</button>
+      <button type="button" class="link" [disabled]="wait() > 0 || busy() !== null" (click)="resend()">
+        ส่งรหัสใหม่@if (wait() > 0) {<span class="wait">ได้ใน {{ wait() }} วินาที</span>}
+      </button>
+    </div>
+  }
+  <p class="sr-only" aria-live="polite">{{ status() }}</p>
+</form>
+
+<!-- the error sits right under the field it is about -->
+<ng-template #stepError>
+  @if (error(); as message) {
+    <p class="error" role="alert" [id]="id + '-error'">{{ message }}</p>
+  }
+</ng-template>
+
+@if (demo().length) {
+  <section class="demo" [attr.aria-labelledby]="id + '-demo'">
+    <h3 class="demo-head" [id]="id + '-demo'">สลับผู้ใช้สำหรับเดโม</h3>
+    <div class="who">
+      @for (u of demo(); track u.who) {
+        <button type="button" class="secondary" [disabled]="busy() !== null" (click)="quick(u.who)">
+          {{ busy() === u.who ? 'กำลังเข้า…' : u.label_th }}
+        </button>
+      }
+    </div>
+    @if (demoError(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+  </section>
+}

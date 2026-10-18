@@ -1,9 +1,10 @@
 // Shape of a public report as returned by reports_in_bbox (supabase/migrations/*_public_api.sql).
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DangerLevel } from '@jaeng/shared/levels';
+import type { PublicStatus } from '@jaeng/shared/api';
 import type { FeatureCollection, Point } from 'geojson';
 
-export type PublicStatus = 'open' | 'fix_claimed' | 'resolved';
+export type { PublicStatus } from '@jaeng/shared/api';
 
 export type ReportProps = {
   id: string;

@@ -104,39 +104,65 @@
   line-height: 1.5;
 }
 
-.tip,
-.peek {
-  display: grid;
-  gap: 4px;
-  padding: 10px 12px 12px;
-}
-
 .tip {
   position: fixed;
   z-index: 6;
+  display: grid;
+  gap: 4px;
   width: 240px;
+  padding: 10px 12px 12px;
   pointer-events: none;
 }
 
-.peek {
+// ---- report detail: right panel (≥ 820 px) ----
+$panel: 380px;
+$beside: calc(#{$panel} + 24px); // the panel and its two 12 px gutters
+
+.panel {
   position: absolute;
   z-index: 7;
-  right: 72px;
-  top: 96px;
-  width: 300px;
-  padding-top: 12px;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: $panel;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
 
-.close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  box-shadow: none;
+// while it is open the controls, the chip group and MapLibre's corner controls step left of it
+.controls.beside {
+  right: $beside;
 }
 
-// the close button keeps its own column beside the picture
-.peek .thumb {
-  margin-right: 52px;
+.top.beside {
+  right: calc(#{$beside} + 8px);
+}
+
+:host.with-panel ::ng-deep .maplibregl-ctrl-bottom-right {
+  right: $beside;
+}
+
+// ---- report detail: bottom sheet (< 820 px) ----
+ion-modal.detail-sheet {
+  --border-radius: 24px 24px 0 0;
+  --background: var(--surf);
+  --box-shadow: var(--sh);
+  --backdrop-opacity: 0.32;
+  --max-height: calc(100% - env(safe-area-inset-top, 0px));
+}
+
+ion-modal.detail-sheet::part(handle) {
+  background: var(--line);
+}
+
+.sheet-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 8px; // clear of the drag handle
+  box-sizing: border-box;
 }
 
 .thumb {
@@ -205,13 +231,5 @@
     bottom: calc(52px + env(safe-area-inset-bottom, 0px));
     right: 68px;
     max-width: none;
-  }
-
-  .peek {
-    top: auto;
-    left: 12px;
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    width: auto;
   }
 }

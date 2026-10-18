@@ -30,5 +30,6 @@ describe('no emoji in source', () => {
           .flatMap((line, i) => (PICTO.test(line) ? [`${f}:${i + 1}`] : [])),
       );
     expect(offenders).toEqual([]);
-  });
+    // sync reads over the /mnt/d bind mount: ~1 s alone, past 5 s while other spec files run in parallel
+  }, 30_000);
 });

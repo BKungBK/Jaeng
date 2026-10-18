@@ -1,5 +1,5 @@
 <!-- DOM order is tab order: chips and controls first, then the map's markers -->
-<div class="top">
+<div class="top" [class.beside]="panelOpen()">
   <header class="card brand">
     <h1>แจ้ง</h1>
     <p>ทุกเรื่องคือสัญญาณไฟ</p>
@@ -7,12 +7,13 @@
   <app-filter-bar [(levels)]="levels" (levelsChange)="scheduleLoad()" />
 </div>
 
-<div class="controls">
+<div class="controls" [class.beside]="panelOpen()">
   <button type="button" class="ctl" aria-label="ซูมเข้า" (click)="zoomIn()"><app-icon name="plus" /></button>
   <button type="button" class="ctl" aria-label="ซูมออก" (click)="zoomOut()"><app-icon name="minus" /></button>
   <button type="button" class="ctl" aria-label="ไปที่ตำแหน่งของฉัน" (click)="locate()">
     <app-icon name="locateFixed" />
   </button>
+  <app-account-button />
 </div>
 
 <p class="card hint" aria-live="polite">{{ hint() }}</p>
@@ -25,13 +26,44 @@
   </div>
 }
 
-@if (selected(); as s) {
-  <aside class="card peek" role="dialog" aria-labelledby="peek-title" [style.--c]="level(s).color">
-    <button type="button" class="ctl close" aria-label="ปิด" #close (click)="closePeek()">
-      <app-icon name="x" />
-    </button>
-    <ng-container *ngTemplateOutlet="summary; context: { $implicit: s, id: 'peek-title' }" />
-  </aside>
+<!-- the report detail: a right panel from 820 px, a bottom sheet that still lets the map pan below -->
+@if (wide()) {
+  @if (id(); as rid) {
+    <aside class="card panel" role="dialog" aria-labelledby="report-detail-title">
+      <app-report-detail
+        [reportId]="rid"
+        (closed)="close()"
+        (loaded)="onLoaded($event)"
+        (missing)="onMissing()"
+        (changed)="scheduleLoad(0)"
+      />
+    </aside>
+  }
+} @else {
+  <ion-modal
+    class="detail-sheet"
+    aria-labelledby="report-detail-title"
+    [isOpen]="!!id()"
+    [breakpoints]="[0, 0.64, 1]"
+    [initialBreakpoint]="0.64"
+    [backdropBreakpoint]="0.64"
+    [canDismiss]="sheetCanDismiss"
+    (didDismiss)="onSheetDismissed($event)"
+  >
+    <ng-template>
+      <div class="sheet-scroll ion-content-scroll-host">
+        @if (sheetId(); as rid) {
+          <app-report-detail
+            [reportId]="rid"
+            (closed)="close()"
+            (loaded)="onLoaded($event)"
+            (missing)="onMissing()"
+            (changed)="scheduleLoad(0)"
+          />
+        }
+      </div>
+    </ng-template>
+  </ion-modal>
 }
 
 @if (toast(); as t) {

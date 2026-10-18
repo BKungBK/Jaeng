@@ -328,7 +328,7 @@ isOneToOne: false
           Views: {
             "public_comments": {
                   Row: {
-                    "author_name": string | null,"body": string | null,"created_at": string | null,"id": string | null,"report_id": string | null
+                    "author_name": string | null,"body": string | null,"by_reporter": boolean | null,"created_at": string | null,"id": string | null,"report_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -348,7 +348,7 @@ isOneToOne: false
                   ]
                 },"public_reports": {
                   Row: {
-                    "approved_at": string | null,"author_name": string | null,"category": string | null,"comment_count": number | null,"confirm_count": number | null,"cover_photo_path": string | null,"danger_level": number | null,"days_open": number | null,"description": string | null,"icon": string | null,"id": string | null,"lat": number | null,"lng": number | null,"place_name": string | null,"resolved_at": string | null,"status": string | null,"tags": (string)[] | null,"title": string | null
+                    "approved_at": string | null,"author_name": string | null,"category": string | null,"comment_count": number | null,"confirm_count": number | null,"cover_photo_path": string | null,"created_at": string | null,"danger_level": number | null,"days_open": number | null,"description": string | null,"icon": string | null,"id": string | null,"lat": number | null,"lng": number | null,"photos": Json | null,"place_name": string | null,"resolved_at": string | null,"status": string | null,"tags": (string)[] | null,"title": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -357,7 +357,12 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "area_name_at":
+            "add_comment":
+{ Args: { "p_body": string,"p_report": string,"p_user": string }; Returns: {
+              "comment_count": number,"comment_id": string,"confirm_count": number,"status": string
+            }[]
+                           },
+"area_name_at":
 { Args: { "lat": number,"lng": number }; Returns: string
                            },
 "area_province_at":
@@ -372,6 +377,11 @@ isOneToOne: false
 "stats_in_bbox":
 { Args: { "max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number }; Returns: {
               "open_count": number,"resolved_this_month": number
+            }[]
+                           },
+"toggle_confirmation":
+{ Args: { "p_report": string,"p_user": string }; Returns: {
+              "comment_count": number,"confirm_count": number,"confirmed": boolean,"status": string
             }[]
                            }
           }

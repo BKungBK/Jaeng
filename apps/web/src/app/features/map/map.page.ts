@@ -6,15 +6,25 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
+  input,
   isDevMode,
+  linkedSignal,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
+import { IonModal } from '@ionic/angular';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
+import { RealtimeService } from '../../core/realtime.service';
 import { IconComponent } from '../../shared/icon.component';
+import { AccountButtonComponent } from '../auth/account-button.component';
+import type { ReportDetail } from '../report-detail/report-detail';
+import { ReportDetailComponent } from '../report-detail/report-detail.component';
 import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
 import { FilterBarComponent } from './filter-bar.component';
@@ -28,22 +38,49 @@ import { ReportsService } from './reports.service';
 import { toyOpacity, zoomHint } from './toy';
 
 const LOAD_DEBOUNCE_MS = 300;
+/** A linked report opens at street level at least (spec 3.4). */
+const DETAIL_ZOOM = 15;
+/** Room the right panel takes: 380 px plus its two 12 px gutters. */
+const PANEL_SPACE = 404;
+const WIDE = '(min-width: 820px)';
+/** Ionic's dismiss roles for the reader closing the sheet: a drag ('gesture'), the backdrop or Escape.
+ *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
+const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
 
-// The home map (spec 3.2–3.4). Plan 3 replaces the peek card with the full detail panel.
+/** The map centre that shows `target` at `offset` px from the middle of the view at `zoom` (Web Mercator,
+ *  512 px tiles; close enough to the globe at street zoom). */
+export function centerFor(target: [number, number], zoom: number, offset: [number, number]): [number, number] {
+  const world = 512 * 2 ** zoom;
+  const x = ((target[0] + 180) / 360) * world - offset[0];
+  const lat = (target[1] * Math.PI) / 180;
+  const y = ((1 - Math.log(Math.tan(Math.PI / 4 + lat / 2)) / Math.PI) / 2) * world - offset[1];
+  const lng = (x / world) * 360 - 180;
+  const lat2 = (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / world))) * 180) / Math.PI;
+  return [lng, lat2];
+}
+
+// The home map (spec 3.2–3.4) with the report detail as a right panel (≥ 820 px) or a bottom sheet.
 @Component({
   selector: 'app-map',
   templateUrl: 'map.page.html',
   styleUrls: ['map.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FilterBarComponent, NgTemplateOutlet, LevelShapeComponent, IconComponent],
-  host: { class: 'ion-page', '(document:keydown.escape)': 'closePeek()' },
+  imports: [
+    FilterBarComponent,
+    NgTemplateOutlet,
+    LevelShapeComponent,
+    IconComponent,
+    AccountButtonComponent,
+    ReportDetailComponent,
+    IonModal,
+  ],
+  host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
   private reports = inject(ReportsService);
   private loader = new ReportsLoader((bbox, levels) => this.reports.inBbox(bbox, levels));
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
-  private closeButton = viewChild<ElementRef<HTMLButtonElement>>('close');
 
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
@@ -53,17 +90,45 @@ export class MapPage {
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
 
+  private router = inject(Router);
+  /** The beacon last clicked here, so its own navigation is not treated as a link. */
+  private clicked: ReportProps | null = null;
+  private fromClick = false;
+  private pendingFly: ReportDetail | null = null;
+  /** The id this page is already closing, so the sheet's didDismiss does not navigate twice. */
+  private closing?: string;
+
+  /** Bound from the route (`/r/:id`); undefined on `/`. */
+  readonly id = input<string>();
   readonly levels = signal<readonly DangerLevel[]>([0, 1, 2, 3]);
   readonly zoom = signal(5);
   readonly shown = signal<number | null>(null);
   readonly hover = signal<{ p: ReportProps; x: number; y: number } | null>(null);
-  readonly selected = signal<ReportProps | null>(null);
   readonly toast = signal<string | null>(null);
+  /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
+  readonly wide = signal(false);
+  readonly panelOpen = computed(() => this.wide() && !!this.id());
+  /** The sheet keeps showing its report while it slides away after the URL went back to `/`. */
+  protected readonly sheetId = linkedSignal<string | undefined, string | undefined>({
+    source: this.id,
+    computation: (id, prev) => id ?? prev?.value,
+  });
 
   readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length));
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    const media = matchMedia(WIDE);
+    this.wide.set(media.matches);
+    const onMedia = (e: MediaQueryListEvent) => this.wide.set(e.matches);
+    media.addEventListener('change', onMedia);
+    destroyRef.onDestroy(() => media.removeEventListener('change', onMedia));
+    effect(() => {
+      const id = this.id();
+      untracked(() => this.follow(id));
+    });
+    // every live signal re-runs the debounced bbox load, so a burst becomes one request
+    destroyRef.onDestroy(inject(RealtimeService).listen(() => this.scheduleLoad()));
     afterNextRender(() => void this.start());
     destroyRef.onDestroy(() => {
       this.destroyed = true;
@@ -76,6 +141,50 @@ export class MapPage {
     });
   }
 
+  /** The route's report changed. A click on this page already shows the place; anything else
+   *  (a shared link, Back/Forward) flies there once the panel has loaded the report. */
+  private follow(id: string | undefined) {
+    this.beacons?.setSelected(id ?? null);
+    this.fromClick = !!id && this.clicked?.id === id;
+    this.pendingFly = null;
+    if (id !== this.closing) this.closing = undefined;
+  }
+
+  /** The panel loaded its report (`loaded`). */
+  protected onLoaded(d: ReportDetail) {
+    if (d.id !== this.id() || this.fromClick) return;
+    this.pendingFly = d;
+    this.flyPending();
+  }
+
+  private flyPending() {
+    const d = this.pendingFly;
+    if (!d || !this.map) return;
+    this.pendingFly = null;
+    // land the report in the map that stays visible: left of the panel, or above the 64% sheet.
+    // MapLibre 5's flyTo ignores `offset`, and `padding` would stick to the map afterwards.
+    const zoom = Math.max(this.map.getZoom(), DETAIL_ZOOM);
+    // phones: the beam's foot just above the sheet's 64% edge, so the disc above it stays in view
+    const offset: [number, number] = this.wide() ? [-PANEL_SPACE / 2, 0] : [0, -Math.round(innerHeight * 0.14 + 32)];
+    this.map.flyTo({ center: centerFor([d.lng, d.lat], zoom, offset), zoom });
+  }
+
+  /** The linked report is not public (or never existed): say so and go home. */
+  protected onMissing() {
+    this.closing = this.id();
+    this.clicked = null;
+    this.beacons?.setSelected(null);
+    this.showToast('ไม่พบเรื่องนี้ หรือเรื่องนี้ยังไม่เปิดให้เห็นนะ');
+    void this.router.navigate(['/'], { replaceUrl: true });
+  }
+
+  /** Escape closes the panel, unless another overlay (the login sheet, the account menu) is on top. */
+  protected onEscape() {
+    const others = document.querySelectorAll('ion-modal:not(.detail-sheet), ion-popover, ion-alert');
+    if ([...others].some((o) => !o.classList.contains('overlay-hidden'))) return;
+    this.close();
+  }
+
   private async start() {
     const map = await this.createMap(this.container().nativeElement);
     if (this.destroyed) {
@@ -83,6 +192,7 @@ export class MapPage {
       return;
     }
     this.map = map;
+    this.flyPending(); // a deep link that loaded before the map did
     // dev builds expose the map for manual checks and E2E (window.__map)
     if (isDevMode()) (window as unknown as { __map: maplibregl.Map }).__map = map;
     map.on('load', () => void this.onLoad(map));
@@ -113,11 +223,13 @@ export class MapPage {
       this.beacons = new BeaconLayer(map, {
         hover: (p, el) => {
           const r = el.getBoundingClientRect();
-          this.hover.set({ p, x: Math.min(innerWidth - 256, r.right + 10), y: Math.max(76, r.top) });
+          const right = innerWidth - (this.panelOpen() ? PANEL_SPACE : 0) - 256; // keep clear of the panel
+          this.hover.set({ p, x: Math.min(right, r.right + 10), y: Math.max(76, r.top) });
         },
         leave: () => this.hover.set(null),
         select: (p) => this.select(p),
       });
+      this.beacons.setSelected(this.id() ?? null);
     } catch {
       if (!this.destroyed) this.showToast('แผนที่โหลดไม่ครบ ลองรีเฟรชหน้านี้อีกครั้งนะ');
     }
@@ -169,30 +281,41 @@ export class MapPage {
     }
   }
 
-  private select(p: ReportProps) {
+  /** A beacon was chosen: the URL is the state, the `id` effect does the rest. */
+  select(p: ReportProps) {
     this.hover.set(null);
-    this.markSelected(false);
-    this.selected.set(p);
-    this.markSelected(true);
-    // move focus into the card so keyboard and screen-reader users land on it
-    setTimeout(() => this.closeButton()?.nativeElement.focus());
+    this.clicked = p;
+    void this.router.navigate(['/r', p.id]);
   }
 
-  closePeek() {
-    const p = this.selected();
-    if (!p) return;
-    this.markSelected(false);
-    this.selected.set(null);
-    this.discFor(p.id)?.focus();
+  /** The sheet ends the report only when the reader closes it: a drag to 0 (Ionic asks with 'gesture'),
+   *  the backdrop at full height or Escape ('backdrop'), or this page closing it (the close button,
+   *  Back, a missing report). Ionic may dismiss it on its own while another overlay (the account
+   *  menu, the login sheet) opens over it, with no role; that would close the report the reader is in.
+   *  'parent-removed' (this page went away) always passes, so no orphaned sheet stays behind. */
+  protected readonly sheetCanDismiss = async (_data?: unknown, role?: string) => {
+    const id = this.id();
+    return !id || this.closing === id || SHEET_CLOSE_ROLES.has(role ?? '') || role === 'parent-removed';
+  };
+
+  /** `didDismiss` after a dismissal `sheetCanDismiss` allowed: navigate only for the reader's own close. */
+  protected onSheetDismissed(e: Event) {
+    const role = (e as CustomEvent<{ role?: string } | undefined>).detail?.role;
+    if (role === 'handler' || SHEET_CLOSE_ROLES.has(role ?? '')) this.close();
   }
 
-  private discFor(id: string) {
-    return this.container().nativeElement.querySelector<HTMLElement>(`.disc[data-id="${CSS.escape(id)}"]`);
-  }
-
-  private markSelected(on: boolean) {
-    const p = this.selected();
-    if (p) this.discFor(p.id)?.classList.toggle('selected', on);
+  /** Close the panel or sheet; focus goes back to the report's disc once the URL is `/` again. */
+  close() {
+    const id = this.id();
+    if (!id || this.closing === id) return; // the sheet's didDismiss follows our own close
+    this.closing = id;
+    this.clicked = null; // Back to /r/:id later is a link, not this click
+    this.beacons?.setSelected(null);
+    void this.router.navigate(['/']).then(() => {
+      if (this.destroyed) return;
+      if (this.beacons?.focus(id)) return;
+      this.map?.getCanvas().focus();
+    });
   }
 
   scheduleLoad(delay = LOAD_DEBOUNCE_MS) {

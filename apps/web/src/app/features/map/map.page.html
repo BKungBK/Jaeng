@@ -16,6 +16,11 @@
   <app-account-button />
 </div>
 
+<!-- hidden while the report sheet covers that corner on phones -->
+@if (wide() || !id()) {
+  <app-report-fab class="fab" [class.beside]="panelOpen()" />
+}
+
 <p class="card hint" aria-live="polite">{{ hint() }}</p>
 
 <div class="map" #map></div>

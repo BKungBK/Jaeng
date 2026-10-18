@@ -1,0 +1,67 @@
+<div class="scroller" #scroller>
+  <main class="card">
+    <header class="head">
+      @let closes = view() === 'sent' || (view() === 'flow' && step() === 1);
+      <button type="button" class="ctl" [attr.aria-label]="closes ? 'ปิด' : 'ย้อนกลับ'" (click)="backOrClose()">
+        <app-icon [name]="closes ? 'x' : 'chevronLeft'" [size]="22" />
+      </button>
+      @if (view() === 'sent') {
+        <h1 class="sr-only">แจ้งเรื่อง</h1>
+      } @else {
+        <div class="titles">
+          <h1 id="rn-step-title" tabindex="-1">{{ title() }}</h1>
+          <div class="track">
+            <span class="segs" aria-hidden="true">
+              @for (s of steps; track s) {
+                <span class="seg" [class.done]="s < step()" [class.now]="s === step()"></span>
+              }
+            </span>
+            <span class="caption">ขั้น {{ step() }} จาก 3</span>
+          </div>
+        </div>
+      }
+    </header>
+
+    @switch (view()) {
+      @case ('sent') {
+        <app-sent-card />
+      }
+      @case ('duplicates') {
+        <app-duplicate-card [candidates]="candidates()" (created)="finish()" />
+      }
+      @default {
+        @switch (step()) {
+          @case (1) {
+            <app-photo-step (next)="go(2)" />
+          }
+          @case (2) {
+            <app-category-step [selected]="draft.category()" (picked)="pickCategory($event)" />
+          }
+          @case (3) {
+            <section class="pin-step">
+              <app-location-step (zoomChange)="zoom.set($event)" />
+              <div class="send">
+                @if (needsZoom()) {
+                  <p class="gate">
+                    <app-icon name="plus" [size]="18" />
+                    ซูมเข้าไปอีกหน่อยเพื่อปักหมุดให้แม่น
+                  </p>
+                }
+                @if (photosWhy(); as why) {
+                  <p class="caption">{{ why }}</p>
+                }
+                <button type="button" class="btn primary big wide" [disabled]="!canSend()" [attr.aria-busy]="sending()" (click)="send()">
+                  <app-icon name="send" [size]="20" />
+                  {{ sending() ? 'กำลังส่ง…' : 'ส่งเรื่อง' }}
+                </button>
+                <p class="rule">เล่าที่ปัญหา ไม่ระบุชื่อหรือกล่าวหาบุคคล</p>
+                <p class="status" role="status">{{ message() }}</p>
+              </div>
+              <app-details-section />
+            </section>
+          }
+        }
+      }
+    }
+  </main>
+</div>

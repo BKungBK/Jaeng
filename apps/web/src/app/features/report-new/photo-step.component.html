@@ -1,0 +1,59 @@
+<p class="lede">รูปเดียวก็พอ ใส่ได้สูงสุด {{ max }} รูป</p>
+
+@if (!full()) {
+  <div class="add">
+    <button type="button" class="btn primary big" (click)="camera.click()">
+      <app-icon name="camera" [size]="22" />
+      ถ่ายรูป
+    </button>
+    <button type="button" class="btn big" (click)="gallery.click()">
+      <app-icon name="image" [size]="22" />
+      เลือกจากคลัง
+    </button>
+  </div>
+} @else {
+  <p class="caption">ครบ {{ max }} รูปแล้ว ลบรูปออกก่อนถ้าอยากเปลี่ยน</p>
+}
+<!-- the buttons above open these; they stay out of the tab order and the accessibility tree -->
+<input #camera class="sr-only" type="file" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true" (change)="picked($event)" />
+<input #gallery class="sr-only" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true" (change)="picked($event)" />
+
+@if (photos().length > 0) {
+  <ul class="strip" aria-label="รูปที่เลือก">
+    @for (p of photos(); track p.localId; let i = $index) {
+      <li class="tile" [class.err]="p.state === 'error'">
+        <img [src]="p.previewUrl" [attr.alt]="'รูปที่ ' + (i + 1)" />
+        @switch (p.state) {
+          @case ('ready') {
+            <span class="ok"><app-icon name="check" [size]="16" /><span class="sr-only">พร้อมแล้ว</span></span>
+          }
+          @case ('error') {
+            <div class="veil">
+              <p>{{ p.errorTh }}</p>
+              <button type="button" class="btn retry" (click)="retry(p)">
+                <app-icon name="refreshCw" [size]="18" />
+                ลองใหม่
+              </button>
+            </div>
+          }
+          @default {
+            <div class="veil busy"><p>กำลังอัปโหลด…</p></div>
+          }
+        }
+        <button type="button" class="ctl remove" [attr.aria-label]="'ลบรูปที่ ' + (i + 1)" (click)="remove(p)">
+          <app-icon name="x" [size]="20" />
+        </button>
+      </li>
+    }
+  </ul>
+}
+
+<p class="status" role="status">{{ draft.overflowed() ? 'ใส่ได้สูงสุด ' + max + ' รูปนะ รูปที่เกินไม่ได้ใส่' : '' }}</p>
+<p class="caption">รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ</p>
+
+<div class="foot">
+  <button type="button" class="btn primary big wide" [disabled]="!draft.canContinueFromPhotos()" (click)="next.emit()">ไปต่อ</button>
+  @if (why(); as w) {
+    <p class="caption">{{ w }}</p>
+  }
+</div>

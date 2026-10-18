@@ -5,6 +5,13 @@
 
 export const SEA_FRAME_MS = 1000 / 30;
 
+/** No sea frames while nobody can see them: a hidden tab, or a map page Ionic has put behind another
+ *  page (`/report`): its container is display:none, 0 px wide. Showing it again resizes the map, which
+ *  repaints and so restarts the animation. */
+export function seaOutOfSight(docHidden: boolean, container: { clientWidth: number; clientHeight: number }): boolean {
+  return docHidden || container.clientWidth === 0 || container.clientHeight === 0;
+}
+
 export class SeaClock {
   private last = -Infinity;
 

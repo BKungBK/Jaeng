@@ -2,7 +2,7 @@
 // stays as the fallback if WebGL2 or the shader is unavailable). Mercator only (plan 2b).
 import type maplibregl from 'maplibre-gl';
 import type { CustomRenderMethodInput } from 'maplibre-gl';
-import { SeaClock } from './sea-clock';
+import { SeaClock, seaOutOfSight } from './sea-clock';
 import { mercX, mercY, SEA_ANCHOR, SeaMesh } from './sea-geometry';
 import { SeaPalette } from './sea-palette';
 import { SEA_FRAGMENT, SEA_VERTEX } from './sea.glsl';
@@ -213,7 +213,7 @@ export class SeaLayer implements maplibregl.CustomLayerInterface {
       const [u1, v1] = uv(b.getEast(), b.getSouth());
       if (!seaInView(this.landAt, [u0, v0, u1, v1])) return;
     }
-    const wait = this.clock.nextFrameIn(document.hidden);
+    const wait = this.clock.nextFrameIn(seaOutOfSight(document.hidden, this.map.getContainer()));
     if (wait === null) return;
     this.timer = setTimeout(() => {
       this.timer = undefined;

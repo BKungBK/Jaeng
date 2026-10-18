@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService, Profile } from '../../core/auth.service';
 import { AccountButtonComponent, AccountMenuComponent, initialOf } from './account-button.component';
@@ -17,18 +18,20 @@ async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismi
     onDidDismiss: vi.fn().mockResolvedValue({ role: opts.dismissRole }),
   };
   const popovers = { create: vi.fn().mockResolvedValue(popover) };
+  const router = { navigate: vi.fn().mockResolvedValue(true) };
   TestBed.configureTestingModule({
     providers: [
       { provide: AuthService, useValue: auth },
       { provide: LoginPromptService, useValue: prompt },
       { provide: PopoverController, useValue: popovers },
+      { provide: Router, useValue: router },
     ],
   });
   const fixture = TestBed.createComponent(AccountButtonComponent);
   await fixture.whenStable();
   const root = fixture.nativeElement as HTMLElement;
   const button = root.querySelector<HTMLButtonElement>('button')!;
-  return { fixture, root, button, auth, prompt, popovers, popover };
+  return { fixture, root, button, auth, prompt, popovers, popover, router };
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
@@ -97,6 +100,18 @@ describe('AccountButtonComponent', () => {
     expect(prompt.ask).toHaveBeenCalled();
   });
 
+  it('opens /me when the menu asks for "เรื่องของฉัน"', async () => {
+    const { button, router, prompt } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      dismissRole: 'mine',
+    });
+    button.click();
+    await flush();
+    expect(router.navigate).toHaveBeenCalledWith(['/me']);
+    expect(prompt.ask).not.toHaveBeenCalled();
+  });
+
   it('signs out when the menu asks to', async () => {
     const { button, auth } = await setup({
       signedIn: true,
@@ -149,6 +164,14 @@ describe('AccountMenuComponent', () => {
   it('tags an admin with "ผู้ดูแล"', () => {
     const { root } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin' });
     expect(root.querySelector('.tag')?.textContent?.trim()).toBe('ผู้ดูแล');
+  });
+
+  it('lists "เรื่องของฉัน" first among the actions, signed in', () => {
+    const { root, button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user' });
+    const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
+    expect(rows).toEqual(['เรื่องของฉัน', 'สลับผู้ใช้', 'ออกจากระบบ']);
+    button('เรื่องของฉัน').click();
+    expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'mine');
   });
 
   it('dismisses with the chosen action', () => {

@@ -1,3 +1,4 @@
+import { InjectionToken } from '@angular/core';
 import { inThailand, PHOTO_MAX_BYTES, PHOTO_MAX_SIDE } from '@jaeng/shared/report';
 import { gps } from 'exifr/dist/lite.esm.mjs';
 import type { LngLat } from '../../core/device.service';
@@ -38,50 +39,75 @@ export type CompressDeps = {
   decode(file: File): Promise<{ width: number; height: number }>;
   /** draw the decoded image within maxSide and encode it; the browser may return another type than asked */
   encode(type: string, quality: number, maxSide: number): Promise<Blob>;
+  /** free the decoded image (a phone photo holds ~50 MB of pixels); called once, whatever happened */
+  dispose?(): void;
 };
 
 const MAX_SIDE_RETRY = 1200;
 
-export async function compressImage(file: File, deps: CompressDeps = browserDeps()): Promise<CompressedPhoto> {
-  const src = await deps.decode(file);
-  const encodeAt = async (quality: number, maxSide: number, jpegOnly: boolean): Promise<CompressedPhoto & { webp: boolean }> => {
-    const size = fitWithin(src.width, src.height, maxSide);
-    if (!jpegOnly) {
-      const blob = await deps.encode('image/webp', quality, maxSide);
-      if (blob.type === 'image/webp') return { blob, ...size, type: 'image/webp', webp: true };
-    }
-    // Safari answers a WebP request with PNG; JPEG compresses a little less well, so 0.82
-    const blob = await deps.encode('image/jpeg', jpegOnly && quality < 0.8 ? quality : 0.82, maxSide);
-    return { blob, ...size, type: 'image/jpeg', webp: false };
-  };
+/** The three tries, smallest last. JPEG starts a little higher than WebP because it compresses
+ *  less well at the same setting; the retries use 0.7 for both. */
+const TRIES = [
+  { webp: 0.8, jpeg: 0.82, maxSide: PHOTO_MAX_SIDE },
+  { webp: 0.7, jpeg: 0.7, maxSide: PHOTO_MAX_SIDE },
+  { webp: 0.7, jpeg: 0.7, maxSide: MAX_SIDE_RETRY },
+] as const;
 
-  let out = await encodeAt(0.8, PHOTO_MAX_SIDE, false);
-  const jpegOnly = !out.webp;
-  if (out.blob.size > PHOTO_MAX_BYTES) out = await encodeAt(0.7, PHOTO_MAX_SIDE, jpegOnly);
-  if (out.blob.size > PHOTO_MAX_BYTES) out = await encodeAt(0.7, MAX_SIDE_RETRY, jpegOnly);
-  if (out.blob.size > PHOTO_MAX_BYTES) throw new PhotoTooLargeError();
-  return { blob: out.blob, width: out.width, height: out.height, type: out.type };
+export async function compressImage(file: File, deps: CompressDeps = browserDeps()): Promise<CompressedPhoto> {
+  try {
+    const src = await deps.decode(file);
+    // Safari answers a WebP request with PNG: once that happens, every later try goes straight to JPEG
+    let webp = true;
+    let out: CompressedPhoto | undefined;
+    for (const t of TRIES) {
+      const size = fitWithin(src.width, src.height, t.maxSide);
+      out = undefined;
+      if (webp) {
+        const blob = await deps.encode('image/webp', t.webp, t.maxSide);
+        if (blob.type === 'image/webp') out = { blob, ...size, type: 'image/webp' };
+        else webp = false;
+      }
+      out ??= { blob: await deps.encode('image/jpeg', t.jpeg, t.maxSide), ...size, type: 'image/jpeg' };
+      if (out.blob.size <= PHOTO_MAX_BYTES) return out;
+    }
+    throw new PhotoTooLargeError();
+  } finally {
+    deps.dispose?.();
+  }
 }
 
 type Drawable = ImageBitmap | HTMLImageElement;
 
 /** Thin browser implementation: verified in a real browser (Task 11), not in jsdom. */
 function browserDeps(): CompressDeps {
-  let decoded: { file: File; bitmap: ImageBitmap } | undefined;
+  let bitmap: ImageBitmap | undefined;
   return {
     async decode(file) {
-      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-      decoded = { file, bitmap };
+      bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
       return { width: bitmap.width, height: bitmap.height };
     },
     async encode(type, quality, maxSide) {
-      const bitmap = decoded?.bitmap;
       if (!bitmap) throw new Error('decode first');
       const { width, height } = fitWithin(bitmap.width, bitmap.height, maxSide);
       return drawAndEncode(bitmap, width, height, type, quality);
     },
+    dispose() {
+      bitmap?.close();
+      bitmap = undefined;
+    },
   };
 }
+
+/** What the draft runs per photo; a token so tests can skip the canvas (jsdom has none). */
+export type PhotoPipeline = {
+  readGps(file: Blob): Promise<LngLat | null>;
+  compress(file: File): Promise<CompressedPhoto>;
+};
+
+export const PHOTO_PIPELINE = new InjectionToken<PhotoPipeline>('PHOTO_PIPELINE', {
+  providedIn: 'root',
+  factory: () => ({ readGps, compress: (file) => compressImage(file) }),
+});
 
 async function drawAndEncode(img: Drawable, width: number, height: number, type: string, quality: number): Promise<Blob> {
   if (typeof OffscreenCanvas !== 'undefined') {

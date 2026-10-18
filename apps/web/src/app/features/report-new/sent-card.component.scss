@@ -1,0 +1,45 @@
+@use 'flow';
+
+:host {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px 0 8px;
+  text-align: center;
+}
+
+.disc {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pri) 14%, var(--surf));
+  color: var(--pri);
+}
+
+h2 {
+  margin: 4px 0 0;
+  font: 600 24px/1.25 flow.$prompt;
+  text-wrap: balance;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.lede {
+  max-width: 34ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 12px;
+}

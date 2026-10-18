@@ -1,5 +1,14 @@
 import { UrlSegment } from '@angular/router';
-import { mapMatcher } from './app.routes';
+import { mapMatcher, routes } from './app.routes';
+import { signedInGuard } from './core/signed-in.guard';
+
+describe('routes', () => {
+  it('puts /report behind the signed-in guard', () => {
+    const report = routes.find((r) => r.path === 'report');
+    expect(report?.canActivate).toEqual([signedInGuard]);
+    expect(report?.loadComponent).toBeDefined();
+  });
+});
 
 const segs = (...paths: string[]) => paths.map((p) => new UrlSegment(p, {}));
 

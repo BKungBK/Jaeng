@@ -74,18 +74,21 @@ export class ReportDraftService {
   /** files past the four-photo limit were left out of the last pick */
   readonly overflowed = signal(false);
 
-  /** who the draft belongs to; undefined until the first look at the session */
-  private owner: string | null | undefined;
+  /** the last signed-in user the draft belongs to; null until someone has signed in */
+  private owner: string | null = null;
 
   constructor() {
     // The draft is one user's: their photos are uploaded under their id and only they may send them.
-    // Signing out or switching user drops it, so the next person never sees or sends someone else's
-    // photos. A token refresh keeps the same user id and keeps the draft.
+    // A different user signing in drops it, so nobody sees or sends someone else's photos. No session
+    // at all is "unknown", not a new owner: a failed token refresh signs out on its own, and the same
+    // person logging back in (the send's login retry) must find their draft. The deliberate
+    // "ออกจากระบบ" resets the draft itself.
     const auth = inject(AuthService);
     effect(() => {
       const id = auth.session()?.user.id ?? null;
+      if (id === null) return;
       untracked(() => {
-        if (this.owner !== undefined && id !== this.owner) this.reset();
+        if (this.owner !== null && id !== this.owner) this.reset();
         this.owner = id;
       });
     });

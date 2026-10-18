@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { IconComponent } from '../../shared/icon.component';
+import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
 type MenuRole = 'mine' | 'switch' | 'signout';
@@ -180,6 +181,7 @@ export class AccountButtonComponent {
   private prompt = inject(LoginPromptService);
   private popovers = inject(PopoverController);
   private router = inject(Router);
+  private draft = inject(ReportDraftService);
 
   protected readonly label = computed(() => {
     if (!this.auth.signedIn()) return 'เข้าสู่ระบบ';
@@ -209,6 +211,10 @@ export class AccountButtonComponent {
     const { role } = await popover.onDidDismiss();
     if (role === 'mine') await this.router.navigate(['/me']);
     else if (role === 'switch') await this.prompt.ask();
-    else if (role === 'signout') await this.auth.signOut();
+    else if (role === 'signout') {
+      // leaving on purpose: an unsent report draft goes too (a lapsed session keeps it, see ReportDraftService)
+      this.draft.reset();
+      await this.auth.signOut();
+    }
   }
 }

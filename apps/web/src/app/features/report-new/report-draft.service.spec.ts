@@ -276,12 +276,30 @@ describe('ReportDraftService', () => {
     for (const url of previews) expect(URL.revokeObjectURL).toHaveBeenCalledWith(url);
   });
 
-  it('drops the draft on sign-out', async () => {
+  // a failed token refresh signs out on its own (SIGNED_OUT); the same person logging back in must
+  // find their draft (the deliberate "ออกจากระบบ" resets it explicitly instead)
+  it('keeps the draft through a sign-out when the same user comes back', async () => {
     const s = setup();
     await ready(s);
     s.session.set(null);
     TestBed.tick();
+    expect(s.draft.photos()).toHaveLength(1);
+    s.session.set({ user: { id: 'user-a' } });
+    TestBed.tick();
+    expect(s.draft.photos()).toHaveLength(1);
+    expect(s.draft.category()).toBe('road');
+  });
+
+  it('drops the draft when a sign-out is followed by another user', async () => {
+    const s = setup();
+    await ready(s);
+    const [p] = s.draft.photos();
+    s.session.set(null);
+    TestBed.tick();
+    s.session.set({ user: { id: 'user-b' } });
+    TestBed.tick();
     expect(s.draft.photos()).toEqual([]);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(p.previewUrl);
   });
 
   it('keeps the draft when the same user’s session is refreshed', async () => {

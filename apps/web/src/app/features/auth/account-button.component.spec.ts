@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService, Profile } from '../../core/auth.service';
 import { AccountButtonComponent, AccountMenuComponent, initialOf } from './account-button.component';
+import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
 async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismissRole?: string } = {}) {
@@ -19,19 +20,21 @@ async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismi
   };
   const popovers = { create: vi.fn().mockResolvedValue(popover) };
   const router = { navigate: vi.fn().mockResolvedValue(true) };
+  const draft = { reset: vi.fn() };
   TestBed.configureTestingModule({
     providers: [
       { provide: AuthService, useValue: auth },
       { provide: LoginPromptService, useValue: prompt },
       { provide: PopoverController, useValue: popovers },
       { provide: Router, useValue: router },
+      { provide: ReportDraftService, useValue: draft },
     ],
   });
   const fixture = TestBed.createComponent(AccountButtonComponent);
   await fixture.whenStable();
   const root = fixture.nativeElement as HTMLElement;
   const button = root.querySelector<HTMLButtonElement>('button')!;
-  return { fixture, root, button, auth, prompt, popovers, popover, router };
+  return { fixture, root, button, auth, prompt, popovers, popover, router, draft };
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
@@ -121,6 +124,29 @@ describe('AccountButtonComponent', () => {
     button.click();
     await flush();
     expect(auth.signOut).toHaveBeenCalled();
+  });
+
+  it('throws away an unsent report draft on a deliberate sign-out', async () => {
+    const { button, auth, draft } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      dismissRole: 'signout',
+    });
+    button.click();
+    await flush();
+    expect(auth.signOut).toHaveBeenCalled();
+    expect(draft.reset).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the draft when the menu only switches user (the draft drops itself if the user changes)', async () => {
+    const { button, draft } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      dismissRole: 'switch',
+    });
+    button.click();
+    await flush();
+    expect(draft.reset).not.toHaveBeenCalled();
   });
 });
 

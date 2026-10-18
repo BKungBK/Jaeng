@@ -44,6 +44,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
   };
   const device = { currentPosition: vi.fn().mockResolvedValue(opts.position === undefined ? null : opts.position) };
   const prompt = { ask: vi.fn().mockResolvedValue(true) };
+  const session = signal<{ user: { id: string } } | null>({ user: { id: 'user-a' } });
   const back = { go: vi.fn().mockResolvedValue(undefined) };
   TestBed.configureTestingModule({
     providers: [
@@ -56,7 +57,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
       { provide: TagSuggestService, useValue: { suggest: vi.fn().mockResolvedValue([]) } },
       { provide: LoginPromptService, useValue: prompt },
       { provide: MapReturnService, useValue: back },
-      { provide: AuthService, useValue: { session: signal({ user: { id: 'user-a' } }) } },
+      { provide: AuthService, useValue: { session } },
     ],
   });
   const draft = TestBed.inject(ReportDraftService);
@@ -79,7 +80,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
     root.querySelectorAll<HTMLButtonElement>('button.cat')[CATEGORIES.findIndex((c) => c.slug === slug)].click();
     await settle();
   };
-  return { fixture, root, map, api, device, prompt, back, draft, settle, button, title, toStep3 };
+  return { fixture, root, map, api, device, prompt, back, draft, settle, button, title, toStep3, session };
 }
 
 describe('ReportNewPage', () => {
@@ -242,6 +243,32 @@ describe('ReportNewPage', () => {
     await settle();
     expect(prompt.ask).toHaveBeenCalled();
     expect(root.querySelector('h2')?.textContent?.trim()).toBe('ส่งแล้ว รอผู้ดูแลตรวจ');
+  });
+
+  it('sends the same draft after a failed refresh signed the user out and they log back in', async () => {
+    const { toStep3, button, root, settle, api, prompt, session, draft } = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    await toStep3();
+    draft.details.update((d) => ({ ...d, title: 'หลุมใหญ่' }));
+    let first = true;
+    api.post.mockImplementation(async (path: string) => {
+      if (first) {
+        first = false;
+        session.set(null); // Supabase: SIGNED_OUT after the refresh failed
+        TestBed.tick();
+        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+      }
+      if (path === '/reports/check-duplicate') return { duplicates: [] };
+      return { report: { id: 'new1' } };
+    });
+    prompt.ask.mockImplementation(async () => {
+      session.set({ user: { id: 'user-a' } }); // the same person logs back in
+      TestBed.tick();
+      return true;
+    });
+    button('ส่งเรื่อง')!.click();
+    await settle();
+    expect(root.querySelector('h2')?.textContent?.trim()).toBe('ส่งแล้ว รอผู้ดูแลตรวจ');
+    expect(api.post).toHaveBeenCalledWith('/reports', expect.objectContaining({ photo_ids: ['p1'], category: 'road', title: 'หลุมใหญ่' }));
   });
 
   it('closes back to the map from step 1 and steps back from step 2', async () => {

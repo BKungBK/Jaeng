@@ -223,10 +223,30 @@ function makePng(w, h, { noise = false, exif = false } = {}) {
   ihdr[8] = 8; // bit depth
   ihdr[9] = 2; // colour type: RGB
   const parts = [Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr)];
-  // Empty big-endian TIFF header with one IFD: the "metadata" a phone would add.
-  if (exif) parts.push(chunk('eXIf', Buffer.from([0x4d, 0x4d, 0, 0x2a, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0])));
+  // Metadata a phone would add, with literal markers so a leak into the output is detectable:
+  // an eXIf chunk (TIFF header, then "Exif\0\0" + marker standing in for a GPS tag) and a tEXt chunk.
+  if (exif) {
+    const tiff = Buffer.from([0x4d, 0x4d, 0, 0x2a, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0]);
+    parts.push(chunk('eXIf', Buffer.concat([tiff, Buffer.from(`Exif\0\0${META_MARKER}\0GPSLatitude=13.7563`)])));
+    parts.push(chunk('tEXt', Buffer.from(`Comment\0Exif\0\0${META_MARKER}`)));
+  }
   parts.push(chunk('IDAT', deflateSync(raw, { level: noise ? 0 : 6 })), chunk('IEND', Buffer.alloc(0)));
   return Buffer.concat(parts);
+}
+
+const META_MARKER = 'JAENG-GPS-MARKER';
+
+/** True when the bytes carry no metadata: no marker or "Exif" text, no EXIF/XMP/ICCP chunk, VP8X EXIF flag clear. */
+function hasNoMetadata(b) {
+  if (b.includes('Exif') || b.includes(META_MARKER)) return false;
+  if (b.length < 12 || b.toString('ascii', 0, 4) !== 'RIFF' || b.toString('ascii', 8, 12) !== 'WEBP') return false;
+  for (let off = 12; off + 8 <= b.length; ) {
+    const cc = b.toString('ascii', off, off + 4);
+    if (cc === 'EXIF' || cc === 'XMP ' || cc === 'ICCP') return false;
+    if (cc === 'VP8X' && (b[off + 8] & 0x08) !== 0) return false; // EXIF flag
+    off += 8 + b.readUInt32LE(off + 4) + (b.readUInt32LE(off + 4) & 1);
+  }
+  return true;
 }
 
 /** Width and height of a WebP file (lossy, lossless or extended). */
@@ -331,7 +351,9 @@ async function plan4() {
     // ------------------------------------------------------------------ Step 1: photos
     let firstPhoto = null;
     await section('photo upload', async () => {
-      const ok = await upload(token, makePng(2400, 1800, { exif: true }));
+      const input = makePng(2400, 1800, { exif: true });
+      check('photo: the metadata check fails on the raw input (it can detect a leak)', !hasNoMetadata(input) && input.includes(META_MARKER) && input.includes('Exif'));
+      const ok = await upload(token, input);
       firstPhoto = ok.json?.photo_id ? uuid(ok.json.photo_id) : null;
       check('photo: 2400x1800 PNG uploads as 201', ok.status === 201 && !!firstPhoto, JSON.stringify(ok));
       if (!firstPhoto) return;
@@ -340,10 +362,12 @@ async function plan4() {
       const full = await svcGet('photos-private', path);
       const size = webpSize(full.bytes);
       check(
-        'photo: stored file is image/webp, long side 1600, no Exif',
-        full.status === 200 && full.type === 'image/webp' && size?.w === 1600 && !full.bytes.includes('Exif'),
-        JSON.stringify([full.status, full.type, size, full.bytes.includes('Exif')]),
+        'photo: stored file is image/webp, long side 1600, no marker/Exif/EXIF chunk/VP8X EXIF flag',
+        full.status === 200 && full.type === 'image/webp' && size?.w === 1600 && hasNoMetadata(full.bytes),
+        JSON.stringify([full.status, full.type, size, hasNoMetadata(full.bytes)]),
       );
+      const anonPriv = await fetch(`${BASE}/sb/storage/v1/object/photos-private/${path}`, { headers: { apikey: anon, authorization: `Bearer ${anon}` } });
+      check('photo: anon cannot read the photos-private object', anonPriv.status !== 200, `status ${anonPriv.status}`);
       const thumb = await svcGet('photos-private', path.replace(/\.webp$/, '_thumb.webp'));
       check('photo: thumbnail is 400 wide', thumb.status === 200 && webpSize(thumb.bytes)?.w === 400, JSON.stringify([thumb.status, webpSize(thumb.bytes)]));
       const pub = await fetch(`${BASE}/sb/storage/v1/object/public/photos-public/${path}`);
@@ -395,7 +419,7 @@ async function plan4() {
       check('report: road is 201 pending_review', r.status === 201 && r.json?.report?.status === 'pending_review' && !!roadReport, JSON.stringify(r));
       if (!roadReport) return;
       const row = psql(
-        `select (public_location = location), (place_name is not distinct from public.area_name_at(
+        `select (public_location = location), (place_name is not null and place_name = public.area_name_at(
                  extensions.st_x(location::extensions.geometry), extensions.st_y(location::extensions.geometry)))
            from public.reports where id = '${roadReport}'`,
       );
@@ -429,7 +453,7 @@ async function plan4() {
       }
       const rows = ids.map((id) =>
         psql(
-          `select (extensions.st_distance(location, public_location) <= 150), (place_name is not distinct from public.area_name_at(
+          `select (extensions.st_distance(location, public_location) between 0.001 and 150), (place_name is not null and place_name = public.area_name_at(
                    extensions.st_x(public_location::extensions.geometry), extensions.st_y(public_location::extensions.geometry))),
                   profanity_flag
              from public.reports where id = '${id}'`,
@@ -438,11 +462,12 @@ async function plan4() {
       check('hazard: all 3 are within 150 m of the true point and place_name comes from the shifted point', rows.every((r) => r.startsWith('t|t|')), rows.join(' ; '));
       check('hazard: only the rude title is flagged (profanity_flag), and it was still accepted', rows[2] === 't|t|t' && rows[0].endsWith('|f') && rows[1].endsWith('|f'), rows.join(' ; '));
       const mine = await api('/me/reports', { token });
-      const text = JSON.stringify(mine.json);
+      const allowed = ['id', 'title', 'category', 'danger_level', 'status', 'reject_reason', 'place_name', 'confirm_count', 'comment_count', 'created_at', 'thumb_url'].sort().join();
+      const badKeys = (mine.json?.reports ?? []).map((r) => Object.keys(r).sort().join()).filter((k) => k !== allowed);
       check(
-        '/me/reports exposes no lng/lat or location',
-        mine.status === 200 && mine.json.reports.length >= 4 && mine.json.reports.every((r) => !('lng' in r) && !('lat' in r)) && !/location|"lng"|"lat"/.test(text),
-        text.slice(0, 300),
+        '/me/reports objects have exactly the allowed keys (no lng/lat/location)',
+        mine.status === 200 && Array.isArray(mine.json?.reports) && mine.json.reports.length >= 4 && badKeys.length === 0,
+        badKeys[0] ?? JSON.stringify(mine.json).slice(0, 300),
       );
     });
 
@@ -473,12 +498,13 @@ async function plan4() {
     await section('duplicates and merge', async () => {
       const dup = (body) => api('/reports/check-duplicate', { method: 'POST', token, body });
       const here = await dup({ lng: demo.lng, lat: demo.lat, category: 'road' });
-      check('duplicates: finds the open demo road report at its point', here.status === 200 && here.json.duplicates.some((d) => d.id === demo.id), JSON.stringify(here));
-      check('duplicates: does not return the pending_review report from step 2', !here.json?.duplicates?.some((d) => d.id === roadReport));
+      const ids = (r) => (r.status === 200 && Array.isArray(r.json?.duplicates) ? r.json.duplicates.map((d) => d.id) : null);
+      check('duplicates: finds the open demo road report at its point', ids(here)?.includes(demo.id) === true, JSON.stringify(here));
+      check('duplicates: does not return the pending_review report from step 2', ids(here) !== null && !ids(here).includes(roadReport));
       const moved = await dup({ lng: demo.lng, lat: demo.lat + 200 / 111320, category: 'road' });
-      check('duplicates: 200 m away finds nothing', moved.status === 200 && !moved.json.duplicates.some((d) => d.id === demo.id), JSON.stringify(moved));
+      check('duplicates: 200 m away finds nothing', ids(moved) !== null && !ids(moved).includes(demo.id), JSON.stringify(moved));
       const other = await dup({ lng: demo.lng, lat: demo.lat, category: 'waste' });
-      check('duplicates: another category finds nothing', other.status === 200 && !other.json.duplicates.some((d) => d.id === demo.id), JSON.stringify(other));
+      check('duplicates: another category finds nothing', ids(other) !== null && !ids(other).includes(demo.id), JSON.stringify(other));
       const zero = await dup({ lng: 0, lat: 0, category: 'road' });
       check('duplicates: (0,0) is 400 invalid_location', zero.status === 400 && zero.json?.error?.code === 'invalid_location', JSON.stringify(zero));
 
@@ -590,12 +616,33 @@ async function plan4() {
       }
       const mid = await bbox('โรง');
       check('search: middle of a tag/title (โรง) finds the hazard near the school', mid.some((f) => f.properties.category === 'hazard' && f.properties.title.includes('โรงเรียน')), mid.map((f) => f.properties.title).join(' | '));
+      // Tag-only match: a middle slice of a tag that the report's title does not contain.
+      const tagRow = psql(
+        `select r.id, substr(t.name, 2, 2) from public.reports r
+           join public.report_tags rt on rt.report_id = r.id join public.tags t on t.id = rt.tag_id
+          where r.status in ('open','fix_claimed') and char_length(t.name) >= 4
+            and position(substr(t.name, 2, 2) in lower(r.title)) = 0
+          order by r.id limit 1`,
+      );
+      const [tagReportId, tagSlice] = tagRow.split('|');
+      if (!tagReportId) {
+        check('search: a tag-only middle slice finds the report through its tag', false, 'no demo report with a tag that its title lacks');
+      } else {
+        const hits = await bbox(tagSlice);
+        const hit = hits.find((f) => f.properties.id === tagReportId);
+        check('search: a tag-only middle slice finds the report through its tag', !!hit && !hit.properties.title.toLowerCase().includes(tagSlice), `${tagSlice}: ${hits.length} hits`);
+      }
     });
   } finally {
     // Cleanup: files first (rows tell us the paths), then the user, whose delete cascades rows.
     try {
       const paths = psql(`select storage_path from public.report_photos where uploader_id = '${uid}'`).split('\n').filter(Boolean);
-      const withThumbs = paths.flatMap((p) => [p, p.replace(/\.webp$/, '_thumb.webp')]);
+      // Photos that merge promoted to photos-public (comment photos of this user), listed explicitly.
+      const commentPaths = psql(
+        `select ph.storage_path from public.comments cm join public.report_photos ph on ph.id = cm.photo_id where cm.author_id = '${uid}'`,
+      ).split('\n').filter(Boolean);
+      const withThumbs = [...new Set([...paths, ...commentPaths])].flatMap((p) => [p, p.replace(/\.webp$/, '_thumb.webp')]);
+      const promoted = commentPaths.flatMap((p) => [p, p.replace(/\.webp$/, '_thumb.webp')]);
       for (const bucket of ['photos-private', 'photos-public']) {
         let names = withThumbs;
         if (bucket === 'photos-private') {
@@ -619,6 +666,18 @@ async function plan4() {
         body: JSON.stringify({ prefix: uid, limit: 10 }),
       }).then((r) => r.json());
       check('cleanup: test user storage objects removed', Array.isArray(left) && left.length === 0, JSON.stringify(left));
+      const leftover = [];
+      for (const p of promoted) {
+        const slash = p.lastIndexOf('/');
+        const listed = await fetch(`${BASE}/sb/storage/v1/object/list/photos-public`, {
+          method: 'POST',
+          headers: { ...svcHeaders, 'content-type': 'application/json' },
+          body: JSON.stringify({ prefix: p.slice(0, slash), search: p.slice(slash + 1), limit: 10 }),
+        }).then((r) => r.json());
+        if (!Array.isArray(listed)) leftover.push(`list failed for ${p}`);
+        else if (listed.some((o) => o.name === p.slice(slash + 1))) leftover.push(p);
+      }
+      check(`cleanup: ${promoted.length} promoted photos removed from photos-public`, promoted.length > 0 && leftover.length === 0, JSON.stringify(leftover));
     } catch (e) {
       check('cleanup: test user storage objects removed', false, String(e));
     }

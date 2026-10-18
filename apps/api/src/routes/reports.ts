@@ -3,6 +3,7 @@ import { Elysia } from 'elysia';
 import { requireMember } from '../auth';
 import type { AppDeps } from '../app';
 import { ApiError } from '../errors';
+import { containsBadWord } from '../moderation/badwords';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -34,7 +35,8 @@ export function reportRoutes(deps: AppDeps) {
       const member = await requireMember(headers.authorization, deps.verify, deps.store);
       const id = parseId(params.id);
       const text = parseCommentBody(body);
-      const result = await deps.store.addComment(id, member.id, text);
+      if (containsBadWord(text)) throw new ApiError('profanity');
+      const result = await deps.store.addComment(id, member.id, text, deps.rateLimits.comments);
       announce(result.report);
       set.status = 201;
       return result;

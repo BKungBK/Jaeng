@@ -35,6 +35,7 @@ function setup(over: { store?: Partial<Store>; member?: Member | null } = {}) {
     verify: async () => 'user-1',
     quickLogin: { users: () => [], signIn: async () => { throw new Error('unused'); } },
     store,
+    rateLimits: { reports: 5, comments: 12, photos: 40 },
     broadcast: async (s) => {
       calls.broadcast.push(s);
     },
@@ -174,6 +175,50 @@ describe('POST /reports/:id/comments', () => {
     const res = await post(app, url, { body: 'hi' }, null);
     expect(res.status).toBe(401);
     expect(calls.add).toEqual([]);
+  });
+
+  test('profanity -> 422 profanity, store and broadcast untouched', async () => {
+    const { app, calls } = setup();
+    const res = await post(app, url, { body: 'ไอ้เหี้ยนี่' });
+    expect(res.status).toBe(422);
+    expect((await res.json()).error.code).toBe('profanity');
+    expect(calls.add).toEqual([]);
+    expect(calls.broadcast).toEqual([]);
+  });
+
+  test('English profanity -> 422', async () => {
+    const { app, calls } = setup();
+    const res = await post(app, url, { body: 'what the FUCK' });
+    expect(res.status).toBe(422);
+    expect(calls.add).toEqual([]);
+  });
+
+  test('store rate_limited -> 429 and no broadcast', async () => {
+    const { app, calls } = setup({
+      store: {
+        addComment: async () => {
+          throw new ApiError('rate_limited');
+        },
+      },
+    });
+    const res = await post(app, url, { body: 'hi' });
+    expect(res.status).toBe(429);
+    expect((await res.json()).error.code).toBe('rate_limited');
+    expect(calls.broadcast).toEqual([]);
+  });
+
+  test('passes rateLimits.comments as limit to the store', async () => {
+    let seen: number | undefined;
+    const { app } = setup({
+      store: {
+        addComment: async (_r, _u, _b, limit) => {
+          seen = limit;
+          return { comment, report };
+        },
+      },
+    });
+    expect((await post(app, url, { body: 'hi' })).status).toBe(201);
+    expect(seen).toBe(12);
   });
 
   test('generic store error -> 500 internal', async () => {

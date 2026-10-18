@@ -20,6 +20,7 @@ export type PublicComment = {
   author_name: string | null;
   by_reporter: boolean;
   created_at: string;
+  photo_path: string | null;
 };
 
 export type DemoWho = 'reporter' | 'neighbor1' | 'admin';
@@ -35,6 +36,14 @@ export type ErrorCode =
   | 'invalid_request'
   | 'not_found'
   | 'internal'
+  | 'rate_limited'
+  | 'profanity'
+  | 'invalid_photo'
+  | 'photo_too_large'
+  | 'invalid_photos'
+  | 'invalid_report'
+  | 'invalid_location'
+  | 'invalid_display_name'
   | 'network';
 
 /** The codes the API itself sends. */

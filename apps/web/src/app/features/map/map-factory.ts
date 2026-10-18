@@ -1,10 +1,11 @@
 import { InjectionToken } from '@angular/core';
+import { THAILAND_BBOX } from '@jaeng/shared/report';
 import type maplibregl from 'maplibre-gl';
 
 export const POSITRON_URL = 'https://tiles.openfreemap.org/styles/positron';
 
 /** Thailand's extent, used for the opening view. */
-export const THAILAND_BOUNDS: [number, number, number, number] = [97.3, 5.6, 105.7, 20.5];
+export const THAILAND_BOUNDS: [number, number, number, number] = [...THAILAND_BBOX];
 
 /** Where the camera centre may go: Thailand plus sea on every side (plan 2b: only Thailand shows).
  *  A centre clamp, not maxBounds: maxBounds keeps the whole viewport inside, which on a wide

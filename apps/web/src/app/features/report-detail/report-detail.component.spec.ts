@@ -45,6 +45,7 @@ function comment(over: Partial<PublicComment> = {}): PublicComment {
     author_name: 'น้องบี',
     by_reporter: false,
     created_at: '2026-10-14T08:00:00Z',
+    photo_path: null,
     ...over,
   };
 }

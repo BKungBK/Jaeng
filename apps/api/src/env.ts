@@ -3,7 +3,17 @@ const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KE
 export type Env = Record<(typeof REQUIRED)[number], string> & {
   quickLogin: boolean;
   demoPassword: string | null;
+  rateLimits: { reports: number; comments: number; photos: number };
 };
+
+function positiveInt(source: Record<string, string | undefined>, key: string, fallback: number): number {
+  const raw = source[key];
+  if (raw === undefined || raw === '') return fallback;
+  if (!/^[0-9]+$/.test(raw) || Number(raw) < 1 || !Number.isSafeInteger(Number(raw))) {
+    throw new Error(`${key} must be a positive integer, got "${raw}"`);
+  }
+  return Number(raw);
+}
 
 export function loadEnv(source: Record<string, string | undefined> = process.env): Env {
   const required = {} as Record<(typeof REQUIRED)[number], string>;
@@ -17,5 +27,10 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
   if (quickLogin && !demoPassword) {
     throw new Error('DEV_QUICK_LOGIN=true requires DEMO_PASSWORD');
   }
-  return { ...required, quickLogin, demoPassword };
+  const rateLimits = {
+    reports: positiveInt(source, 'RATE_LIMIT_REPORTS_PER_DAY', 5),
+    comments: positiveInt(source, 'RATE_LIMIT_COMMENTS_PER_DAY', 30),
+    photos: positiveInt(source, 'RATE_LIMIT_PHOTOS_PER_DAY', 40),
+  };
+  return { ...required, quickLogin, demoPassword, rateLimits };
 }

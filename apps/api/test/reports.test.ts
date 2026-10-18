@@ -3,6 +3,7 @@ import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
 import { createApp, type AppDeps } from '../src/app';
 import { ApiError } from '../src/errors';
+import type { PhotoStorage } from '../src/photos/storage';
 import type { Member, Store } from '../src/store';
 
 const ID = '7c1f1f4e-9b0e-4c55-8d0a-6f3d1f0b2a11';
@@ -20,8 +21,10 @@ const dupes: DuplicateCandidate[] = [
   { id: ID, title: 'ถนนพัง', category: 'road', status: 'open', danger_level: 2, confirm_count: 4, cover_photo_path: null },
 ];
 
-function setup(over: { store?: Partial<Store>; member?: Member | null } = {}) {
+function setup(over: { store?: Partial<Store>; member?: Member | null; promoteFails?: boolean } = {}) {
   const calls = {
+    merge: [] as unknown[][],
+    promote: [] as string[][],
     toggle: 0,
     add: [] as string[],
     broadcast: [] as ReportSignal[],
@@ -48,9 +51,23 @@ function setup(over: { store?: Partial<Store>; member?: Member | null } = {}) {
       calls.add.push(body);
       return { comment, report };
     },
+    mergeDuplicate: async (...args) => {
+      calls.merge.push(args);
+      return { confirmed: true, comment, report, moved: [{ from: 'u/p.webp', to: `${ID}/p.webp` }] };
+    },
     ...over.store,
+  } as Store;
+  const photos: PhotoStorage = {
+    put: async () => {},
+    remove: async () => {},
+    promote: async (from, to) => {
+      calls.promote.push([from, to]);
+      if (over.promoteFails) throw new Error('storage down');
+    },
+    signedUrl: async () => null,
   };
   const deps: AppDeps = {
+    photos,
     checkDb: async () => true,
     anonKey: 'k',
     verify: async () => 'user-1',
@@ -467,5 +484,85 @@ describe('POST /reports', () => {
   test('/reports/:id routes still work', async () => {
     const { app } = setup();
     expect((await post(app, `/reports/${ID}/confirm`)).status).toBe(200);
+  });
+});
+
+describe('POST /reports/:id/merge', () => {
+  const url = `/reports/${ID}/merge`;
+  const code = async (res: Response) => (await res.json()).error.code;
+
+  test('success -> 200, promotes each moved photo, broadcasts once', async () => {
+    const { app, calls } = setup();
+    const res = await post(app, url, { photo_ids: [P1, P2] });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ confirmed: true, comment, report });
+    expect(calls.merge).toEqual([[ID, 'user-1', [P1, P2], 12]]);
+    expect(calls.promote).toEqual([['u/p.webp', `${ID}/p.webp`]]);
+    expect(calls.broadcast).toEqual([report]);
+  });
+
+  test('promote failing twice is retried once and still answers 200', async () => {
+    const err = console.error;
+    console.error = () => {};
+    try {
+      const { app, calls } = setup({ promoteFails: true });
+      const res = await post(app, url, { photo_ids: [P1] });
+      expect(res.status).toBe(200);
+      expect(calls.promote.length).toBe(2);
+      expect(calls.broadcast).toEqual([report]);
+    } finally {
+      console.error = err;
+    }
+  });
+
+  test.each([
+    ['empty', []],
+    ['5 photos', [P1, P2, P3, P4, P5]],
+    ['not uuid', ['x']],
+  ])('%s -> 400 invalid_photos', async (_n, photo_ids) => {
+    const { app, calls } = setup();
+    const res = await post(app, url, { photo_ids });
+    expect(res.status).toBe(400);
+    expect(await code(res)).toBe('invalid_photos');
+    expect(calls.merge).toEqual([]);
+  });
+
+  test('non-uuid id -> 404 report_not_found', async () => {
+    const { app, calls } = setup();
+    const res = await post(app, '/reports/xyz/merge', { photo_ids: [P1] });
+    expect(res.status).toBe(404);
+    expect(await code(res)).toBe('report_not_found');
+    expect(calls.merge).toEqual([]);
+  });
+
+  test('report_resolved -> 409, no broadcast, no promote', async () => {
+    const { app, calls } = setup({
+      store: {
+        mergeDuplicate: async () => {
+          throw new ApiError('report_resolved');
+        },
+      },
+    });
+    const res = await post(app, url, { photo_ids: [P1] });
+    expect(res.status).toBe(409);
+    expect(calls.broadcast).toEqual([]);
+    expect(calls.promote).toEqual([]);
+  });
+
+  test('rate_limited -> 429', async () => {
+    const { app } = setup({
+      store: {
+        mergeDuplicate: async () => {
+          throw new ApiError('rate_limited');
+        },
+      },
+    });
+    expect((await post(app, url, { photo_ids: [P1] })).status).toBe(429);
+  });
+
+  test('no token -> 401', async () => {
+    const { app, calls } = setup();
+    expect((await post(app, url, { photo_ids: [P1] }, null)).status).toBe(401);
+    expect(calls.merge).toEqual([]);
   });
 });

@@ -1,6 +1,7 @@
 import type { ReportSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
 import { devRoutes } from './routes/dev';
+import { meRoutes } from './routes/me';
 import { photoRoutes } from './routes/photos';
 import { reportRoutes } from './routes/reports';
 import type { PhotoStorage } from './photos/storage';
@@ -47,5 +48,6 @@ export function createApp(deps: AppDeps) {
     }))
     .use(devRoutes(deps))
     .use(reportRoutes(deps))
+    .use(meRoutes(deps))
     .use(photoRoutes(deps));
 }

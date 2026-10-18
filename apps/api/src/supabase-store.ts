@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PublicComment } from '@jaeng/shared/api';
-import type { DuplicateCandidate } from '@jaeng/shared/report';
+import type { CategorySlug } from '@jaeng/shared/categories';
+import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
 import { ApiError, type ErrorCode } from './errors';
 import type { Store } from './store';
 
@@ -104,6 +105,93 @@ export function createSupabaseStore(client: SupabaseClient): Store {
         comment,
         report: { id: reportId, status: row.status, confirm_count: row.confirm_count, comment_count: row.comment_count },
       };
+    },
+
+    async mergeDuplicate(reportId, userId, photoIds, limit) {
+      const { data, error } = await client.rpc('merge_duplicate', {
+        p_target: reportId,
+        p_user: userId,
+        p_photo_ids: photoIds,
+        p_limit: limit,
+      });
+      if (error) rethrow(error);
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) throw new Error('merge_duplicate returned no row');
+      const { data: comment, error: readError } = await client
+        .from('public_comments')
+        .select('id, report_id, body, author_name, created_at, by_reporter, photo_path')
+        .eq('id', row.comment_id)
+        .single<PublicComment>();
+      if (readError) throw new Error(`comment read failed: ${readError.message}`);
+      return {
+        confirmed: row.confirmed,
+        comment,
+        report: { id: reportId, status: row.status, confirm_count: row.confirm_count, comment_count: row.comment_count },
+        moved: (row.moved ?? []) as { from: string; to: string }[],
+      };
+    },
+
+    async myReports(userId) {
+      type Row = {
+        id: string;
+        title: string;
+        danger_level: number;
+        status: MyReport['status'];
+        reject_reason: string | null;
+        place_name: string | null;
+        confirm_count: number;
+        comment_count: number;
+        created_at: string;
+        categories: { slug: CategorySlug } | { slug: CategorySlug }[] | null;
+        report_photos: { storage_path: string; kind: string; created_at: string }[];
+      };
+      // Explicit columns only: location and public_location are never selected.
+      const { data, error } = await client
+        .from('reports')
+        .select(
+          'id, title, danger_level, status, reject_reason, place_name, confirm_count, comment_count, created_at, categories(slug), report_photos(storage_path, kind, created_at)',
+        )
+        .eq('author_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100)
+        .returns<Row[]>();
+      if (error) throw new Error(`my reports failed: ${error.message}`);
+      return (data ?? []).map((r) => {
+        const cat = Array.isArray(r.categories) ? r.categories[0] : r.categories;
+        const cover = r.report_photos
+          .filter((p) => p.kind === 'before')
+          .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+        return {
+          id: r.id,
+          title: r.title,
+          category: cat!.slug,
+          danger_level: r.danger_level,
+          status: r.status,
+          reject_reason: r.reject_reason,
+          place_name: r.place_name,
+          confirm_count: r.confirm_count,
+          comment_count: r.comment_count,
+          created_at: r.created_at,
+          cover_path: cover?.storage_path ?? null,
+        };
+      });
+    },
+
+    async renameMember(userId, name) {
+      const { data, error } = await client
+        .from('profiles')
+        .update({ display_name: name })
+        .eq('id', userId)
+        .select('display_name')
+        .single();
+      if (error) throw new Error(`rename failed: ${error.message}`);
+      return data.display_name as string;
+    },
+
+    async deleteOrphanPhotos(olderThanHours) {
+      const { data, error } = await client.rpc('delete_orphan_photos', { p_older_than: `${olderThanHours} hours` });
+      if (error) throw new Error(`orphan sweep failed: ${error.message}`);
+      return ((data ?? []) as { id: string; storage_path: string }[]).map((r) => ({ id: r.id, path: r.storage_path }));
     },
   };
 }

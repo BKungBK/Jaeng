@@ -139,6 +139,27 @@ export function reportRoutes(deps: AppDeps) {
       announce(result.report);
       return result;
     })
+    .post('/reports/:id/merge', async ({ params, headers, body }) => {
+      const member = await requireMember(headers.authorization, deps.verify, deps.store);
+      const id = parseId(params.id);
+      const photoIds = parsePhotoIds(asObject(body));
+      const result = await deps.store.mergeDuplicate(id, member.id, photoIds, deps.rateLimits.comments);
+      // The database change is committed; a failed file move is retried once, then only logged
+      // (the row already points at the new path, so the file can be moved by hand later).
+      for (const { from, to } of result.moved) {
+        try {
+          await deps.photos.promote(from, to);
+        } catch {
+          try {
+            await deps.photos.promote(from, to);
+          } catch (e) {
+            console.error('photo promote failed', from, to, e);
+          }
+        }
+      }
+      announce(result.report);
+      return { confirmed: result.confirmed, comment: result.comment, report: result.report };
+    })
     .post('/reports/:id/comments', async ({ params, headers, body, set }) => {
       const member = await requireMember(headers.authorization, deps.verify, deps.store);
       const id = parseId(params.id);

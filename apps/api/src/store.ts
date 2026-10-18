@@ -1,6 +1,6 @@
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
-import type { DuplicateCandidate } from '@jaeng/shared/report';
+import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
 
 export type Member = { id: string; role: 'user' | 'admin'; banned: boolean };
 
@@ -34,4 +34,17 @@ export type Store = {
   }): Promise<{ id: string; status: 'pending_review' }>;
   /** `limit`: comments per user per 24 h, enforced by the database. */
   addComment(reportId: string, userId: string, body: string, limit?: number): Promise<{ comment: PublicComment; report: ReportSignal }>;
+  /** Confirm (never toggles off) plus a photo comment, atomically. `moved` lists the files to promote. */
+  mergeDuplicate(
+    reportId: string,
+    userId: string,
+    photoIds: string[],
+    limit: number,
+  ): Promise<{ confirmed: boolean; comment: PublicComment; report: ReportSignal; moved: { from: string; to: string }[] }>;
+  /** Own reports, newest first, at most 100. No coordinates. */
+  myReports(userId: string): Promise<(Omit<MyReport, 'thumb_url'> & { cover_path: string | null })[]>;
+  /** Returns the stored display_name. */
+  renameMember(userId: string, name: string): Promise<string>;
+  /** Deletes unattached photo rows older than the age and returns them (deleting is the claim). */
+  deleteOrphanPhotos(olderThanHours: number): Promise<{ id: string; path: string }[]>;
 };

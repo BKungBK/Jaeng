@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PublicComment } from '@jaeng/shared/api';
+import type { DuplicateCandidate } from '@jaeng/shared/report';
 import { ApiError, type ErrorCode } from './errors';
 import type { Store } from './store';
 
@@ -42,6 +43,33 @@ export function createSupabaseStore(client: SupabaseClient): Store {
     async deletePhoto(id) {
       const { error } = await client.from('report_photos').delete().eq('id', id).is('report_id', null);
       if (error) throw new Error(`photo delete failed: ${error.message}`);
+    },
+
+    async findDuplicates(lng, lat, category) {
+      const { data, error } = await client.rpc('find_duplicates', { p_lng: lng, p_lat: lat, p_category: category });
+      if (error) rethrow(error);
+      return (data ?? []) as DuplicateCandidate[];
+    },
+
+    async createReport(input) {
+      const { data, error } = await client.rpc('create_report', {
+        p_user: input.userId,
+        p_category: input.category,
+        p_lng: input.lng,
+        p_lat: input.lat,
+        p_photo_ids: input.photoIds,
+        p_title: input.title,
+        p_description: input.description,
+        p_danger: input.danger,
+        p_tags: input.tags,
+        p_hide_author: input.hideAuthor,
+        p_flagged: input.flagged,
+        p_limit: input.limit,
+      });
+      if (error) rethrow(error);
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) throw new Error('create_report returned no row');
+      return { id: row.id, status: 'pending_review' };
     },
 
     async toggleConfirmation(reportId, userId) {

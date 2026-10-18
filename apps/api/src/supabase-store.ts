@@ -26,6 +26,24 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       return { id: data.id, role: data.role, banned: data.banned_at != null };
     },
 
+    async registerPhoto(p, limit) {
+      const { error } = await client.rpc('register_photo', {
+        p_id: p.id,
+        p_uploader: p.uploaderId,
+        p_path: p.path,
+        p_width: p.width,
+        p_height: p.height,
+        p_blurred: p.blurred,
+        p_limit: limit,
+      });
+      if (error) rethrow(error);
+    },
+
+    async deletePhoto(id) {
+      const { error } = await client.from('report_photos').delete().eq('id', id).is('report_id', null);
+      if (error) throw new Error(`photo delete failed: ${error.message}`);
+    },
+
     async toggleConfirmation(reportId, userId) {
       const { data, error } = await client.rpc('toggle_confirmation', { p_report: reportId, p_user: userId });
       if (error) rethrow(error);

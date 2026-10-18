@@ -1,7 +1,9 @@
 import type { ReportSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
 import { devRoutes } from './routes/dev';
+import { photoRoutes } from './routes/photos';
 import { reportRoutes } from './routes/reports';
+import type { PhotoStorage } from './photos/storage';
 import type { QuickLogin } from './quick-login';
 import type { Verify } from './auth';
 import { ApiError, ERRORS, errorBody, type ErrorCode } from './errors';
@@ -14,6 +16,8 @@ export type AppDeps = {
   store: Store;
   broadcast: (signal: ReportSignal) => Promise<void>;
   quickLogin: QuickLogin;
+  photos: PhotoStorage;
+  rateLimits: { reports: number; comments: number; photos: number };
 };
 
 function reply(set: { status?: number | string }, code: ErrorCode) {
@@ -23,7 +27,8 @@ function reply(set: { status?: number | string }, code: ErrorCode) {
 
 // Routes are mounted without the /api prefix; Caddy strips it (handle_path /api/*).
 export function createApp(deps: AppDeps) {
-  return new Elysia()
+  // 4 MB: the 3 MB photo cap plus multipart overhead. Larger bodies are refused by the server.
+  return new Elysia({ serve: { maxRequestBodySize: 4 * 1024 * 1024 } })
     .onError(({ code, error, set }) => {
       if (error instanceof ApiError) return reply(set, error.code);
       if (code === 'VALIDATION' || code === 'PARSE') return reply(set, 'invalid_request');
@@ -41,5 +46,6 @@ export function createApp(deps: AppDeps) {
       quickLogin: deps.quickLogin.users(headers.host ?? null),
     }))
     .use(devRoutes(deps))
-    .use(reportRoutes(deps));
+    .use(reportRoutes(deps))
+    .use(photoRoutes(deps));
 }

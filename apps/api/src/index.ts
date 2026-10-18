@@ -5,6 +5,7 @@ import { createVerifier } from './auth';
 import { createBroadcaster } from './broadcast';
 import { loadEnv } from './env';
 import { createQuickLogin } from './quick-login';
+import { createSupabasePhotoStorage } from './photos/storage';
 import { createSupabaseStore } from './supabase-store';
 
 const env = loadEnv();
@@ -30,6 +31,8 @@ createApp({
   anonKey: env.SUPABASE_ANON_KEY,
   verify,
   store: createSupabaseStore(client),
+  photos: createSupabasePhotoStorage(client),
+  rateLimits: env.rateLimits,
   broadcast: createBroadcaster(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY),
   quickLogin: createQuickLogin({
     enabled: env.quickLogin,

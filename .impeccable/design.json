@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T12:00:00+07:00",
+  "generatedAt": "2026-10-18T12:00:00+07:00",
   "title": "Design System: แจ้ง",
   "extensions": {
     "colorMeta": {
@@ -86,6 +86,30 @@
       "css": ".ds-detail{position:relative;display:grid;gap:12px;width:380px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif}.ds-close{position:absolute;top:20px;right:20px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;cursor:pointer}.ds-close:hover{background:#FBF7F2}.ds-close:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-close svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.ds-thumb{height:180px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-t{font:600 22px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-meta{color:#6B6878;font-size:13px;line-height:1.5}.ds-meta svg{width:.85em;height:.85em;fill:currentColor;vertical-align:-.1em}.ds-metoo{min-height:44px;border:1px solid #3F6FA8;border-radius:14px;background:#fff;color:#3F6FA8;font:500 15px 'Prompt',sans-serif;cursor:pointer}.ds-metoo:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
     },
     {
+      "name": "Report Button",
+      "kind": "button",
+      "refersTo": "fab-report",
+      "description": "The floating \"แจ้ง\" pill, bottom-right on every screen size (12px from the right, 52px above the bottom on phones, 48px from the bottom from 820px).",
+      "html": "<button class=\"ds-fab\" aria-label=\"แจ้งเรื่องใหม่\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>แจ้ง</button>",
+      "css": ".ds-fab{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:116px;height:56px;border:0;border-radius:14px;background:#3F6FA8;color:#fff;font:600 17px 'Prompt','IBM Plex Sans Thai',sans-serif;box-shadow:0 8px 28px rgba(60,50,40,.18);cursor:pointer}.ds-fab:hover{background:#355f91}.ds-fab:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}"
+    },
+    {
+      "name": "Duplicate Row",
+      "kind": "card",
+      "refersTo": "report-card",
+      "description": "One candidate in the \"เรื่องนี้ใช่ไหม?\" card: a 72px tile, the title, a meta line with the level shape, and the me-too style \"ใช่\" button.",
+      "html": "<div class=\"ds-dup\" style=\"--c:#F4A582\"><div class=\"ds-dup-tile\"></div><div class=\"ds-dup-body\"><strong>หลุมลึกกลางถนน</strong><span class=\"ds-dup-meta\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 .6L11.4 6 6 11.4.6 6z\"/></svg> อันตราย · เปิดอยู่ · เจอเหมือนกัน 4</span><button class=\"ds-dup-yes\">ใช่ กดเจอเหมือนกันแทน</button></div></div>",
+      "css": ".ds-dup{display:flex;gap:12px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif;max-width:420px}.ds-dup-tile{flex:none;width:72px;height:72px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-dup-body{display:grid;gap:4px;min-width:0}.ds-dup-body strong{font:500 15px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-dup-meta{color:#6B6878;font-size:13px;line-height:1.5}.ds-dup-meta svg{width:.85em;height:.85em;fill:currentColor;vertical-align:-.1em}.ds-dup-yes{min-height:44px;border:1px solid #3F6FA8;border-radius:14px;background:#fff;color:#3F6FA8;font:500 15px 'Prompt',sans-serif;cursor:pointer}.ds-dup-yes:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    },
+    {
+      "name": "Report Row",
+      "kind": "card",
+      "refersTo": "report-row",
+      "description": "A row of the /me list: tile, title, a status line that is always an icon plus a word, and a muted meta line. Public reports are whole-card links.",
+      "html": "<div class=\"ds-row\" style=\"--c:#F4A582\"><div class=\"ds-row-tile\"></div><div class=\"ds-row-body\"><strong>หลุมลึกกลางถนน</strong><span class=\"ds-row-status\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg>รอผู้ดูแลตรวจ</span><span class=\"ds-row-meta\">อันตราย · เขตบางรัก · 2 ชั่วโมงก่อน</span></div></div>",
+      "css": ".ds-row{display:flex;gap:12px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif;max-width:420px}.ds-row-tile{flex:none;width:72px;height:72px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-row-body{display:grid;gap:4px;min-width:0}.ds-row-body strong{font:500 15px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-row-status{display:inline-flex;align-items:center;gap:6px;font-size:14px}.ds-row-status svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ds-row-meta{color:#6B6878;font-size:13px;line-height:1.5}"
+    },
+    {
       "name": "Beacon",
       "kind": "custom",
       "refersTo": "beacon-disc",
@@ -129,6 +153,7 @@
       "Do show an off filter chip as an outline (transparent, 1px Sand Line, Muted Ink, line-through), not as a faded chip.",
       "Do keep every target at least 44 × 44 px and give every beacon an aria-label of \"{title} ระดับ{level} {status}\".",
       "Do use Lucide SVG icons for pictograms so they look the same on every device; never emoji.",
+      "Do say a report's status in words with its own Lucide icon, and say only what is true about photos (\"รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ\").",
       "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution."
     ],
     "donts": [

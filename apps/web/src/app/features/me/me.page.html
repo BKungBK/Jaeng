@@ -24,7 +24,7 @@
           />
           <div class="count-row">
             <span class="caption" id="me-name-hint">{{ min }}–{{ max }} ตัวอักษร</span>
-            <span class="caption count">{{ name().length }}/{{ max }}</span>
+            <span class="caption count">{{ nameLength() }}/{{ max }}</span>
           </div>
           @if (nameError()) {
             <p class="error" id="me-name-error" role="alert">{{ nameError() }}</p>

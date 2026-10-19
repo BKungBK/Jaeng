@@ -64,9 +64,18 @@ export class MePage {
   protected readonly min = DISPLAY_NAME_MIN;
   protected readonly max = DISPLAY_NAME_MAX;
   protected readonly canSave = computed(() => {
-    const n = this.name().trim().length;
-    return !this.saving() && n >= DISPLAY_NAME_MIN && n <= DISPLAY_NAME_MAX && this.name().trim() !== this.auth.profile()?.display_name;
+    const trimmed = this.name().trim();
+    const n = [...trimmed].length;
+    return (
+      !this.saving() &&
+      n >= DISPLAY_NAME_MIN &&
+      n <= DISPLAY_NAME_MAX &&
+      !/[\p{Cc}\p{Cf}]/u.test(trimmed) &&
+      trimmed !== this.auth.profile()?.display_name
+    );
   });
+  /** the counter counts code points, like the API */
+  protected readonly nameLength = computed(() => [...this.name().trim()].length);
 
   /** Bumped on every load, so a slow answer for an earlier press of "ลองอีกครั้ง" is dropped. */
   private seq = 0;

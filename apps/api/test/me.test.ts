@@ -153,6 +153,9 @@ describe('PATCH /me', () => {
     ['31 chars', 'ก'.repeat(31)],
     ['not a string', 5],
     ['blank', '   '],
+    ['two zero-width spaces', '​​'],
+    ['newline inside', 'สม\nชาย'],
+    ['control character', 'สม\u0007ชาย'],
   ])('%s -> 400 invalid_display_name', async (_n, display_name) => {
     const { app, calls } = setup();
     const res = await patch(app, { display_name });

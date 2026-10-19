@@ -247,8 +247,47 @@ describe('ReportDraftService', () => {
     expect(err.messageTh).toBe('รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ');
     expect(s.api.post.mock.calls.filter(([p]) => p === '/reports')).toHaveLength(1);
     // the failed send is over: a later press tries again instead of hanging on the old promise
+    // (the photos were marked stale, so the reporter retries them first)
+    await s.draft.retry(s.draft.photos()[0].localId);
     await s.draft.submit().catch(() => undefined);
     expect(s.api.post.mock.calls.filter(([p]) => p === '/reports')).toHaveLength(2);
+  });
+
+  it('marks every photo as an error with a hint to add them again when the server says invalid_photos', async () => {
+    const s = setup();
+    await ready(s, [photoFile('a.jpg'), photoFile('b.jpg')]);
+    s.api.post.mockImplementation(async (path: string) => {
+      if (path === '/reports/check-duplicate') return { duplicates: [] };
+      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ');
+    });
+    await s.draft.submit().catch(() => undefined);
+    expect(s.draft.photos().map((p) => p.state)).toEqual(['error', 'error']);
+    expect(s.draft.photos()[0].errorTh).toContain('เพิ่มรูป');
+    expect(s.draft.canContinueFromPhotos()).toBe(false);
+    // retry uploads the kept copy again and the photo is usable
+    await s.draft.retry(s.draft.photos()[0].localId);
+    expect(s.draft.photos()[0].state).toBe('ready');
+  });
+
+  it('does the same when a merge answers invalid_photos', async () => {
+    const s = setup();
+    await ready(s);
+    s.api.post.mockRejectedValueOnce(new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ'));
+    await s.draft.merge('d1').catch(() => undefined);
+    expect(s.draft.photos()[0].state).toBe('error');
+  });
+
+  it('says the draft was cleared when the user changed and the retry finds nothing to send', async () => {
+    const s = setup();
+    await ready(s);
+    s.session.set({ user: { id: 'user-b' } });
+    TestBed.tick();
+    const err = await s.draft.submit().catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.messageTh).toBe('ร่างถูกล้างเพราะเปลี่ยนผู้ใช้ เริ่มใหม่ได้เลยนะ');
+    const merged = await s.draft.merge('d1').catch((e) => e);
+    expect(merged.messageTh).toBe('ร่างถูกล้างเพราะเปลี่ยนผู้ใช้ เริ่มใหม่ได้เลยนะ');
+    expect(s.api.post).not.toHaveBeenCalled();
   });
 
   it('revokes every preview URL on reset and starts empty', async () => {

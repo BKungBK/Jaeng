@@ -39,7 +39,10 @@ export type SubmitResult = { kind: 'created'; id: string } | { kind: 'duplicates
 
 const emptyDetails = (): DraftDetails => ({ title: '', description: '', danger: null, tags: [], hideAuthor: false });
 
-const messageOf = (e: unknown): string =>
+const MSG_DRAFT_CLEARED = 'ร่างถูกล้างเพราะเปลี่ยนผู้ใช้ เริ่มใหม่ได้เลยนะ';
+const MSG_PHOTOS_STALE = 'รูปนี้หมดอายุแล้ว กดลองใหม่หรือเอาออกแล้วเพิ่มรูปอีกครั้งนะ';
+
+const messageOf =(e: unknown): string =>
   e instanceof ApiError || e instanceof PhotoTooLargeError ? e.messageTh : 'เตรียมรูปนี้ไม่สำเร็จ ลองใหม่หรือเลือกรูปอื่นนะ';
 
 /**
@@ -178,6 +181,7 @@ export class ReportDraftService {
   /** "ใช่ กดเจอเหมือนกันแทน": count me in on that report; the API attaches the first photo as a comment. */
   merge(targetId: string): Promise<{ id: string }> {
     return this.once(async () => {
+      if (this._photos().length === 0) throw new ApiError(400, 'invalid_report', MSG_DRAFT_CLEARED);
       await this.api.post(`/reports/${encodeURIComponent(targetId)}/merge`, { photo_ids: this.readyIds() });
       return { id: targetId };
     });
@@ -200,7 +204,13 @@ export class ReportDraftService {
 
   private once<T>(run: () => Promise<T>): Promise<T> {
     if (this.sending) return this.sending as Promise<T>;
-    const p = run().finally(() => {
+    const p = run()
+      .catch((e: unknown) => {
+        // the server no longer knows these uploads (swept after 24 h, or used): none of them can be sent as they are
+        if (e instanceof ApiError && e.code === 'invalid_photos') this.markPhotosStale();
+        throw e;
+      })
+      .finally(() => {
       if (this.sending === p) this.sending = undefined;
     });
     this.sending = p;
@@ -213,6 +223,10 @@ export class ReportDraftService {
     return report.id;
   }
 
+  private markPhotosStale(): void {
+    this._photos.update((list) => list.map((p): DraftPhoto => ({ ...p, state: 'error', photoId: null, errorTh: MSG_PHOTOS_STALE })));
+  }
+
   private readyIds(): string[] {
     return this._photos().flatMap((p) => (p.state === 'ready' && p.photoId ? [p.photoId] : []));
   }
@@ -221,6 +235,7 @@ export class ReportDraftService {
     const category = this._category();
     const location = this._location();
     const photoIds = this.readyIds();
+    if (this._photos().length === 0) throw new ApiError(400, 'invalid_report', MSG_DRAFT_CLEARED);
     if (!category || !location || photoIds.length === 0) throw new ApiError(400, 'invalid_report', MSG_INTERNAL_TH);
     const d = this.details();
     const body: NewReportBody = { category, lng: location.lng, lat: location.lat, photo_ids: photoIds };

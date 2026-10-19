@@ -49,10 +49,11 @@ async function setup(candidates = [WITH_PHOTO, WITHOUT_PHOTO]) {
 }
 
 describe('DuplicateCardComponent', () => {
-  it('asks "เรื่องนี้ใช่ไหม?" and says only the first photo is attached', async () => {
+  it('asks "เรื่องนี้ใช่ไหม?" and says the first photo appears at once, without review', async () => {
     const { root } = await setup();
     expect(root.querySelector('h2')?.textContent?.trim()).toBe('เรื่องนี้ใช่ไหม?');
-    expect(root.textContent).toContain('รูปแรกของคุณจะถูกแนบเป็นความคิดเห็น');
+    expect(root.textContent).toContain('รูปแรกของคุณจะขึ้นเป็นความคิดเห็นในเรื่องนั้นทันที โดยผู้ดูแลยังไม่ได้ตรวจก่อน');
+    expect(root.textContent).toContain('รูปอื่นไม่ถูกใช้');
   });
 
   it('shows each report with its photo or category icon, title and level as shape and word', async () => {

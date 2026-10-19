@@ -239,6 +239,30 @@ describe('MePage', () => {
       expect(save().disabled).toBe(false);
     });
 
+    it('keeps save disabled for invisible or control characters, and counts code points', async () => {
+      const { button, type, settle, root } = await setup({ name: 'พี่ปลา' });
+      button('แก้ชื่อ')!.click();
+      await settle();
+      const save = () => button('บันทึก')!;
+      type('​​');
+      await settle();
+      expect(save().disabled).toBe(true);
+      type('สม\u0007ชาย'); // an <input> drops newlines itself; other control characters get through
+      await settle();
+      expect(save().disabled).toBe(true);
+      const face = String.fromCodePoint(0x1f600);
+      type(face.repeat(2));
+      await settle();
+      expect(save().disabled).toBe(false); // 2 code points, 4 UTF-16 units
+      expect(root.textContent).toContain('2/30');
+      type(face.repeat(30));
+      await settle();
+      expect(save().disabled).toBe(false);
+      type(face.repeat(31));
+      await settle();
+      expect(save().disabled).toBe(true);
+    });
+
     it('saves a valid new name, trimmed, and updates the profile', async () => {
       const { button, type, settle, svc, auth, profile, root } = await setup({ name: 'พี่ปลา' });
       svc.rename.mockResolvedValue('น้องบี');

@@ -54,6 +54,8 @@ export function meRoutes(deps: AppDeps) {
       const name = raw.trim();
       const len = [...name].length;
       if (len < DISPLAY_NAME_MIN || len > DISPLAY_NAME_MAX) throw new ApiError('invalid_display_name');
+      // control and invisible format characters (newlines, zero-width spaces) make a blank-looking name
+      if (/[\p{Cc}\p{Cf}]/u.test(name)) throw new ApiError('invalid_display_name');
       if (containsBadWord(name)) throw new ApiError('profanity');
       return { display_name: await deps.store.renameMember(member.id, name) };
     });

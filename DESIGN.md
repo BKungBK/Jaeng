@@ -361,3 +361,4 @@ MapLibre's strip on the surface at 88%, Muted Ink text and links, Trust Blue foc
 - **Don't** type level shapes as characters (● ▲ ◆ ⚠); draw them from the SVG set.
 - **Don't** move a map name away from its town to make it fit; hide it.
 - **Don't** claim photos are blurred until blurring exists.
+- **Do** say plainly that the first photo of a duplicate merge shows as a comment at once, with no reviewer check; **Don't** promise review for it (the "after the reviewer checks" caption is for new reports only).

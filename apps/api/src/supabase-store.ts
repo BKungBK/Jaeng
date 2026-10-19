@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { PublicComment } from '@jaeng/shared/api';
+import type { ModerationEffect } from '@jaeng/shared/admin';
+import type { LiveSignal, PublicComment } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
 import { ApiError, type ErrorCode } from './errors';
@@ -12,11 +13,52 @@ const SQL_CODES = new Set<ErrorCode>([
   'rate_limited',
   'invalid_photos',
   'invalid_report',
+  'invalid_state',
+  'item_not_found',
+  'claim_pending',
+  'already_resolved',
+  'cannot_ban_admin',
+  'invalid_note',
+  'invalid_location',
+  'invalid_request',
 ]);
 
 function rethrow(error: { message: string }): never {
   if (SQL_CODES.has(error.message as ErrorCode)) throw new ApiError(error.message as ErrorCode);
   throw new Error(`rpc failed: ${error.message}`);
+}
+
+const LIVE_STATUSES = new Set(['open', 'fix_claimed', 'resolved', 'hidden']);
+
+function isCount(v: unknown): v is number {
+  return typeof v === 'number' && Number.isInteger(v) && v >= 0;
+}
+
+/** Checks the jsonb a moderation function returned instead of trusting a cast. */
+export function toEffect(raw: unknown): ModerationEffect {
+  const bad = (why: string): never => {
+    throw new Error(`moderation effect: ${why}`);
+  };
+  if (typeof raw !== 'object' || raw === null) bad('not an object');
+  const o = raw as Record<string, unknown>;
+  let report: LiveSignal | null = null;
+  if (o.report !== null) {
+    const r = o.report as Record<string, unknown> | undefined;
+    if (
+      typeof r !== 'object' || r === null || typeof r.id !== 'string' || !LIVE_STATUSES.has(r.status as string) ||
+      !isCount(r.confirm_count) || !isCount(r.comment_count)
+    ) {
+      bad('bad report');
+    }
+    report = { id: r!.id as string, status: r!.status as LiveSignal['status'], confirm_count: r!.confirm_count as number, comment_count: r!.comment_count as number };
+  }
+  if (!Array.isArray(o.promote) || !o.promote.every((p) => typeof p?.from === 'string' && typeof p?.to === 'string')) bad('bad promote');
+  if (!Array.isArray(o.demote) || !o.demote.every((p) => typeof p === 'string')) bad('bad demote');
+  return {
+    report,
+    promote: (o.promote as { from: string; to: string }[]).map(({ from, to }) => ({ from, to })),
+    demote: [...(o.demote as string[])],
+  };
 }
 
 export function createSupabaseStore(client: SupabaseClient): Store {
@@ -192,6 +234,35 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       const { data, error } = await client.rpc('delete_orphan_photos', { p_older_than: `${olderThanHours} hours` });
       if (error) throw new Error(`orphan sweep failed: ${error.message}`);
       return ((data ?? []) as { id: string; storage_path: string }[]).map((r) => ({ id: r.id, path: r.storage_path }));
+    },
+
+    async createFixClaim(i) {
+      const { data, error } = await client.rpc('create_fix_claim', {
+        p_user: i.userId,
+        p_report: i.reportId,
+        p_note: i.note,
+        p_photo: i.photoId,
+        p_limit: i.limit,
+      });
+      if (error) rethrow(error);
+      const claimId = (data as { claim_id?: unknown } | null)?.claim_id;
+      if (typeof claimId !== 'string') throw new Error('create_fix_claim returned no claim_id');
+      return { claimId, effect: toEffect(data) };
+    },
+
+    async createFlag(i) {
+      const { data, error } = await client.rpc('create_flag', {
+        p_user: i.userId,
+        p_target_type: i.targetType,
+        p_target_id: i.targetId,
+        p_reason: i.reason,
+        p_note: i.note,
+        p_limit: i.limit,
+      });
+      if (error) rethrow(error);
+      const row = data as { flag_id?: unknown; hidden?: unknown } | null;
+      if (typeof row?.flag_id !== 'string' || typeof row.hidden !== 'boolean') throw new Error('create_flag returned a bad row');
+      return { flagId: row.flag_id, hidden: row.hidden, effect: toEffect(data) };
     },
   };
 }

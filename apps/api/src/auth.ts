@@ -48,3 +48,14 @@ export async function requireMember(
   if (member.banned) throw new ApiError('banned');
   return member;
 }
+
+/** requireMember, then the admin role. Checked on every request: a demoted admin loses access at once. */
+export async function requireAdmin(
+  authorization: string | undefined,
+  verify: Verify,
+  store: Pick<Store, 'member'>,
+): Promise<Member> {
+  const member = await requireMember(authorization, verify, store);
+  if (member.role !== 'admin') throw new ApiError('forbidden');
+  return member;
+}

@@ -14,7 +14,7 @@ import type { AppDeps } from '../app';
 import { ApiError } from '../errors';
 import { containsBadWord } from '../moderation/badwords';
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parseId(id: string): string {
   if (!UUID.test(id)) throw new ApiError('report_not_found');
@@ -29,9 +29,9 @@ function parseCommentBody(body: unknown): string {
   return text;
 }
 
-type Raw = Record<string, unknown>;
+export type Raw = Record<string, unknown>;
 
-function asObject(body: unknown): Raw {
+export function asObject(body: unknown): Raw {
   return typeof body === 'object' && body !== null && !Array.isArray(body) ? (body as Raw) : {};
 }
 

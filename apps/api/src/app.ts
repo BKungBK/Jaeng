@@ -1,8 +1,9 @@
-import type { ReportSignal } from '@jaeng/shared/api';
+import type { LiveSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
 import type { Env } from './env';
 import { devRoutes } from './routes/dev';
 import { meRoutes } from './routes/me';
+import { moderationRoutes } from './routes/moderation';
 import { photoRoutes } from './routes/photos';
 import { reportRoutes } from './routes/reports';
 import type { PhotoStorage } from './photos/storage';
@@ -16,7 +17,7 @@ export type AppDeps = {
   anonKey: string;
   verify: Verify;
   store: Store;
-  broadcast: (signal: ReportSignal) => Promise<void>;
+  broadcast: (signal: LiveSignal) => Promise<void>;
   quickLogin: QuickLogin;
   photos: PhotoStorage;
   rateLimits: Env['rateLimits'];
@@ -50,5 +51,6 @@ export function createApp(deps: AppDeps) {
     .use(devRoutes(deps))
     .use(reportRoutes(deps))
     .use(meRoutes(deps))
-    .use(photoRoutes(deps));
+    .use(photoRoutes(deps))
+    .use(moderationRoutes(deps));
 }

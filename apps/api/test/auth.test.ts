@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { SignJWT, createLocalJWKSet, errors, exportJWK, generateKeyPair } from 'jose';
-import { createVerifier, requireMember } from '../src/auth';
+import { createVerifier, requireAdmin, requireMember } from '../src/auth';
 import { ApiError } from '../src/errors';
 import type { Member } from '../src/store';
 
@@ -120,5 +120,24 @@ describe('requireMember', () => {
       throw new ApiError('unauthorized');
     };
     await rejects(requireMember('Bearer abc', bad, store(null)), 'unauthorized');
+  });
+});
+
+describe('requireAdmin', () => {
+  const store = (member: Member | null) => ({ member: async () => member });
+  const okVerify = async () => 'user-1';
+
+  test('returns an admin', async () => {
+    const m: Member = { id: 'user-1', role: 'admin', banned: false };
+    expect(await requireAdmin('Bearer abc', okVerify, store(m))).toEqual(m);
+  });
+  test('a member who is not an admin is forbidden', async () => {
+    await rejects(requireAdmin('Bearer abc', okVerify, store({ id: 'user-1', role: 'user', banned: false })), 'forbidden');
+  });
+  test('a banned admin is banned', async () => {
+    await rejects(requireAdmin('Bearer abc', okVerify, store({ id: 'user-1', role: 'admin', banned: true })), 'banned');
+  });
+  test('no token is unauthorized', async () => {
+    await rejects(requireAdmin(undefined, okVerify, store({ id: 'user-1', role: 'admin', banned: false })), 'unauthorized');
   });
 });

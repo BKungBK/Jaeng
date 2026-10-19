@@ -8,6 +8,8 @@ export type PhotoStorage = {
   remove(bucket: Bucket, paths: string[]): Promise<void>;
   /** private -> public: the file and its thumbPath(). */
   promote(from: string, to: string): Promise<void>;
+  /** public -> private at the same path: the file and its thumbPath(). */
+  demote(path: string): Promise<void>;
   signedUrl(path: string, expiresInSec: number): Promise<string | null>;
 };
 
@@ -34,6 +36,13 @@ export function createSupabasePhotoStorage(client: SupabaseClient): PhotoStorage
         [thumbPath(from), thumbPath(to)],
       ]) {
         const { error } = await client.storage.from('photos-private').move(src, dst, { destinationBucket: 'photos-public' });
+        check('move', error);
+      }
+    },
+
+    async demote(path) {
+      for (const p of [path, thumbPath(path)]) {
+        const { error } = await client.storage.from('photos-public').move(p, p, { destinationBucket: 'photos-private' });
         check('move', error);
       }
     },

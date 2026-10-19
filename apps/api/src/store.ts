@@ -1,3 +1,4 @@
+import type { FlagReason, FlagTarget, ModerationEffect } from '@jaeng/shared/admin';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
@@ -47,4 +48,21 @@ export type Store = {
   renameMember(userId: string, name: string): Promise<string>;
   /** Deletes unattached photo rows older than the age and returns them (deleting is the claim). */
   deleteOrphanPhotos(olderThanHours: number): Promise<{ id: string; path: string }[]>;
+  /** "It's fixed": the report waits for an admin; the photo stays private until approved. */
+  createFixClaim(i: {
+    reportId: string;
+    userId: string;
+    note: string | null;
+    photoId: string | null;
+    limit: number;
+  }): Promise<{ claimId: string; effect: ModerationEffect }>;
+  /** One open flag per member and target; the third distinct member hides the target. */
+  createFlag(i: {
+    userId: string;
+    targetType: FlagTarget;
+    targetId: string;
+    reason: FlagReason;
+    note: string | null;
+    limit: number;
+  }): Promise<{ flagId: string; hidden: boolean; effect: ModerationEffect }>;
 };

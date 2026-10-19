@@ -1,5 +1,6 @@
 import type { ReportSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
+import type { Env } from './env';
 import { devRoutes } from './routes/dev';
 import { meRoutes } from './routes/me';
 import { photoRoutes } from './routes/photos';
@@ -18,7 +19,7 @@ export type AppDeps = {
   broadcast: (signal: ReportSignal) => Promise<void>;
   quickLogin: QuickLogin;
   photos: PhotoStorage;
-  rateLimits: { reports: number; comments: number; photos: number };
+  rateLimits: Env['rateLimits'];
 };
 
 function reply(set: { status?: number | string }, code: ErrorCode) {

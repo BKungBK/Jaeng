@@ -73,7 +73,7 @@ function setup(over: { store?: Partial<Store>; member?: Member | null; promoteFa
     verify: async () => 'user-1',
     quickLogin: { users: () => [], signIn: async () => { throw new Error('unused'); } },
     store,
-    rateLimits: { reports: 5, comments: 12, photos: 40 },
+    rateLimits: { reports: 5, comments: 12, photos: 40, fixClaims: 10, flags: 20 },
     broadcast: async (s) => {
       calls.broadcast.push(s);
     },

@@ -18,6 +18,13 @@ export const ERRORS = {
   invalid_report: { status: 400, th: 'ข้อมูลเรื่องที่แจ้งไม่ถูกต้อง', en: 'The report details are invalid.' },
   invalid_location: { status: 400, th: 'ตำแหน่งต้องอยู่ในประเทศไทย', en: 'The location must be in Thailand.' },
   invalid_display_name: { status: 400, th: 'ชื่อที่แสดงต้องยาว 2–30 ตัวอักษร', en: 'The display name must be 2–30 characters.' },
+  forbidden: { status: 403, th: 'หน้านี้สำหรับผู้ดูแลเท่านั้น', en: 'This page is for moderators only.' },
+  invalid_state: { status: 409, th: 'รายการนี้ถูกจัดการไปแล้ว ลองโหลดใหม่นะ', en: 'This item was already handled. Please reload.' },
+  item_not_found: { status: 404, th: 'ไม่พบรายการนี้ อาจถูกจัดการไปแล้ว', en: 'Item not found. It may have been handled already.' },
+  claim_pending: { status: 409, th: 'มีคนแจ้งว่าแก้แล้ว กำลังรอผู้ดูแลตรวจอยู่นะ', en: 'Someone already reported this fixed; a moderator is checking.' },
+  already_resolved: { status: 409, th: 'เรื่องนี้แก้แล้ว ขอบคุณที่ช่วยดูนะ', en: 'This report is already resolved. Thanks for checking.' },
+  cannot_ban_admin: { status: 409, th: 'แบนบัญชีผู้ดูแลไม่ได้', en: 'Moderator accounts cannot be banned.' },
+  invalid_note: { status: 400, th: 'ข้อความยาวได้ไม่เกิน 500 ตัวอักษร', en: 'The note can be at most 500 characters.' },
   internal: { status: 500, th: MSG_INTERNAL_TH, en: 'Something went wrong. Please try again.' },
 } as const satisfies Record<ServerErrorCode, Entry>;
 

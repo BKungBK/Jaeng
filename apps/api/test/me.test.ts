@@ -53,7 +53,7 @@ function setup(over: { store?: Partial<Store>; storage?: Partial<PhotoStorage>; 
     store,
     broadcast: async () => {},
     photos,
-    rateLimits: { reports: 5, comments: 12, photos: 40 },
+    rateLimits: { reports: 5, comments: 12, photos: 40, fixClaims: 10, flags: 20 },
   };
   return { app: createApp(deps), calls };
 }

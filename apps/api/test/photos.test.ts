@@ -47,7 +47,7 @@ function setup(over: Over = {}) {
     store,
     broadcast: async () => {},
     photos,
-    rateLimits: { reports: 5, comments: 30, photos: 7 },
+    rateLimits: { reports: 5, comments: 30, photos: 7, fixClaims: 10, flags: 20 },
   };
   return { app: createApp(deps), calls };
 }

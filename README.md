@@ -32,7 +32,7 @@ Angular + Ionic + Capacitor (APK สำหรับ Android) · Elysia (Bun) · 
 bash scripts/dev-up.sh
 ```
 
-แอปอยู่ที่ http://localhost:8000 · Supabase Studio อยู่ที่ http://localhost:54323 · Mailpit (อีเมล OTP) อยู่ที่ http://localhost:54324
+แอปอยู่ที่ http://localhost:8000 · Mailpit (อีเมล OTP) อยู่ที่ http://localhost:54324 · Supabase Studio ปิดไว้เพื่อประหยัดแรม (เปิดได้ที่ `[studio] enabled` ใน `supabase/config.toml` แล้วจะอยู่ที่ http://localhost:54323)
 
 ```bash
 bash scripts/dev-down.sh
@@ -51,6 +51,8 @@ bash scripts/test.sh
 ```
 
 บัญชีเดโม: `admin@jaeng.local` (แอดมิน), `reporter@jaeng.local` และ `neighbor1@jaeng.local` ถึง `neighbor40@jaeng.local` ทุกบัญชีใช้รหัสผ่าน `DEMO_PASSWORD` ใน `.env`
+
+หน้าผู้ดูแลอยู่ที่ http://localhost:8000/admin (ล็อกอินเป็นแอดมินแล้วเข้าจากเมนูบัญชี "หน้าผู้ดูแล") ข้อมูลเดโมมีเรื่องรอตรวจ 2 เรื่อง และคำขอแจ้งว่าแก้แล้ว 4 รายการ · โควตาต่อ 24 ชั่วโมงตั้งได้ใน `.env` (`RATE_LIMIT_REPORTS_PER_DAY`, `RATE_LIMIT_COMMENTS_PER_DAY`, `RATE_LIMIT_PHOTOS_PER_DAY`, `RATE_LIMIT_FIX_CLAIMS_PER_DAY`, `RATE_LIMIT_FLAGS_PER_DAY`)
 
 รายละเอียดเพิ่มเติมดูที่หัวข้อ 8 ของเอกสารออกแบบ
 

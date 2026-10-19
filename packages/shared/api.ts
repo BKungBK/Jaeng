@@ -12,6 +12,11 @@ export type ReportSignal = {
   comment_count: number;
 };
 
+/** A public status, or 'hidden' for a report that just left the public map (broadcast only). */
+export type LiveStatus = PublicStatus | 'hidden';
+/** Broadcast payload: a ReportSignal, or a report that just left the public map. */
+export type LiveSignal = Omit<ReportSignal, 'status'> & { status: LiveStatus };
+
 export type PublicComment = {
   id: string;
   report_id: string;
@@ -44,6 +49,13 @@ export type ErrorCode =
   | 'invalid_report'
   | 'invalid_location'
   | 'invalid_display_name'
+  | 'forbidden'
+  | 'invalid_state'
+  | 'item_not_found'
+  | 'claim_pending'
+  | 'already_resolved'
+  | 'cannot_ban_admin'
+  | 'invalid_note'
   | 'network';
 
 /** The codes the API itself sends. */

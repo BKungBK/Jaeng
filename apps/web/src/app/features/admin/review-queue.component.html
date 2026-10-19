@@ -1,0 +1,215 @@
+<p class="status" role="status">{{ message() }}</p>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="caption">กำลังโหลด…</p>
+    <div class="ghost"></div>
+  }
+  @case ('error') {
+    <p class="caption">โหลดคิวไม่สำเร็จ ลองอีกครั้งนะ</p>
+    <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+  }
+  @case ('ready') {
+    @if (current(); as r) {
+      <div class="counter">
+        <button type="button" class="ctl" aria-label="เรื่องก่อนหน้า" [disabled]="items().length < 2 || busy()" (click)="step(-1)">
+          <app-icon name="chevronLeft" [size]="22" />
+        </button>
+        <span>เรื่องที่ {{ index() + 1 }} จาก {{ items().length }}</span>
+        <button type="button" class="ctl" aria-label="เรื่องถัดไป" [disabled]="items().length < 2 || busy()" (click)="step(1)">
+          <app-icon name="chevronRight" [size]="22" />
+        </button>
+      </div>
+
+      <article class="review" [style.--c]="level(r.danger_level).color">
+        @if (r.photos.length) {
+          <ul class="strip" [class.single]="r.photos.length === 1" aria-label="รูปของเรื่องนี้">
+            @for (p of r.photos; track p.path; let i = $index) {
+              <li class="shot">
+                @if (p.url) {
+                  <img [src]="p.url" [attr.alt]="'รูปที่ ' + (i + 1)" [attr.width]="p.width" [attr.height]="p.height" />
+                } @else {
+                  <span class="tile"><app-icon [name]="icon(r.category)" [size]="40" /></span>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="tile big"><app-icon [name]="icon(r.category)" [size]="48" /></div>
+        }
+
+        <h2>{{ r.title }}</h2>
+        <ul class="tags">
+          <li class="tag lvl"><app-level-shape [level]="level(r.danger_level).level" />ระดับ{{ level(r.danger_level).nameTh }}</li>
+          <li class="tag"><app-icon [name]="icon(r.category)" [size]="16" />{{ categoryName(r.category) }}</li>
+          @if (r.hide_author) {
+            <li class="tag"><app-icon name="eyeOff" [size]="16" />ขอปิดชื่อ</li>
+          }
+          @if (r.profanity_flag) {
+            <li class="tag"><app-icon name="triangleAlert" [size]="16" />มีคำที่อาจไม่เหมาะสม</li>
+          }
+          @if (r.author.banned) {
+            <li class="tag"><app-icon name="ban" [size]="16" />ถูกแบน</li>
+          }
+        </ul>
+
+        <div class="cols">
+          <div class="facts">
+            @if (r.description) {
+              <p class="desc">{{ r.description }}</p>
+            }
+            @if (r.tags.length) {
+              <p class="utags">
+                @for (t of r.tags; track t) {
+                  <span>#{{ t }}</span>
+                }
+              </p>
+            }
+            <p class="meta">
+              @if (r.place_name) {
+                <span class="place"><app-icon name="mapPin" [size]="16" />{{ r.place_name }}</span>
+              }
+              <time [attr.datetime]="r.created_at" [title]="date(r.created_at)">แจ้งเมื่อ {{ ago(r.created_at) }}</time>
+            </p>
+            <p class="who">
+              ผู้แจ้ง <strong>{{ r.author.display_name }}</strong>
+              @if (r.author.email) {
+                <span class="email">{{ r.author.email }}</span>
+              }
+            </p>
+          </div>
+          @if (truePoint(); as tp) {
+            <app-place-map class="small-map" [truePoint]="tp" [publicPoint]="shownPoint()!" [picking]="picking()" (picked)="point.set($event)" />
+          }
+        </div>
+
+        @switch (mode()) {
+          @case ('view') {
+            <div class="decide">
+              <button type="button" class="btn" [disabled]="busy()" (click)="openReject()">
+                <app-icon name="circleX" [size]="18" />ปฏิเสธ…
+              </button>
+              <button type="button" class="btn primary" [disabled]="busy()" (click)="openApprove()">
+                <app-icon name="circleCheck" [size]="18" />อนุมัติ…
+              </button>
+            </div>
+          }
+          @case ('approve') {
+            <form class="section" (submit)="$event.preventDefault(); approve()">
+              <h3>อนุมัติเรื่องนี้</h3>
+
+              <fieldset>
+                <legend>หมวด</legend>
+                <div class="cats">
+                  @for (c of categories(); track c.slug) {
+                    <button type="button" class="pick" [attr.aria-pressed]="category() === c.slug" (click)="category.set(c.slug)">
+                      <app-icon [name]="icon(c.slug)" [size]="24" />
+                      <span>{{ c.name_th }}</span>
+                      @if (category() === c.slug) {
+                        <app-icon class="tick" name="check" [size]="16" />
+                      }
+                    </button>
+                  }
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>ระดับ</legend>
+                <div class="levels">
+                  @for (l of levels; track l.level) {
+                    <button
+                      type="button"
+                      class="chip"
+                      [style.--c]="l.color"
+                      [attr.aria-pressed]="danger() === l.level"
+                      (click)="danger.set(l.level)"
+                    >
+                      <app-level-shape [level]="l.level" />{{ l.nameTh }}
+                    </button>
+                  }
+                </div>
+              </fieldset>
+
+              <label class="field" for="review-title">หัวข้อ</label>
+              <input
+                id="review-title"
+                class="title"
+                type="text"
+                [attr.maxlength]="titleMax"
+                [value]="title()"
+                (input)="onTitle($event)"
+                aria-describedby="review-title-count"
+              />
+              <span class="caption count" id="review-title-count">{{ titleLength() }}/{{ titleMax }}</span>
+
+              <fieldset>
+                <legend>ตำแหน่งที่แสดง</legend>
+                <div class="modes">
+                  @for (m of modes; track m) {
+                    <label class="mode">
+                      <input type="radio" name="review-location" [value]="m" [checked]="location() === m" (change)="location.set(m)" />
+                      {{ modeWords[m] }}
+                    </label>
+                  }
+                </div>
+                @if (picking()) {
+                  <p class="caption">เลื่อนแผนที่ให้หมุดตรงจุดที่จะแสดง</p>
+                }
+                @if (hazard()) {
+                  <p class="caption">เรื่องจุดเสี่ยงจะถูกเลื่อนให้อัตโนมัติ เว้นแต่เลือกตำแหน่งจริง</p>
+                }
+              </fieldset>
+
+              <div class="row">
+                <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">ยกเลิก</button>
+                <button type="submit" class="btn primary big" [disabled]="!canApprove()">
+                  <app-icon name="circleCheck" [size]="20" />อนุมัติ ขึ้นแผนที่
+                </button>
+              </div>
+            </form>
+          }
+          @case ('reject') {
+            <form class="section" (submit)="$event.preventDefault(); reject()">
+              <h3 id="review-reject-title">ปฏิเสธเรื่องนี้</h3>
+              <div class="reasons" role="radiogroup" aria-labelledby="review-reject-title">
+                @for (k of reasons; track k) {
+                  <button type="button" role="radio" class="reason" [attr.aria-checked]="reason() === k" (click)="reason.set(k)">
+                    <span class="mark" aria-hidden="true">
+                      @if (reason() === k) {
+                        <app-icon name="check" [size]="14" />
+                      }
+                    </span>
+                    {{ reasonWords[k] }}
+                  </button>
+                }
+              </div>
+              @if (reason() === 'other') {
+                <textarea
+                  rows="2"
+                  aria-label="เหตุผลที่ผู้แจ้งจะเห็น"
+                  aria-describedby="review-note-count"
+                  [attr.maxlength]="noteMax"
+                  [value]="note()"
+                  (input)="onNote($event)"
+                ></textarea>
+                <span class="caption count" id="review-note-count">{{ note().length }}/{{ noteMax }}</span>
+              }
+              <p class="caption">ผู้แจ้งจะเห็นเหตุผลนี้ในหน้าเรื่องของฉัน</p>
+              <div class="row">
+                <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">ยกเลิก</button>
+                <button type="submit" class="btn" [disabled]="!canReject()">
+                  <app-icon name="circleX" [size]="18" />ยืนยันปฏิเสธ
+                </button>
+              </div>
+            </form>
+          }
+        }
+      </article>
+    } @else {
+      <div class="empty">
+        <span class="disc"><app-icon name="circleCheck" [size]="30" /></span>
+        <p>ไม่มีเรื่องรอตรวจ เยี่ยมเลย</p>
+      </div>
+    }
+  }
+}

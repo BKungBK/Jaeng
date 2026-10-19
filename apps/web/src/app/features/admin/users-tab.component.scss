@@ -1,0 +1,61 @@
+@use 'admin';
+
+.search {
+  position: relative;
+  display: block;
+
+  app-icon {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    color: var(--ink2);
+    pointer-events: none;
+  }
+
+  input {
+    padding-left: 42px;
+  }
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+.user {
+  gap: 6px;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+
+  strong {
+    font: 500 16px/1.4 admin.$prompt;
+    overflow-wrap: anywhere;
+  }
+}
+
+// status is a word with its own icon, in ink (never colour alone)
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 14px/1.4 admin.$plex;
+}
+
+.email {
+  overflow-wrap: anywhere;
+}
+
+.decide {
+  justify-content: flex-start;
+}
+
+.empty-line {
+  padding: 16px 0;
+  color: var(--ink2);
+  text-align: center;
+}

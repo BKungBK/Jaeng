@@ -1,0 +1,48 @@
+<div class="scroller">
+  <main class="card">
+    <header class="head">
+      <button type="button" class="ctl" aria-label="กลับไปแผนที่" (click)="goBack()">
+        <app-icon name="chevronLeft" [size]="22" />
+      </button>
+      <h1 id="admin-title" tabindex="-1">หน้าผู้ดูแล</h1>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="งานของผู้ดูแล" (keydown)="onKey($event)">
+      @for (t of tabs; track t) {
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [id]="'admin-tab-' + t"
+          [attr.aria-selected]="tab() === t"
+          [attr.aria-controls]="'admin-panel'"
+          [attr.tabindex]="tab() === t ? 0 : -1"
+          (click)="select(t)"
+        >
+          <app-icon [name]="icons[t]" [size]="18" />
+          {{ words[t] }}@if (count(t) !== null) { · {{ count(t) }} }
+        </button>
+      }
+    </div>
+
+    <section id="admin-panel" class="panel" role="tabpanel" [attr.aria-labelledby]="'admin-tab-' + tab()">
+      @switch (tab()) {
+        @case ('reports') {
+          <app-review-queue (changed)="refreshCounts()" />
+        }
+        @case ('claims') {
+          <app-claims-queue (changed)="refreshCounts()" />
+        }
+        @case ('flags') {
+          <app-flags-queue (changed)="refreshCounts()" />
+        }
+        @case ('users') {
+          <app-users-tab />
+        }
+        @case ('log') {
+          <app-log-tab />
+        }
+      }
+    </section>
+  </main>
+</div>

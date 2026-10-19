@@ -40,6 +40,8 @@ export class AuthService {
 
   private started?: Promise<void>;
   private subscribed = false;
+  /** The profile read of the current session, while it runs (and after: it stays settled). */
+  private profileLoad: Promise<void> = Promise.resolve();
 
   constructor() {
     this.ready = this.start().catch(() => {
@@ -81,7 +83,19 @@ export class AuthService {
     }
     // never keep the previous user's profile (and role) attached to a new user
     if (this.profileSig()?.id !== s.user.id) this.profileSig.set(null);
-    setTimeout(() => void this.loadProfile(s.user.id), 0);
+    const id = s.user.id;
+    this.profileLoad = new Promise<void>((done) => setTimeout(() => void this.loadProfile(id).finally(done), 0));
+  }
+
+  /**
+   * The profile once it is known: waits for the stored session and for the profile read that is in
+   * flight. null when signed out or the read failed. Guards use this, so a page refresh never decides
+   * "not an admin" before the role has loaded.
+   */
+  async loadedProfile(): Promise<Profile | null> {
+    await this.ready;
+    await this.profileLoad;
+    return this.sessionSig() ? this.profileSig() : null;
   }
 
   private async loadProfile(id: string): Promise<void> {

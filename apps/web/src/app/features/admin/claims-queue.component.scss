@@ -1,0 +1,80 @@
+@use 'admin';
+
+h2 {
+  font: 600 18px/1.35 admin.$prompt;
+  overflow-wrap: anywhere;
+}
+
+// before and after, the same size, side by side; the words say which is which
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  figure {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--bg);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  figcaption {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: #fff;
+    color: admin.$slate;
+    font: 500 13px/1.5 admin.$plex;
+  }
+
+  .none {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 2px dashed var(--line);
+    border-radius: 12px;
+    color: var(--ink2);
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  align-items: baseline;
+  font-size: 14px;
+
+  strong {
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+}
+
+.note-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.items {
+  display: grid;
+  gap: 16px;
+}
+
+:host {
+  gap: 16px;
+}

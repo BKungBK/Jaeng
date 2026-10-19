@@ -19,8 +19,14 @@ test('SUPABASE_JWT_SECRET is not required', () => {
   expect(() => loadEnv(full)).not.toThrow();
 });
 
-test('rate limits default to 5 reports, 30 comments, 40 photos per day', () => {
-  expect(loadEnv(full).rateLimits).toEqual({ reports: 5, comments: 30, photos: 40 });
+test('rate limits default to 5 reports, 30 comments, 40 photos, 10 fix claims, 20 flags per day', () => {
+  expect(loadEnv(full).rateLimits).toEqual({ reports: 5, comments: 30, photos: 40, fixClaims: 10, flags: 20 });
+});
+
+test('fix claim and flag limits reject non-positive values and can be overridden', () => {
+  expect(() => loadEnv({ ...full, RATE_LIMIT_FLAGS_PER_DAY: '0' })).toThrow('RATE_LIMIT_FLAGS_PER_DAY');
+  expect(() => loadEnv({ ...full, RATE_LIMIT_FIX_CLAIMS_PER_DAY: 'x' })).toThrow('RATE_LIMIT_FIX_CLAIMS_PER_DAY');
+  expect(loadEnv({ ...full, RATE_LIMIT_FIX_CLAIMS_PER_DAY: '3' }).rateLimits.fixClaims).toBe(3);
 });
 
 test('rate limits can be overridden', () => {

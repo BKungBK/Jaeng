@@ -1,8 +1,8 @@
-import { REPORT_EVENT, REPORTS_CHANNEL, type ReportSignal } from '@jaeng/shared/api';
+import { REPORT_EVENT, REPORTS_CHANNEL, type LiveSignal } from '@jaeng/shared/api';
 
 /** Fire-and-forget Realtime Broadcast over REST. Never throws. */
 export function createBroadcaster(supabaseUrl: string, serviceKey: string, fetchFn: typeof fetch = fetch) {
-  return async (signal: ReportSignal): Promise<void> => {
+  return async (signal: LiveSignal): Promise<void> => {
     try {
       const res = await fetchFn(`${supabaseUrl}/realtime/v1/api/broadcast`, {
         method: 'POST',

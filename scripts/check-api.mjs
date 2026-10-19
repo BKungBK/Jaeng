@@ -699,9 +699,301 @@ async function plan4() {
   }
 }
 
+// ---------------------------------------------------------------------------------------------
+// Plan 5: review, fix claims, flags with auto-hide, hide/restore, bans, admin reads, quotas.
+// Three throwaway users (a, b, c) and the demo admin; the demo data is never touched.
+// ---------------------------------------------------------------------------------------------
+
+async function plan5() {
+  const env = readDotEnv();
+  const SERVICE = env.SUPABASE_SERVICE_ROLE_KEY;
+  const PASSWORD = env.DEMO_PASSWORD;
+  if (!SERVICE || !PASSWORD) throw new Error('.env needs SUPABASE_SERVICE_ROLE_KEY and DEMO_PASSWORD');
+  const FLAG_LIMIT = Number(env.RATE_LIMIT_FLAGS_PER_DAY) || 20;
+  const CLAIM_LIMIT = Number(env.RATE_LIMIT_FIX_CLAIMS_PER_DAY) || 10;
+  const svcHeaders = { apikey: SERVICE, authorization: `Bearer ${SERVICE}` };
+  const anon = (await api('/config')).json?.supabaseAnonKey;
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuid = (v) => {
+    if (!UUID.test(String(v))) throw new Error(`not a uuid: ${v}`);
+    return v;
+  };
+  const section = async (label, fn) => {
+    try {
+      await fn();
+    } catch (e) {
+      check(`${label} ran without an error`, false, String(e?.stack ?? e));
+    }
+  };
+  const sb = async (path) => {
+    const res = await fetch(`${BASE}/sb/rest/v1/${path}`, { headers: { apikey: anon, authorization: `Bearer ${anon}` } });
+    return res.json();
+  };
+  const fetchStatus = async (url) => (await fetch(url.startsWith('http') ? url : `${BASE}${url}`)).status;
+  const PUB = `${BASE}/sb/storage/v1/object/public/photos-public/`;
+  const thumbOf = (p) => p.replace(/\.webp$/, '_thumb.webp');
+
+  const ts = Date.now();
+  const users = {};
+  for (const k of ['a', 'b', 'c']) {
+    const email = `check-api5-${ts}-${k}@jaeng.local`;
+    const created = await fetch(`${BASE}/sb/auth/v1/admin/users`, {
+      method: 'POST',
+      headers: { ...svcHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password: PASSWORD, email_confirm: true }),
+    });
+    const json = await created.json().catch(() => null);
+    if (!created.ok || !json?.id) throw new Error(`could not create test user ${k}: ${created.status}`);
+    users[k] = { id: uuid(json.id), email };
+  }
+
+  try {
+    for (const u of Object.values(users)) {
+      const login = await fetch(`${BASE}/sb/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { apikey: anon, 'content-type': 'application/json' },
+        body: JSON.stringify({ email: u.email, password: PASSWORD }),
+      });
+      u.token = (await login.json().catch(() => null))?.access_token;
+    }
+    const adminToken = (await api('/dev/quick-login', { method: 'POST', body: { who: 'admin' } })).json?.access_token;
+    const adminId = psql(`select id from auth.users where email = 'admin@jaeng.local'`);
+    check('plan 5: three test users and the admin can sign in', !!(users.a.token && users.b.token && users.c.token && adminToken));
+    if (!users.a.token || !users.b.token || !users.c.token || !adminToken) return;
+    const { a, b, c } = users;
+
+    // Each report sits at its own point near the demo area, 400 m apart, so no duplicate check interferes.
+    let n = 0;
+    const point = () => ({ lng: 100.40 + 0.004 * ++n, lat: 13.60 });
+    const photo = async (u) => {
+      const form = new FormData();
+      form.append('file', new Blob([makePng(320, 240)], { type: 'image/png' }), 'p.png');
+      const res = await fetch(`${BASE}/api/photos`, { method: 'POST', headers: { authorization: `Bearer ${u.token}` }, body: form });
+      const json = await res.json().catch(() => null);
+      if (res.status !== 201) throw new Error(`photo upload failed: ${res.status}`);
+      return uuid(json.photo_id);
+    };
+    const report = async (u, category = 'road') => {
+      const r = await api('/reports', { method: 'POST', token: u.token, body: { category, ...point(), photo_ids: [await photo(u)], title: `check-api5 ${category} ${n}` } });
+      if (r.status !== 201) throw new Error(`report failed: ${r.status} ${JSON.stringify(r.json)}`);
+      return uuid(r.json.report.id);
+    };
+    const admin = (path, body = {}) => api(`/admin${path}`, { method: 'POST', token: adminToken, body });
+    const adminGet = (path) => api(`/admin${path}`, { token: adminToken });
+    const pathOf = (photoId) => psql(`select storage_path from public.report_photos where id = '${photoId}'`);
+    const coverOf = (reportId) => psql(`select storage_path from public.report_photos where report_id = '${reportId}' and kind = 'before' order by created_at limit 1`);
+    const isPublic = async (reportId) => (await sb(`public_reports?select=id&id=eq.${reportId}`)).length === 1;
+
+    let rA1, rA3, rB1;
+
+    // ------------------------------------------------------------------ Step 1: review
+    await section('plan 5 review', async () => {
+      rA1 = await report(a);
+      const asMember = await api(`/admin/reports/${rA1}/approve`, { method: 'POST', token: b.token, body: { location: 'keep' } });
+      check('review: a member cannot approve (403 forbidden)', asMember.status === 403 && asMember.json?.error?.code === 'forbidden', JSON.stringify(asMember));
+
+      const queue = await adminGet('/queue?type=reports');
+      const item = queue.json?.items?.find((i) => i.id === rA1);
+      check('review: the new report is in the review queue', !!item, JSON.stringify(queue.json).slice(0, 300));
+      check('review: the queue shows the reporter e-mail', item?.author?.email === a.email, item?.author?.email);
+      const signed = item?.photos?.[0]?.url ?? '';
+      const img = await fetch(`${BASE}${signed}`);
+      check('review: the signed photo URL loads as webp', img.status === 200 && img.headers.get('content-type') === 'image/webp', `${img.status} ${signed}`);
+
+      const race = await Promise.all([admin(`/reports/${rA1}/approve`, { location: 'keep' }), admin(`/reports/${rA1}/approve`, { location: 'keep' })]);
+      const statuses = race.map((r) => r.status).sort();
+      check('review: two approvals at once: one 200, one 409 invalid_state', statuses[0] === 200 && statuses[1] === 409 &&
+        race.find((r) => r.status === 409)?.json?.error?.code === 'invalid_state', JSON.stringify(race));
+      check('review: one approve_report log row', psql(`select count(*) from public.moderation_log where action = 'approve_report' and target_id = '${rA1}'`) === '1');
+      check('review: approved report is public', await isPublic(rA1));
+      const cover = coverOf(rA1);
+      check('review: photo moved to the report folder', cover.startsWith(`${rA1}/`), cover);
+      check('review: public photo and thumbnail load', (await fetchStatus(`${PUB}${cover}`)) === 200 && (await fetchStatus(`${PUB}${thumbOf(cover)}`)) === 200);
+      check('review: the old signed private URL no longer loads', (await fetchStatus(signed)) !== 200);
+
+      const rA2 = await report(a);
+      const rej = await admin(`/reports/${rA2}/reject`, { reason: 'other', note: 'พิกัดไม่ชัด' });
+      check('review: reject answers ok', rej.status === 200 && rej.json?.ok === true, JSON.stringify(rej));
+      const mine = await api('/me/reports', { token: a.token });
+      check('review: the reporter sees the note as the reason', mine.json?.reports?.find((r) => r.id === rA2)?.reject_reason === 'พิกัดไม่ชัด');
+
+      rB1 = await report(b, 'hazard');
+      await admin(`/reports/${rB1}/approve`, { location: 'exact' });
+      check('review: hazard approved as exact shows the true point',
+        psql(`select extensions.st_equals(location::extensions.geometry, public_location::extensions.geometry) from public.reports where id = '${rB1}'`) === 't');
+
+      rA3 = await report(a);
+      await admin(`/reports/${rA3}/approve`, { location: 'keep', category: 'hazard' });
+      const d = Number(psql(`select extensions.st_distance(location, public_location) from public.reports where id = '${rA3}'`));
+      check('review: road changed to hazard with keep is moved 0-150 m', d > 0 && d <= 150, String(d));
+    });
+
+    // ------------------------------------------------------------------ Step 2: fix claims
+    await section('plan 5 fix claims', async () => {
+      const p1 = await photo(b);
+      const claim = await api(`/reports/${rA1}/fix-claims`, { method: 'POST', token: b.token, body: { note: 'ซ่อมแล้ว', photo_id: p1 } });
+      check('claim: 201 with fix_claimed', claim.status === 201 && claim.json?.report?.status === 'fix_claimed', JSON.stringify(claim));
+      const claimPath = pathOf(p1);
+      check('claim: the claim photo stays private', claimPath.startsWith(`${b.id}/`) && (await fetchStatus(`${PUB}${claimPath}`)) !== 200, claimPath);
+      const pr = (await sb(`public_reports?select=photos,days_open&id=eq.${rA1}`))[0];
+      check('claim: the claim photo is not in public_reports', !JSON.stringify(pr?.photos ?? []).includes(p1));
+      const again = await api(`/reports/${rA1}/fix-claims`, { method: 'POST', token: c.token, body: {} });
+      check('claim: a second claim is 409 claim_pending', again.status === 409 && again.json?.error?.code === 'claim_pending', JSON.stringify(again));
+
+      const claimId = claim.json?.claim_id;
+      const no = await admin(`/fix-claims/${claimId}/reject`);
+      check('claim: reject returns the report to open', no.status === 200 && no.json?.report?.status === 'open', JSON.stringify(no));
+      const pr2 = (await sb(`public_reports?select=days_open&id=eq.${rA1}`))[0];
+      check('claim: days_open did not restart', pr2?.days_open === pr?.days_open, `${pr?.days_open} -> ${pr2?.days_open}`);
+
+      const p2 = await photo(b);
+      const claim2 = await api(`/reports/${rA1}/fix-claims`, { method: 'POST', token: b.token, body: { photo_id: p2 } });
+      const yes = await admin(`/fix-claims/${claim2.json?.claim_id}/approve`);
+      check('claim: approve resolves the report', yes.status === 200 && yes.json?.report?.status === 'resolved', JSON.stringify(yes));
+      const afterPath = pathOf(p2);
+      const pr3 = (await sb(`public_reports?select=photos&id=eq.${rA1}`))[0];
+      check('claim: the after photo is public', pr3?.photos?.some((x) => x.path === afterPath && x.kind === 'after') && (await fetchStatus(`${PUB}${afterPath}`)) === 200, afterPath);
+      const late = await api(`/reports/${rA1}/fix-claims`, { method: 'POST', token: c.token, body: {} });
+      check('claim: a resolved report is 409 already_resolved', late.status === 409 && late.json?.error?.code === 'already_resolved', JSON.stringify(late));
+    });
+
+    // ------------------------------------------------------------------ Step 3: flags, auto-hide, ban
+    await section('plan 5 flags', async () => {
+      const cover = coverOf(rA3);
+      const flag = (u, body) => api('/flags', { method: 'POST', token: u.token, body });
+      for (let i = 0; i < 3; i++) await flag(a, { target_type: 'report', target_id: rA3, reason: 'spam' });
+      check('flags: one person flagging three times does not hide', await isPublic(rA3));
+      await flag(b, { target_type: 'report', target_id: rA3, reason: 'false' });
+      const third = await flag(c, { target_type: 'report', target_id: rA3, reason: 'privacy', note: 'มีหน้าคน' });
+      check('flags: the third person hides it', third.status === 201 && third.json?.hidden === true, JSON.stringify(third));
+      check('flags: hidden report leaves the public map', !(await isPublic(rA3)));
+      check('flags: hidden photo no longer loads publicly', (await fetchStatus(`${PUB}${cover}`)) !== 200);
+      const mine = await api('/me/reports', { token: a.token });
+      const thumb = mine.json?.reports?.find((r) => r.id === rA3)?.thumb_url;
+      check('flags: the reporter still sees the thumbnail (signed)', !!thumb && (await fetchStatus(thumb)) === 200, thumb);
+
+      const q = await adminGet('/queue?type=flags');
+      const item = q.json?.items?.find((i) => i.target_id === rA3);
+      check('flags: one queue item with three flags, hidden', item?.flags?.length === 3 && item?.hidden === true, JSON.stringify(item).slice(0, 300));
+      const dz = await admin(`/flags/${item?.flag_id}/resolve`, { action: 'dismiss' });
+      check('flags: dismiss restores the report', dz.status === 200 && (await isPublic(rA3)), JSON.stringify(dz));
+      check('flags: the photo loads publicly again', (await fetchStatus(`${PUB}${cover}`)) === 200);
+
+      const cm = await api(`/reports/${rB1}/comments`, { method: 'POST', token: b.token, body: { body: 'check-api5 ความเห็น' } });
+      const commentId = cm.json?.comment?.id;
+      await flag(a, { target_type: 'comment', target_id: commentId, reason: 'personal_attack' });
+      const cq = await adminGet('/queue?type=flags');
+      const citem = cq.json?.items?.find((i) => i.target_id === commentId);
+      check('flags: the comment owner is b', citem?.author?.id === b.id, JSON.stringify(citem?.author));
+      const ban = await admin(`/flags/${citem?.flag_id}/resolve`, { action: 'ban' });
+      check('flags: ban answers 200', ban.status === 200, JSON.stringify(ban));
+      check('flags: the comment leaves public_comments', (await sb(`public_comments?select=id&id=eq.${commentId}`)).length === 0);
+      const blocked = await api(`/reports/${rB1}/comments`, { method: 'POST', token: b.token, body: { body: 'ยังอยู่ไหม' } });
+      check('flags: a banned user cannot comment (403 banned)', blocked.status === 403 && blocked.json?.error?.code === 'banned', JSON.stringify(blocked));
+      await admin(`/users/${b.id}/unban`);
+      const back = await api(`/reports/${rB1}/comments`, { method: 'POST', token: b.token, body: { body: 'กลับมาแล้ว' } });
+      check('flags: after unban b can comment', back.status === 201, JSON.stringify(back));
+      const self = await admin(`/users/${adminId}/ban`);
+      check('flags: banning the admin is 409 cannot_ban_admin', self.status === 409 && self.json?.error?.code === 'cannot_ban_admin', JSON.stringify(self));
+    });
+
+    // ------------------------------------------------------------------ Step 4: hide/restore, reads, guards
+    await section('plan 5 admin reads', async () => {
+      await admin('/hide', { target_type: 'report', target_id: rB1 });
+      const hidden = await adminGet('/queue?type=hidden');
+      check('hide: the report is in the hidden list', hidden.json?.items?.some((i) => i.target_id === rB1));
+      await admin('/restore', { target_type: 'report', target_id: rB1 });
+      check('restore: the report is public again', await isPublic(rB1));
+
+      const counts = await adminGet('/counts');
+      const [r, cl, f] = psql(`select (select count(*) from public.reports where status = 'pending_review'),
+        (select count(*) from public.fix_claims fc join public.reports r on r.id = fc.report_id where fc.status = 'pending' and r.status = 'fix_claimed'),
+        (select count(*) from (select distinct target_type, target_id from public.flags where status = 'open') s)`).split('|').map(Number);
+      check('reads: counts match the database', counts.json?.reports === r && counts.json?.claims === cl && counts.json?.flags === f, JSON.stringify([counts.json, r, cl, f]));
+      const found = await adminGet(`/users?q=check-api5-${ts}`);
+      check('reads: user search finds the three test users', found.json?.users?.length === 3, JSON.stringify(found.json).slice(0, 200));
+      const log = await adminGet('/log');
+      const actions = new Set((log.json?.entries ?? []).map((e) => e.action));
+      const want = ['approve_report', 'reject_report', 'approve_claim', 'reject_claim', 'auto_hide', 'dismiss_flags', 'hide', 'restore', 'ban', 'unban'];
+      check('reads: the log has every action', want.every((x) => actions.has(x)), [...actions].join(','));
+      check('reads: auto_hide is by the system', (log.json?.entries ?? []).some((e) => e.action === 'auto_hide' && e.target_id === rA3 && e.admin_name === null));
+
+      const routes = [['GET', '/admin/counts'], ['GET', '/admin/queue?type=reports'], ['GET', '/admin/users'], ['GET', '/admin/log'],
+        ['POST', `/admin/reports/${rB1}/approve`], ['POST', '/admin/hide'], ['POST', `/admin/users/${a.id}/ban`]];
+      let bad = [];
+      for (const [method, path] of routes) {
+        const m = await api(path, { method, token: a.token, body: method === 'POST' ? {} : undefined });
+        const none = await api(path, { method, body: method === 'POST' ? {} : undefined });
+        if (m.status !== 403 || none.status !== 401) bad.push(`${method} ${path}: ${m.status}/${none.status}`);
+      }
+      check('guards: every /admin route is 403 for members and 401 without a token', bad.length === 0, bad.join('; '));
+    });
+
+    // ------------------------------------------------------------------ Step 5: quotas
+    await section('plan 5 quotas', async () => {
+      const used = Number(psql(`select count(*) from public.flags where reporter_id = '${c.id}' and created_at > now() - interval '24 hours'`));
+      psql(`insert into public.flags (target_type, target_id, reporter_id, reason, status)
+            select 'report', gen_random_uuid(), '${c.id}', 'spam', 'dismissed' from generate_series(1, ${FLAG_LIMIT - used - 1})`);
+      const last = await api('/flags', { method: 'POST', token: c.token, body: { target_type: 'report', target_id: rB1, reason: 'spam' } });
+      const over = await api('/flags', { method: 'POST', token: c.token, body: { target_type: 'report', target_id: rA3, reason: 'spam' } });
+      check(`quota: flag ${FLAG_LIMIT} is 201, the next 429`, last.status === 201 && over.status === 429, `${last.status} ${over.status}`);
+
+      const cUsed = Number(psql(`select count(*) from public.fix_claims where claimant_id = '${c.id}' and created_at > now() - interval '24 hours'`));
+      psql(`insert into public.fix_claims (report_id, claimant_id, status)
+            select '${rA1}', '${c.id}', 'rejected' from generate_series(1, ${CLAIM_LIMIT - cUsed - 1})`);
+      const lastClaim = await api(`/reports/${rB1}/fix-claims`, { method: 'POST', token: c.token, body: {} });
+      const overClaim = await api(`/reports/${rA3}/fix-claims`, { method: 'POST', token: c.token, body: {} });
+      check(`quota: fix claim ${CLAIM_LIMIT} is 201, the next 429`, lastClaim.status === 201 && overClaim.status === 429, `${lastClaim.status} ${overClaim.status}`);
+    });
+  } finally {
+    // Cleanup: files of the test users' photos in both buckets, their private folders, the log rows
+    // about their things, then the users (everything else cascades).
+    try {
+      const ids = Object.values(users).map((u) => `'${u.id}'`).join(',');
+      const paths = psql(`select storage_path from public.report_photos ph
+                          where ph.uploader_id in (${ids}) or ph.report_id in (select id from public.reports where author_id in (${ids}))`)
+        .split('\n').filter(Boolean);
+      const names = paths.flatMap((p) => [p, thumbOf(p)]);
+      for (const bucket of ['photos-private', 'photos-public']) {
+        let all = names;
+        if (bucket === 'photos-private') {
+          for (const u of Object.values(users)) {
+            const listed = await fetch(`${BASE}/sb/storage/v1/object/list/${bucket}`, {
+              method: 'POST',
+              headers: { ...svcHeaders, 'content-type': 'application/json' },
+              body: JSON.stringify({ prefix: u.id, limit: 1000 }),
+            });
+            const items = listed.ok ? await listed.json() : [];
+            all = [...all, ...items.map((i) => `${u.id}/${i.name}`)];
+          }
+        }
+        if (all.length > 0) {
+          await fetch(`${BASE}/sb/storage/v1/object/${bucket}`, {
+            method: 'DELETE',
+            headers: { ...svcHeaders, 'content-type': 'application/json' },
+            body: JSON.stringify({ prefixes: [...new Set(all)] }),
+          });
+        }
+      }
+      psql(`delete from public.moderation_log where target_id in (
+              select id from public.reports where author_id in (${ids})
+              union select id from public.comments where author_id in (${ids})
+              union select unnest(array[${ids}]::uuid[]))`);
+      for (const u of Object.values(users)) {
+        await fetch(`${BASE}/sb/auth/v1/admin/users/${u.id}`, { method: 'DELETE', headers: svcHeaders });
+      }
+      const rows = psql(`select (select count(*) from public.profiles where id in (${ids})) + (select count(*) from public.reports where author_id in (${ids}))`);
+      check('plan 5 cleanup: no rows of the test users left', rows === '0', rows);
+    } catch (e) {
+      check('plan 5 cleanup ran', false, String(e));
+    }
+  }
+}
+
 try {
   await main();
   await plan4();
+  await plan5();
 } catch (e) {
   console.error(e);
   failed++;

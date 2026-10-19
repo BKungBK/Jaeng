@@ -1,0 +1,132 @@
+// The inline forms of the report detail (fix claim, content report): a Cream Ground inset that
+// takes the place of the action row (.impeccable/surfaces/report-detail-*.md, plan 5 additions).
+$prompt: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+
+:host {
+  display: block;
+}
+
+form {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+h3 {
+  margin: 0;
+  font: 500 15px/1.4 $prompt;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+p {
+  margin: 0;
+}
+
+.lede,
+.hint,
+.count {
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.count {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+  caret-color: var(--pri);
+
+  &::placeholder {
+    color: var(--ink2);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  font: 500 15px/1.4 $prompt;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--bg) 60%, var(--surf));
+  }
+
+  &.primary {
+    border-color: var(--pri);
+    background: var(--pri);
+    color: var(--onpri);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--pri) 88%, var(--ink));
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.send-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .primary {
+    flex: 1;
+  }
+}
+
+button,
+textarea {
+  &:focus-visible {
+    outline: 3px solid var(--pri);
+    outline-offset: 2px;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

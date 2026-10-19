@@ -4,6 +4,8 @@ import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { RealtimeService } from '../../core/realtime.service';
+import { PopoverController } from '@ionic/angular';
+import { AdminService } from '../admin/admin.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import type { ReportDetail } from './report-detail';
 import { ReportDetailComponent, SIGNAL_DEBOUNCE_MS } from './report-detail.component';
@@ -68,7 +70,15 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
-type Opts = { report?: ReportDetail | null; comments?: PublicComment[]; signedIn?: boolean; mine?: boolean; failFirst?: boolean };
+type Opts = {
+  report?: ReportDetail | null;
+  comments?: PublicComment[];
+  signedIn?: boolean;
+  mine?: boolean;
+  failFirst?: boolean;
+  admin?: boolean;
+  menuRole?: string;
+};
 
 async function setup(opts: Opts = {}) {
   const get = vi.fn().mockResolvedValue(opts.report === undefined ? detail() : opts.report);
@@ -91,12 +101,17 @@ async function setup(opts: Opts = {}) {
     return unlisten;
   });
   const emit = (s: ReportSignal) => listeners.forEach((fn) => fn(s));
+  const popover = { present: vi.fn().mockResolvedValue(undefined), onDidDismiss: vi.fn().mockResolvedValue({ role: opts.menuRole }) };
+  const popovers = { create: vi.fn().mockResolvedValue(popover) };
+  const admin = { hide: vi.fn().mockResolvedValue(undefined) };
   TestBed.configureTestingModule({
     providers: [
       { provide: RealtimeService, useValue: { listen } },
       { provide: ReportDetailService, useValue: svc },
-      { provide: AuthService, useValue: { session, signedIn, profile: signal(null) } },
+      { provide: AuthService, useValue: { session, signedIn, profile: signal(opts.admin ? { id: 'u1', display_name: 'a', role: 'admin' } : null) } },
       { provide: LoginPromptService, useValue: { ask } },
+      { provide: PopoverController, useValue: popovers },
+      { provide: AdminService, useValue: admin },
     ],
   });
   const fixture = TestBed.createComponent(ReportDetailComponent);
@@ -122,13 +137,13 @@ async function setup(opts: Opts = {}) {
     await new Promise((r) => setTimeout(r, SIGNAL_DEBOUNCE_MS + 30));
     await settle();
   };
-  return { fixture, root, svc, user, ask, out, settle, afterDebounce, meToo, emit, listen, unlisten };
+  return { fixture, root, svc, user, ask, out, settle, afterDebounce, meToo, emit, listen, unlisten, popovers, admin };
 }
 
 describe('ReportDetailComponent', () => {
   it('lays the content out in the spec 3.4 order', async () => {
     const { root } = await setup();
-    const order = ['.gallery', 'h2', '.tags', '.desc', '.byline', '.metoo', '.copy', '.comments'];
+    const order = ['.gallery', 'h2', '.tags', '.desc', '.byline', '.metoo', '.fix', '.more', '.comments'];
     const found = order.map((s) => root.querySelector(s));
     expect(found.every(Boolean)).toBe(true);
     for (let i = 1; i < found.length; i++) {
@@ -569,5 +584,93 @@ describe('ReportDetailComponent', () => {
     const { root, out } = await setup();
     root.querySelector<HTMLButtonElement>('button[aria-label="ปิด"]')!.click();
     expect(out.closed).toHaveBeenCalled();
+  });
+});
+
+describe('ReportDetailComponent (plan 5: fix claims, the more menu, reports)', () => {
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('an open report offers "แจ้งว่าแก้แล้ว" and a labelled more button', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('button.fix')?.textContent).toContain('แจ้งว่าแก้แล้ว');
+    expect(root.querySelector('button.more')?.getAttribute('aria-label')).toBe('ตัวเลือกเพิ่มเติม');
+    expect(root.querySelector('button.copy')).toBeNull(); // copy link moved into the menu
+  });
+
+  it('fix_claimed says it waits for review instead of the button', async () => {
+    const { root } = await setup({ report: detail({ status: 'fix_claimed' }) });
+    expect(root.querySelector('button.fix')).toBeNull();
+    expect(root.querySelector('.waiting')?.textContent).toContain('มีคนแจ้งว่าแก้แล้ว รอผู้ดูแลตรวจ');
+    expect(root.querySelector('.waiting app-icon')).not.toBeNull();
+  });
+
+  it('resolved shows neither', async () => {
+    const { root } = await setup({ report: detail({ status: 'resolved' }) });
+    expect(root.querySelector('button.fix')).toBeNull();
+    expect(root.querySelector('.waiting')).toBeNull();
+  });
+
+  it('signed out: the fix button asks to log in and opens nothing when declined', async () => {
+    const { root, ask, settle } = await setup({ signedIn: false });
+    root.querySelector<HTMLButtonElement>('button.fix')!.click();
+    await flush();
+    await settle();
+    expect(ask).toHaveBeenCalled();
+    expect(root.querySelector('app-fix-claim-form')).toBeNull();
+  });
+
+  it('signed in: the fix form replaces the action row, and cancel brings it back', async () => {
+    const { root, settle } = await setup();
+    root.querySelector<HTMLButtonElement>('button.fix')!.click();
+    await flush();
+    await settle();
+    expect(root.querySelector('app-fix-claim-form')).not.toBeNull();
+    expect(root.querySelector('.actions')).toBeNull();
+    [...root.querySelectorAll<HTMLButtonElement>('app-fix-claim-form button')].find((b) => b.textContent?.includes('ยกเลิก'))!.click();
+    await settle();
+    expect(root.querySelector('app-fix-claim-form')).toBeNull();
+    expect(root.querySelector('.actions')).not.toBeNull();
+  });
+
+  it('"คัดลอกลิงก์" in the menu still copies /r/:id', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+    const { root, settle, popovers } = await setup({ menuRole: 'copy' });
+    root.querySelector<HTMLButtonElement>('button.more')!.click();
+    await flush();
+    await settle();
+    expect(popovers.create).toHaveBeenCalled();
+    expect(writeText).toHaveBeenCalledWith(`${location.origin}/r/${ID}`);
+  });
+
+  it('"รายงาน" from the menu opens the report form for the report', async () => {
+    const { root, settle } = await setup({ menuRole: 'flag' });
+    root.querySelector<HTMLButtonElement>('button.more')!.click();
+    await flush();
+    await settle();
+    expect(root.querySelector('app-flag-form h3')?.textContent).toContain('รายงานเรื่องนี้');
+  });
+
+  it('an admin hides from the menu: AdminService.hide then missing', async () => {
+    const { root, settle, admin, out } = await setup({ admin: true, menuRole: 'hide' });
+    root.querySelector<HTMLButtonElement>('button.more')!.click();
+    await flush();
+    await settle();
+    expect(admin.hide).toHaveBeenCalledWith('report', ID);
+    expect(out.missing).toHaveBeenCalledWith('ซ่อนเรื่องนี้แล้ว');
+  });
+
+  it('every comment has a labelled report button that opens the form under it', async () => {
+    const { root, settle } = await setup({ comments: [comment(), comment({ id: 'c2', body: 'อีกอัน' })] });
+    const buttons = root.querySelectorAll<HTMLButtonElement>('button.flag-comment');
+    expect(buttons.length).toBe(2);
+    expect(buttons[1].getAttribute('aria-label')).toBe('รายงานความคิดเห็นนี้');
+    buttons[1].click();
+    await flush();
+    await settle();
+    const items = root.querySelectorAll('.comments li');
+    expect(items[1].querySelector('app-flag-form h3')?.textContent).toContain('รายงานความคิดเห็นนี้');
+    expect(items[0].querySelector('app-flag-form')).toBeNull();
   });
 });

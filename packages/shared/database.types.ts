@@ -187,14 +187,14 @@ isOneToOne: false
                   ]
                 },"moderation_log": {
                   Row: {
-                    "action": string,"admin_id": string,"created_at": string,"detail": NonNullable<Json>,"id": number,"target_id": string | null,"target_type": string
+                    "action": string,"admin_id": string | null,"created_at": string,"detail": NonNullable<Json>,"id": number,"target_id": string | null,"target_type": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "action": string,"admin_id": string,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: number,"target_id"?: string | null,"target_type": string
+                    "action": string,"admin_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: number,"target_id"?: string | null,"target_type": string
                   }
                   Update: {
-                    "action"?: string,"admin_id"?: string,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: number,"target_id"?: string | null,"target_type"?: string
+                    "action"?: string,"admin_id"?: string | null,"created_at"?: string,"detail"?: NonNullable<Json>,"id"?: number,"target_id"?: string | null,"target_type"?: string
                   }
                   Relationships: [
                     {
@@ -285,14 +285,14 @@ isOneToOne: false
                   ]
                 },"reports": {
                   Row: {
-                    "approved_at": string | null,"author_id": string,"category_id": number,"comment_count": number,"confirm_count": number,"created_at": string,"danger_level": number,"description": string | null,"hide_author": boolean,"id": string,"location": unknown,"place_name": string | null,"profanity_flag": boolean,"public_location": unknown,"reject_reason": string | null,"resolved_at": string | null,"status": string,"title": string,"updated_at": string
+                    "approved_at": string | null,"author_id": string,"category_id": number,"comment_count": number,"confirm_count": number,"created_at": string,"danger_level": number,"description": string | null,"hidden_from": string | null,"hide_author": boolean,"id": string,"location": unknown,"place_name": string | null,"profanity_flag": boolean,"public_location": unknown,"reject_reason": string | null,"resolved_at": string | null,"status": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "approved_at"?: string | null,"author_id": string,"category_id": number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level": number,"description"?: string | null,"hide_author"?: boolean,"id"?: string,"location": unknown,"place_name"?: string | null,"profanity_flag"?: boolean,"public_location": unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title": string,"updated_at"?: string
+                    "approved_at"?: string | null,"author_id": string,"category_id": number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level": number,"description"?: string | null,"hidden_from"?: string | null,"hide_author"?: boolean,"id"?: string,"location": unknown,"place_name"?: string | null,"profanity_flag"?: boolean,"public_location": unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "approved_at"?: string | null,"author_id"?: string,"category_id"?: number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level"?: number,"description"?: string | null,"hide_author"?: boolean,"id"?: string,"location"?: unknown,"place_name"?: string | null,"profanity_flag"?: boolean,"public_location"?: unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
+                    "approved_at"?: string | null,"author_id"?: string,"category_id"?: number,"comment_count"?: number,"confirm_count"?: number,"created_at"?: string,"danger_level"?: number,"description"?: string | null,"hidden_from"?: string | null,"hide_author"?: boolean,"id"?: string,"location"?: unknown,"place_name"?: string | null,"profanity_flag"?: boolean,"public_location"?: unknown,"reject_reason"?: string | null,"resolved_at"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -362,6 +362,62 @@ isOneToOne: false
               "comment_count": number,"comment_id": string,"confirm_count": number,"status": string
             }[]
                            },
+"admin_approve_report":
+{ Args: { "p_admin": string,"p_category": string,"p_danger": number,"p_lat": number,"p_lng": number,"p_location_mode": string,"p_report": string,"p_title": string }; Returns: Json
+                           },
+"admin_before_photos":
+{ Args: { "p_report": string }; Returns: Json
+                           },
+"admin_counts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "claims": number,"flags": number,"reports": number
+            }[]
+                           },
+"admin_cover":
+{ Args: { "p_report": string }; Returns: Json
+                           },
+"admin_hidden":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
+"admin_hide":
+{ Args: { "p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
+"admin_log":
+{ Args: { "p_before": number,"p_limit"?: number }; Returns: Json
+                           },
+"admin_person":
+{ Args: { "p_id": string }; Returns: Json
+                           },
+"admin_photo":
+{ Args: { "p_photo": string }; Returns: Json
+                           },
+"admin_queue_claims":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
+"admin_queue_flags":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
+"admin_queue_reports":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
+"admin_reject_report":
+{ Args: { "p_admin": string,"p_note": string,"p_reason": string,"p_report": string }; Returns: Json
+                           },
+"admin_resolve_flags":
+{ Args: { "p_action": string,"p_admin": string,"p_flag": string }; Returns: Json
+                           },
+"admin_restore":
+{ Args: { "p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
+"admin_review_fix_claim":
+{ Args: { "p_admin": string,"p_approve": boolean,"p_claim": string }; Returns: Json
+                           },
+"admin_set_ban":
+{ Args: { "p_admin": string,"p_banned": boolean,"p_user": string }; Returns: Json
+                           },
+"admin_users":
+{ Args: { "p_limit"?: number,"p_q": string }; Returns: Json
+                           },
 "area_name_at":
 { Args: { "lat": number,"lng": number }; Returns: string
                            },
@@ -370,6 +426,12 @@ isOneToOne: false
                            },
 "claim_photos":
 { Args: { "p_photo_ids": (string)[],"p_user": string }; Returns: undefined
+                           },
+"create_fix_claim":
+{ Args: { "p_limit": number,"p_note": string,"p_photo": string,"p_report": string,"p_user": string }; Returns: Json
+                           },
+"create_flag":
+{ Args: { "p_limit": number,"p_note": string,"p_reason": string,"p_target_id": string,"p_target_type": string,"p_user": string }; Returns: Json
                            },
 "create_report":
 { Args: { "p_category": string,"p_danger": number,"p_description": string,"p_flagged": boolean,"p_hide_author": boolean,"p_lat": number,"p_limit": number,"p_lng": number,"p_photo_ids": (string)[],"p_tags": (string)[],"p_title": string,"p_user": string }; Returns: {
@@ -392,8 +454,14 @@ isOneToOne: false
 "fuzz_point":
 { Args: { "max_m": number,"p": unknown }; Returns: unknown
                            },
+"hide_target":
+{ Args: { "p_action": string,"p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
 "lock_profile":
 { Args: { "p_user": string }; Returns: undefined
+                           },
+"log_action":
+{ Args: { "p_action": string,"p_admin": string,"p_detail"?: Json,"p_target_id": string,"p_target_type": string }; Returns: undefined
                            },
 "merge_duplicate":
 { Args: { "p_limit": number,"p_photo_ids": (string)[],"p_target": string,"p_user": string }; Returns: {
@@ -403,8 +471,14 @@ isOneToOne: false
 "merge_hash_tags":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"moderation_effect":
+{ Args: { "p_demote"?: Json,"p_promote"?: Json,"p_report": string }; Returns: Json
+                           },
 "register_photo":
 { Args: { "p_blurred": boolean,"p_height": number,"p_id": string,"p_limit": number,"p_path": string,"p_uploader": string,"p_width": number }; Returns: undefined
+                           },
+"report_public_paths":
+{ Args: { "p_report": string }; Returns: Json
                            },
 "reports_in_bbox":
 { Args: { "categories"?: (string)[],"levels"?: (number)[],"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"q"?: string,"statuses"?: (string)[] }; Returns: Json

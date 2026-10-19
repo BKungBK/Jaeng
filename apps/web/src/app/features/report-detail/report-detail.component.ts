@@ -12,20 +12,26 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { COMMENT_MAX, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
+import type { FlagTarget } from '@jaeng/shared/admin';
+import { COMMENT_MAX, LiveSignal, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { LEVELS } from '@jaeng/shared/levels';
 import { thumbPath } from '@jaeng/shared/report';
+import { PopoverController } from '@ionic/angular';
 import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { RealtimeService } from '../../core/realtime.service';
 import { IconComponent } from '../../shared/icon.component';
 import { formatAgo, formatDate } from '../../shared/time';
+import { AdminService } from '../admin/admin.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
 import { coverPhotoUrl, STATUS_TH } from '../map/report';
 import { CATEGORY_TH, PHOTO_KIND_TH, ReportDetail } from './report-detail';
+import { FixClaimFormComponent } from './fix-claim-form.component';
+import { FlagFormComponent } from './flag-form.component';
 import { ReportDetailService } from './report-detail.service';
+import { ReportMenuComponent, type ReportMenuRole } from './report-menu.component';
 
 const MSG_LOAD = 'โหลดเรื่องนี้ไม่สำเร็จ ลองอีกครั้งนะ';
 const MSG_GENERIC = MSG_INTERNAL_TH;
@@ -34,6 +40,10 @@ export const SIGNAL_DEBOUNCE_MS = 250;
 const LONG_WAIT_DAYS = 30;
 
 type State = 'loading' | 'ready' | 'error';
+/** The inline form that replaces the action row (or sits under one comment). */
+type OpenForm = { kind: 'fix' } | { kind: 'flag'; type: FlagTarget; id: string };
+const MSG_FIX_SENT = 'ขอบคุณนะ ส่งให้ผู้ดูแลตรวจแล้ว';
+const MSG_FLAG_SENT = 'ขอบคุณที่ช่วยดูแลนะ ผู้ดูแลจะตรวจให้';
 
 /**
  * The report detail (spec 3.4): one component for the 380 px right panel and the phone's bottom sheet.
@@ -44,18 +54,22 @@ type State = 'loading' | 'ready' | 'error';
   templateUrl: 'report-detail.component.html',
   styleUrls: ['report-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent],
+  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent],
 })
 export class ReportDetailComponent {
   private svc = inject(ReportDetailService);
   private prompt = inject(LoginPromptService);
   protected readonly auth = inject(AuthService);
   private closeBtn = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');
+  private moreBtn = viewChild<ElementRef<HTMLButtonElement>>('moreBtn');
+  private popovers = inject(PopoverController);
+  private admin = inject(AdminService);
 
   readonly reportId = input.required<string>();
   readonly closed = output<void>();
   readonly loaded = output<ReportDetail>();
-  readonly missing = output<void>();
+  /** The report is not public (any more); a message when the panel knows why. */
+  readonly missing = output<string | void>();
   readonly changed = output<ReportSignal>();
 
   protected readonly state = signal<State>('loading');
@@ -66,6 +80,9 @@ export class ReportDetailComponent {
   protected readonly sending = signal(false);
   protected readonly draft = signal('');
   protected readonly message = signal('');
+  protected readonly form = signal<OpenForm | null>(null);
+  /** The control that opened the form: focus goes back to it when the form closes. */
+  private opener: HTMLElement | null = null;
 
   protected readonly max = COMMENT_MAX;
   protected readonly canSend = computed(() => {
@@ -112,6 +129,7 @@ export class ReportDetailComponent {
     this.confirmed.set(false);
     this.message.set('');
     this.draft.set('');
+    this.form.set(null);
     this.confirming.set(false); // flags belong to the report on screen, not to the panel
     this.sending.set(false);
     let d: ReportDetail | null;
@@ -156,7 +174,7 @@ export class ReportDetailComponent {
    * anyone with the anon key can send one. A burst is coalesced into one refetch, and the refetched
    * report is what gets shown.
    */
-  private onSignal(s: ReportSignal) {
+  private onSignal(s: LiveSignal) {
     const d = this.detail();
     if (!d || s.id !== this.reportId() || s.id !== d.id) return;
     clearTimeout(this.liveTimer);
@@ -253,6 +271,88 @@ export class ReportDetailComponent {
       this.message.set('คัดลอกไม่สำเร็จ ลองคัดลอกจากแถบที่อยู่แทนนะ');
     }
   }
+
+  /** Members only: signed out, ask to log in first and go on only after a successful login. */
+  private async signedInOrAsk(): Promise<boolean> {
+    return this.auth.signedIn() || (await this.prompt.ask());
+  }
+
+  protected async openFix(event: Event) {
+    this.opener = event.currentTarget as HTMLElement;
+    if (!(await this.signedInOrAsk())) return;
+    this.message.set('');
+    this.form.set({ kind: 'fix' });
+  }
+
+  protected async openMenu(event: Event) {
+    const d = this.detail();
+    if (!d) return;
+    this.opener = this.moreBtn()?.nativeElement ?? null;
+    const popover = await this.popovers.create({
+      component: ReportMenuComponent,
+      cssClass: 'report-menu',
+      event,
+      side: 'top',
+      alignment: 'end',
+    });
+    await popover.present();
+    const { role } = await popover.onDidDismiss();
+    const choice = role as ReportMenuRole | undefined;
+    if (choice === 'copy') await this.copyLink();
+    else if (choice === 'flag') await this.openFlag('report', d.id);
+    else if (choice === 'hide') await this.hideReport(d.id);
+  }
+
+  protected async flagComment(c: PublicComment, event: Event) {
+    this.opener = event.currentTarget as HTMLElement;
+    await this.openFlag('comment', c.id);
+  }
+
+  private async openFlag(type: FlagTarget, id: string) {
+    if (!(await this.signedInOrAsk())) return;
+    this.message.set('');
+    this.form.set({ kind: 'flag', type, id });
+  }
+
+  private async hideReport(id: string) {
+    const seq = this.seq;
+    try {
+      await this.admin.hide('report', id);
+      if (seq === this.seq) this.missing.emit('ซ่อนเรื่องนี้แล้ว'); // the map takes the beam away and closes the panel
+    } catch (e) {
+      if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);
+    }
+  }
+
+  protected closeForm() {
+    this.form.set(null);
+    // after the action row is back: the opener, or ⋯ when the opener is gone (fix sent -> fix_claimed)
+    setTimeout(() => (this.opener?.isConnected ? this.opener : this.moreBtn()?.nativeElement)?.focus());
+  }
+
+  protected fixDone(report: ReportSignal) {
+    this.apply(report);
+    this.message.set(MSG_FIX_SENT);
+    this.closeForm();
+  }
+
+  /** Someone else claimed or it was resolved meanwhile: show why and read the report again. */
+  protected fixStale(messageTh: string) {
+    const d = this.detail();
+    this.message.set(messageTh);
+    this.closeForm();
+    if (d) void this.refetch(d.id, this.seq);
+  }
+
+  protected flagDone() {
+    this.message.set(MSG_FLAG_SENT);
+    this.closeForm();
+  }
+
+  protected isFlagging = (type: FlagTarget, id: string) => {
+    const f = this.form();
+    return f?.kind === 'flag' && f.type === type && f.id === id;
+  };
 
   protected onInput(event: Event) {
     this.draft.set((event.target as HTMLTextAreaElement).value);

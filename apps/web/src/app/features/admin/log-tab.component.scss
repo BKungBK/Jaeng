@@ -1,0 +1,65 @@
+@use 'admin';
+
+.list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+
+  strong {
+    font: 500 15px/1.4 admin.$prompt;
+  }
+
+  .kind {
+    color: var(--ink2);
+    font-size: 13px;
+  }
+
+  .name {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  // a 44 px target around a short link
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: -10px 0;
+    color: var(--pri);
+    font-size: 14px;
+    text-underline-offset: 3px;
+  }
+}
+
+.detail {
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.more {
+  justify-self: start;
+}
+
+.empty-line {
+  padding: 16px 0;
+  color: var(--ink2);
+  text-align: center;
+}

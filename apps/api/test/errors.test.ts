@@ -30,6 +30,20 @@ test('plan 4 codes have their status and wording', () => {
   expect(ERRORS.invalid_display_name.th).toBe('ชื่อที่แสดงต้องยาว 2–30 ตัวอักษร');
 });
 
+test('plan 5 codes have their status and wording', () => {
+  expect(errorBody('invalid_state')).toEqual({
+    error: { code: 'invalid_state', message_th: 'รายการนี้ถูกจัดการไปแล้ว ลองโหลดใหม่นะ', message_en: 'This item was already handled. Please reload.' },
+  });
+  expect(ERRORS.forbidden.status).toBe(403);
+  expect(ERRORS.item_not_found.status).toBe(404);
+  expect(ERRORS.claim_pending.status).toBe(409);
+  expect(ERRORS.already_resolved.status).toBe(409);
+  expect(ERRORS.cannot_ban_admin.status).toBe(409);
+  expect(ERRORS.invalid_note.status).toBe(400);
+  expect(ERRORS.invalid_note.th).toBe('ข้อความยาวได้ไม่เกิน 500 ตัวอักษร');
+  expect(ERRORS.forbidden.th).toBe('หน้านี้สำหรับผู้ดูแลเท่านั้น');
+});
+
 test('the internal message is the shared wording the web app also uses', () => {
   expect(ERRORS.internal.th).toBe(MSG_INTERNAL_TH);
   expect(MSG_INTERNAL_TH).toBe('ระบบขัดข้อง ลองใหม่อีกครั้งนะ');

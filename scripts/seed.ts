@@ -138,26 +138,43 @@ for (const r of reports) {
     await db`insert into public.report_tags (report_id, tag_id) values (${row.id}, ${tag.id})`;
   }
 
-  // Photos: i % 3 !== 0 gets a 'before' from the category pool (round-robin); resolved and
-  // fix_claimed also get an 'after' (the next file in the same pool).
+  // Photos: i % 3 !== 0 gets a 'before' from the category pool (round-robin). Resolved reports
+  // also get a public 'after'; fix_claimed ones get the same next file as a private 'claim' photo
+  // of neighbor 1, who is waiting for an admin to confirm the fix (plan 5).
   const pool = POOLS[r.category] ?? [];
+  let fixPhotoId: string | null = null;
   if (pool.length > 0) {
     const cursor = poolCursor[r.category] ?? 0;
     poolCursor[r.category] = cursor + 1;
-    const wanted: { kind: 'before' | 'after'; file: string }[] = [];
+    const wanted: { kind: 'before' | 'after' | 'claim'; file: string }[] = [];
     if (i % 3 !== 0) wanted.push({ kind: 'before', file: pool[cursor % pool.length] });
-    if (r.status === 'resolved' || r.status === 'fix_claimed') wanted.push({ kind: 'after', file: pool[(cursor + 1) % pool.length] });
+    if (r.status === 'resolved') wanted.push({ kind: 'after', file: pool[(cursor + 1) % pool.length] });
+    if (r.status === 'fix_claimed') wanted.push({ kind: 'claim', file: pool[(cursor + 1) % pool.length] });
     for (const [n, { kind, file }] of wanted.entries()) {
       const photoId = Bun.randomUUIDv5(`${row.id}:${kind}:${n}`, NAMESPACE);
-      const path = pending ? `${reporterId}/${photoId}.webp` : `${row.id}/${photoId}.webp`;
-      const bucket = pending ? 'photos-private' : 'photos-public';
+      const uploaderId = kind === 'claim' ? neighbors[0] : reporterId;
+      const isPrivate = pending || kind === 'claim';
+      const path = isPrivate ? `${uploaderId}/${photoId}.webp` : `${row.id}/${photoId}.webp`;
+      const bucket = isPrivate ? 'photos-private' : 'photos-public';
       const p = await loadPhoto(file);
       await upload(bucket, path, p.full);
       await upload(bucket, thumbPath(path), p.thumb);
       await db`insert into public.report_photos (id, report_id, uploader_id, kind, storage_path, width, height, blurred)
-               values (${photoId}, ${row.id}, ${reporterId}, ${kind}, ${path}, ${p.width}, ${p.height}, false)`;
+               values (${photoId}, ${row.id}, ${uploaderId}, ${kind}, ${path}, ${p.width}, ${p.height}, false)`;
+      if (kind !== 'before') fixPhotoId = photoId;
       photoCount++;
     }
+  }
+
+  // Fix claims: fix_claimed waits for review, resolved was approved by the admin.
+  if (r.status === 'fix_claimed') {
+    await db`insert into public.fix_claims (report_id, claimant_id, note, photo_id, status, created_at)
+             values (${row.id}, ${neighbors[0]}, 'ซ่อมเสร็จแล้วนะ ช่วยตรวจหน่อย', ${fixPhotoId}, 'pending',
+                     ${new Date(now - 3_600_000)})`;
+  } else if (r.status === 'resolved') {
+    await db`insert into public.fix_claims (report_id, claimant_id, note, photo_id, status, reviewed_by, reviewed_at, created_at)
+             values (${row.id}, ${neighbors[0]}, null, ${fixPhotoId}, 'approved', ${adminId}, ${resolvedAt},
+                     ${new Date(resolvedAt!.getTime() - 3_600_000)})`;
   }
   i++;
 }

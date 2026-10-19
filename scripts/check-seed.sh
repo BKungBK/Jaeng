@@ -30,7 +30,10 @@ PUB=http://localhost:8000/sb/storage/v1/object/public/photos-public
 PUBLIC_STATUSES="'open','fix_claimed','resolved'"
 
 expect "at least 20 public reports have photos" "select count(distinct r.id) >= 20 from public.reports r join public.report_photos p on p.report_id = r.id where r.status in ($PUBLIC_STATUSES)" t
-expect "every fix_claimed/resolved report has an after photo" "select count(*) = 0 from public.reports r where r.status in ('fix_claimed','resolved') and not exists (select 1 from public.report_photos p where p.report_id = r.id and p.kind = 'after')" t
+expect "every resolved report has an after photo" "select count(*) = 0 from public.reports r where r.status = 'resolved' and not exists (select 1 from public.report_photos p where p.report_id = r.id and p.kind = 'after')" t
+expect "every fix_claimed report has one pending claim" "select count(*) = 0 from public.reports r where r.status = 'fix_claimed' and (select count(*) from public.fix_claims fc where fc.report_id = r.id and fc.status = 'pending') <> 1" t
+expect "4 pending claims with a claim photo" "select count(*) from public.fix_claims fc join public.reports r on r.id = fc.report_id join public.report_photos p on p.id = fc.photo_id where r.status = 'fix_claimed' and fc.status = 'pending' and p.kind = 'claim'" 4
+expect "no after photo on a fix_claimed report" "select count(*) from public.report_photos p join public.reports r on r.id = p.report_id where r.status = 'fix_claimed' and p.kind = 'after'" 0
 expect "no orphan photos" "select count(*) from public.report_photos where report_id is null" 0
 expect "photos are not marked blurred" "select count(*) from public.report_photos where blurred" 0
 expect "photo sizes recorded and within 1600" "select count(*) = 0 from public.report_photos where width is null or height is null or greatest(width, height) > 1600" t
@@ -46,7 +49,7 @@ while read -r path; do
     [ "$(head -c 4 /tmp/seed-photo.bin)" = "RIFF" ] && [ "$(tail -c +9 /tmp/seed-photo.bin | head -c 4)" = "WEBP" ] || { echo "  bad magic: $p"; bad_public=$((bad_public + 1)); }
     [ "$(grep -ac Exif /tmp/seed-photo.bin)" = "0" ] || { echo "  has Exif: $p"; bad_exif=$((bad_exif + 1)); }
   done
-done < <(q "select p.storage_path from public.report_photos p join public.reports r on r.id = p.report_id where r.status in ($PUBLIC_STATUSES)")
+done < <(q "select p.storage_path from public.report_photos p join public.reports r on r.id = p.report_id where r.status in ($PUBLIC_STATUSES) and p.kind <> 'claim'")
 rm -f /tmp/seed-photo.bin
 if [ "$checked_public" -ge 40 ] && [ "$bad_public" = 0 ]; then echo "✓ public photos and thumbs served as WebP ($checked_public files)"; else echo "✗ public photos: $bad_public bad of $checked_public (need at least 40 files)"; fail=1; fi
 if [ "$checked_public" -ge 40 ] && [ "$bad_exif" = 0 ]; then echo "✓ no Exif in public photos"; else echo "✗ Exif found in $bad_exif public files"; fail=1; fi
@@ -60,6 +63,18 @@ while read -r path; do
   case "$code" in 400|404) ;; *) echo "  pending photo public ($code): $path"; pend_bad=$((pend_bad + 1)) ;; esac
 done < <(q "select p.storage_path from public.report_photos p join public.reports r on r.id = p.report_id where r.status = 'pending_review'")
 if [ "$pend_bad" = 0 ]; then echo "✓ pending photos are not public"; else echo "✗ $pend_bad pending photos reachable publicly"; fail=1; fi
+
+# Claim photos stay private until an admin confirms the fix (plan 5).
+claim_bad=0 claim_checked=0
+while read -r path; do
+  [ -z "$path" ] && continue
+  for p in "$path" "${path%.webp}_thumb.webp"; do
+    claim_checked=$((claim_checked + 1))
+    code=$(curl -s -o /dev/null -w '%{http_code}' "$PUB/$p")
+    case "$code" in 400|404) ;; *) echo "  claim photo public ($code): $p"; claim_bad=$((claim_bad + 1)) ;; esac
+  done
+done < <(q "select p.storage_path from public.report_photos p where p.kind = 'claim'")
+if [ "$claim_checked" -ge 8 ] && [ "$claim_bad" = 0 ]; then echo "✓ claim photos are not public ($claim_checked files)"; else echo "✗ claim photos: $claim_bad public of $claim_checked (need at least 8 files)"; fail=1; fi
 
 missing=0
 for f in supabase/seed-photos/*.jpg; do

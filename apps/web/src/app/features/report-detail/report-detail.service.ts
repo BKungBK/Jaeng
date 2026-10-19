@@ -1,8 +1,11 @@
 import { inject, Injectable } from '@angular/core';
+import type { FixClaimBody, FlagBody } from '@jaeng/shared/admin';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
+import type { PhotoUploaded } from '@jaeng/shared/report';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
+import { PHOTO_PIPELINE } from '../report-new/photo-tools';
 import { DETAIL_COLUMNS, ReportDetail, UUID } from './report-detail';
 
 const COMMENT_LIMIT = 200;
@@ -13,6 +16,7 @@ export class ReportDetailService {
   private supabase = inject(SupabaseService);
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private pipeline = inject(PHOTO_PIPELINE);
 
   /** null for an id that is not a uuid (no request) and for a report that is not public. */
   async get(id: string): Promise<ReportDetail | null> {
@@ -56,5 +60,22 @@ export class ReportDetailService {
 
   addComment(id: string, body: string): Promise<{ comment: PublicComment; report: ReportSignal }> {
     return this.api.post(`/reports/${id}/comments`, { body });
+  }
+
+  /** "แจ้งว่าแก้แล้ว"; the photo (if any) stays private until an admin confirms. */
+  claimFix(id: string, body: FixClaimBody): Promise<{ claim_id: string; report: ReportSignal }> {
+    return this.api.post(`/reports/${id}/fix-claims`, body);
+  }
+
+  flag(body: FlagBody): Promise<{ flag_id: string; hidden: boolean }> {
+    return this.api.post('/flags', body);
+  }
+
+  /** The same compression as the report flow, then the upload; returns the photo id. */
+  async uploadPhoto(file: File): Promise<string> {
+    const { blob } = await this.pipeline.compress(file);
+    const form = new FormData();
+    form.append('file', blob, blob.type === 'image/jpeg' ? 'photo.jpg' : 'photo.webp');
+    return (await this.api.upload<PhotoUploaded>('/photos', form)).photo_id;
   }
 }

@@ -124,6 +124,14 @@
       "description": "Count disc for grouped reports; border, pulse and badge in the highest level inside.",
       "html": "<button class=\"ds-cl\" style=\"--c:#E57373\" aria-label=\"7 เรื่องในพื้นที่นี้ ระดับสูงสุดวิกฤต\">7<i class=\"ds-cl-sym\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg></i></button>",
       "css": ".ds-cl{position:relative;width:52px;height:52px;box-sizing:border-box;padding:0;border-radius:50%;background:#fff;border:3px solid var(--c);font:600 18px/1 'Prompt',sans-serif;font-variant-numeric:tabular-nums;color:#2B2A33;cursor:pointer;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}.ds-cl:focus-visible{outline:3px solid #3F6FA8;outline-offset:4px}.ds-cl-sym{position:absolute;right:-6px;bottom:-2px;display:grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--c);color:#2B2A33}.ds-cl-sym svg{width:10px;height:10px;fill:currentColor}"
+    },
+    {
+      "name": "Before and after",
+      "kind": "custom",
+      "refersTo": "report-card",
+      "description": "Admin claim review: the before and after photos as two equal square tiles side by side, each named by a white label pill; a missing after photo is a dashed Sand Line tile that says so.",
+      "html": "<div class=\"ds-ba\"><figure><span class=\"ds-ba-img\" style=\"background:#CBA582\"></span><figcaption>ก่อนแก้</figcaption></figure><figure><span class=\"ds-ba-none\">ไม่ได้แนบรูปหลังแก้</span><figcaption>หลังแก้</figcaption></figure></div>",
+      "css": ".ds-ba{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:320px}.ds-ba figure{position:relative;margin:0;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#FBF7F2}.ds-ba-img{display:block;width:100%;height:100%}.ds-ba-none{display:grid;place-items:center;height:100%;box-sizing:border-box;padding:12px;border:2px dashed #E8E0D5;border-radius:12px;color:#6B6878;font:400 14px/1.5 'IBM Plex Sans Thai',sans-serif;text-align:center}.ds-ba figcaption{position:absolute;left:8px;bottom:8px;padding:2px 10px;border-radius:10px;background:#fff;color:#2B2A33;font:500 13px/1.5 'IBM Plex Sans Thai',sans-serif}"
     }
   ],
   "narrative": {
@@ -154,7 +162,9 @@
       "Do keep every target at least 44 × 44 px and give every beacon an aria-label of \"{title} ระดับ{level} {status}\".",
       "Do use Lucide SVG icons for pictograms so they look the same on every device; never emoji.",
       "Do say a report's status in words with its own Lucide icon, and say only what is true about photos (\"รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ\").",
-      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution."
+      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution.",
+      "Do put an admin's two opposite decisions at opposite ends of their row, different in fill and in word (secondary ปฏิเสธ… / primary อนุมัติ…), and make every ban a second press in place (แน่ใจ แบนเลย).",
+      "Do say only true things about a fix-claim photo: \"รูปหลังแก้จะขึ้นหลังผู้ดูแลยืนยัน\"."
     ],
     "donts": [
       "Don't look like a dark game or a cold government form.",

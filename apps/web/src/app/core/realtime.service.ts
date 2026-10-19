@@ -1,19 +1,20 @@
 import { inject, Injectable } from '@angular/core';
-import { PublicStatus, REPORT_EVENT, REPORTS_CHANNEL, ReportSignal } from '@jaeng/shared/api';
+import { LiveSignal, LiveStatus, REPORT_EVENT, REPORTS_CHANNEL } from '@jaeng/shared/api';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 
-const STATUSES: readonly PublicStatus[] = ['open', 'fix_claimed', 'resolved'];
+/** 'hidden': the report just left the public map (an admin or three flags hid it). */
+const STATUSES: readonly LiveStatus[] = ['open', 'fix_claimed', 'resolved', 'hidden'];
 const isCount = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v >= 0;
 
 /** The channel is public (anyone with the anon key can send), so drop anything not shaped like a signal. */
-export function isReportSignal(v: unknown): v is ReportSignal {
+export function isLiveSignal(v: unknown): v is LiveSignal {
   if (typeof v !== 'object' || v === null) return false;
   const s = v as Record<string, unknown>;
   return (
     typeof s['id'] === 'string' &&
     s['id'] !== '' &&
-    STATUSES.includes(s['status'] as PublicStatus) &&
+    STATUSES.includes(s['status'] as LiveStatus) &&
     isCount(s['confirm_count']) &&
     isCount(s['comment_count'])
   );
@@ -25,7 +26,7 @@ export function isReportSignal(v: unknown): v is ReportSignal {
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {
   private supabase = inject(SupabaseService);
-  private listeners = new Set<(s: ReportSignal) => void>();
+  private listeners = new Set<(s: LiveSignal) => void>();
   private channel?: RealtimeChannel;
   private starting = false;
   /**
@@ -34,9 +35,9 @@ export class RealtimeService {
    */
   private closing?: Promise<void>;
 
-  listen(fn: (s: ReportSignal) => void): () => void {
+  listen(fn: (s: LiveSignal) => void): () => void {
     // wrap so the same function can be registered twice and each unsubscribe is independent
-    const entry = (s: ReportSignal) => fn(s);
+    const entry = (s: LiveSignal) => fn(s);
     this.listeners.add(entry);
     void this.ensureChannel();
     return () => {
@@ -55,7 +56,7 @@ export class RealtimeService {
       this.channel = client
         .channel(REPORTS_CHANNEL)
         .on('broadcast', { event: REPORT_EVENT }, ({ payload }) => {
-          if (!isReportSignal(payload)) return;
+          if (!isLiveSignal(payload)) return;
           for (const l of [...this.listeners]) l(payload);
         })
         .subscribe();

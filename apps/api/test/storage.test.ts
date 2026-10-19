@@ -29,6 +29,22 @@ describe('createSupabasePhotoStorage', () => {
     ]);
   });
 
+  test('demote moves the file and its thumbnail from public back to private at the same path', async () => {
+    const { client, log } = fakeClient();
+    await createSupabasePhotoStorage(client).demote('r/p.webp');
+    expect(log).toEqual([
+      ['move', 'photos-public', 'r/p.webp', 'r/p.webp', { destinationBucket: 'photos-private' }],
+      ['move', 'photos-public', 'r/p_thumb.webp', 'r/p_thumb.webp', { destinationBucket: 'photos-private' }],
+    ]);
+  });
+
+  test('a demote error throws', async () => {
+    const client = {
+      storage: { from: () => ({ move: async () => ({ error: { message: 'gone' } }) }) },
+    } as unknown as SupabaseClient;
+    await expect(createSupabasePhotoStorage(client).demote('r/p.webp')).rejects.toThrow('gone');
+  });
+
   test('put uploads with webp content type; signedUrl reads photos-private', async () => {
     const { client, log } = fakeClient();
     const s = createSupabasePhotoStorage(client);

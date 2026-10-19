@@ -1,3 +1,19 @@
+import type {
+  AdminCounts,
+  AdminUser,
+  FlagAction,
+  FlagReason,
+  FlagTarget,
+  HiddenItem,
+  LocationMode,
+  LogEntry,
+  ModerationEffect,
+  PhotoRef,
+  QueueClaim,
+  QueueFlag,
+  QueueReport,
+  RejectReason,
+} from '@jaeng/shared/admin';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
@@ -47,4 +63,47 @@ export type Store = {
   renameMember(userId: string, name: string): Promise<string>;
   /** Deletes unattached photo rows older than the age and returns them (deleting is the claim). */
   deleteOrphanPhotos(olderThanHours: number): Promise<{ id: string; path: string }[]>;
+  /** "It's fixed": the report waits for an admin; the photo stays private until approved. */
+  createFixClaim(i: {
+    reportId: string;
+    userId: string;
+    note: string | null;
+    photoId: string | null;
+    limit: number;
+  }): Promise<{ claimId: string; effect: ModerationEffect }>;
+  /** One open flag per member and target; the third distinct member hides the target. */
+  createFlag(i: {
+    userId: string;
+    targetType: FlagTarget;
+    targetId: string;
+    reason: FlagReason;
+    note: string | null;
+    limit: number;
+  }): Promise<{ flagId: string; hidden: boolean; effect: ModerationEffect }>;
+
+  // Admin actions: each throws ApiError invalid_state when someone else got there first.
+  /** null edits keep the current value. */
+  approveReport(
+    adminId: string,
+    reportId: string,
+    edits: { category: CategorySlug | null; danger: number | null; title: string | null; location: LocationMode; lng: number | null; lat: number | null },
+  ): Promise<ModerationEffect>;
+  rejectReport(adminId: string, reportId: string, reason: RejectReason, note: string | null): Promise<ModerationEffect>;
+  reviewFixClaim(adminId: string, claimId: string, approve: boolean): Promise<ModerationEffect>;
+  hide(adminId: string, targetType: FlagTarget, targetId: string): Promise<ModerationEffect>;
+  restore(adminId: string, targetType: FlagTarget, targetId: string): Promise<ModerationEffect>;
+  /** Acts on every open flag of the target of flagId. */
+  resolveFlags(adminId: string, flagId: string, action: FlagAction): Promise<ModerationEffect>;
+  setBan(adminId: string, userId: string, banned: boolean): Promise<ModerationEffect>;
+
+  // Admin reads: photos come without URLs; the route adds them.
+  adminCounts(): Promise<AdminCounts>;
+  queueReports(): Promise<QueueReport<PhotoRef>[]>;
+  queueClaims(): Promise<QueueClaim<PhotoRef>[]>;
+  queueFlags(): Promise<QueueFlag<PhotoRef>[]>;
+  hiddenItems(): Promise<HiddenItem<PhotoRef>[]>;
+  /** Name or e-mail contains q; blank q lists everyone (newest first, at most 50). */
+  adminUsers(q: string): Promise<AdminUser[]>;
+  /** Newest first, 50 per page; `before` is the last id of the previous page. */
+  adminLog(before: number | null): Promise<LogEntry[]>;
 };

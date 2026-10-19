@@ -13,7 +13,6 @@ for _ in $(seq 1 90); do
     bash scripts/smoke.sh
     echo
     echo "แจ้ง:      http://localhost:8000"
-    echo "Studio:    http://localhost:54323"
     echo "Mailpit:   http://localhost:54324"
     exit 0
   fi

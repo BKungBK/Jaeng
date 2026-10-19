@@ -7,6 +7,8 @@ import { IconComponent } from '../../shared/icon.component';
 import { MapReturnService } from '../report-new/map-return.service';
 import { AdminService } from './admin.service';
 import { ADMIN_TABS, TAB_ICON, TAB_TH, type AdminTab } from './admin-labels';
+import { ClaimsQueueComponent } from './claims-queue.component';
+import { FlagsQueueComponent } from './flags-queue.component';
 import { ReviewQueueComponent } from './review-queue.component';
 
 const isTab = (v: string | null): v is AdminTab => (ADMIN_TABS as readonly string[]).includes(v ?? '');
@@ -18,7 +20,7 @@ const isTab = (v: string | null): v is AdminTab => (ADMIN_TABS as readonly strin
 @Component({
   selector: 'app-admin',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ReviewQueueComponent],
+  imports: [IconComponent, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent],
   templateUrl: 'admin.page.html',
   styleUrl: 'admin.page.scss',
   host: { class: 'ion-page' },

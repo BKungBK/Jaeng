@@ -30,6 +30,12 @@
         @case ('reports') {
           <app-review-queue (changed)="refreshCounts()" />
         }
+        @case ('claims') {
+          <app-claims-queue (changed)="refreshCounts()" />
+        }
+        @case ('flags') {
+          <app-flags-queue (changed)="refreshCounts()" />
+        }
         @default {
           <p class="caption">แท็บนี้กำลังมาในขั้นถัดไป</p>
         }

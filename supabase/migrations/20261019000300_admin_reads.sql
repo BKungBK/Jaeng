@@ -183,7 +183,9 @@ as $$
   ) s;
 $$;
 
--- Hidden reports (latest change first), then hidden comments (newest first).
+-- Hidden reports (latest change first), then hidden comments (newest first). Every photo listed
+-- here sits in photos-private: a hidden report's files were moved there, and a hidden comment shows
+-- only its own photo (never the cover of a report that may still be public).
 create function public.admin_hidden(p_limit int default 50)
 returns jsonb
 language sql
@@ -210,7 +212,7 @@ as $$
                              'target_id', cm.id,
                              'report', jsonb_build_object('id', r.id, 'title', r.title, 'category', c.slug,
                                                           'danger_level', r.danger_level,
-                                                          'photo', coalesce(public.admin_photo(cm.photo_id), public.admin_cover(r.id))),
+                                                          'photo', public.admin_photo(cm.photo_id)),
                              'comment', jsonb_build_object('id', cm.id, 'body', cm.body)) as item
                       from public.comments cm
                       join public.reports r on r.id = cm.report_id

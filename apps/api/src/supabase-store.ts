@@ -68,6 +68,16 @@ export function createSupabaseStore(client: SupabaseClient): Store {
     return toEffect(data);
   };
 
+  /** A jsonb array from an admin read; checks the top level (an array of objects with the key) before trusting it. */
+  const listRpc = async <T>(fn: string, args: Record<string, unknown>, key: string): Promise<T[]> => {
+    const { data, error } = await client.rpc(fn, args);
+    if (error) rethrow(error);
+    if (!Array.isArray(data) || !data.every((x) => typeof x === 'object' && x !== null && key in x)) {
+      throw new Error(`${fn} returned a bad list`);
+    }
+    return data as T[];
+  };
+
   return {
     async member(id) {
       const { data, error } = await client.from('profiles').select('id, role, banned_at').eq('id', id).maybeSingle();
@@ -294,5 +304,21 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       effectRpc('admin_resolve_flags', { p_admin: adminId, p_flag: flagId, p_action: action }),
     setBan: (adminId, userId, banned) =>
       effectRpc('admin_set_ban', { p_admin: adminId, p_user: userId, p_banned: banned }),
+
+    async adminCounts() {
+      const { data, error } = await client.rpc('admin_counts');
+      if (error) rethrow(error);
+      const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
+      if (!row || ![row.reports, row.claims, row.flags].every((n) => typeof n === 'number')) {
+        throw new Error('admin_counts returned a bad row');
+      }
+      return { reports: row.reports as number, claims: row.claims as number, flags: row.flags as number };
+    },
+    queueReports: () => listRpc('admin_queue_reports', {}, 'id'),
+    queueClaims: () => listRpc('admin_queue_claims', {}, 'id'),
+    queueFlags: () => listRpc('admin_queue_flags', {}, 'flag_id'),
+    hiddenItems: () => listRpc('admin_hidden', {}, 'target_id'),
+    adminUsers: (q) => listRpc('admin_users', { p_q: q }, 'id'),
+    adminLog: (before) => listRpc('admin_log', { p_before: before }, 'id'),
   };
 }

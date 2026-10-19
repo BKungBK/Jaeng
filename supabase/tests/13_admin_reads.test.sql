@@ -142,6 +142,9 @@ select ok(exists (select 1 from jsonb_array_elements(:'qh'::jsonb) x where x ->>
 select ok(exists (select 1 from jsonb_array_elements(:'qh'::jsonb) x
                   where x ->> 'target_type' = 'comment' and x ->> 'target_id' = :'cmf' and x -> 'comment' ->> 'body' = 'ความเห็นที่ถูกรายงาน'),
   'hidden: the comment with its body');
+select ok((select x -> 'report' -> 'photo' = 'null'::jsonb from jsonb_array_elements(:'qh'::jsonb) x
+           where x ->> 'target_id' = :'cmf'),
+  'hidden: a comment without a photo shows none (never the public cover)');
 select public.admin_restore(:'adm', 'report', :'rf') is not null as x \gset
 select ok(not exists (select 1 from jsonb_array_elements(public.admin_hidden(500)) x where x ->> 'target_id' = :'rf'),
   'hidden: a restored report leaves the list');

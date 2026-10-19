@@ -4,15 +4,11 @@ import { requireMember } from '../auth';
 import type { AppDeps } from '../app';
 import { ApiError } from '../errors';
 import { containsBadWord } from '../moderation/badwords';
+import { PUBLIC_PREFIX, toSameOrigin } from '../moderation/photo-urls';
+
+export { toSameOrigin };
 
 const PUBLIC_STATUSES = new Set(['open', 'fix_claimed', 'resolved']);
-const PUBLIC_PREFIX = '/sb/storage/v1/object/public/photos-public/';
-
-/** The web is served from the same origin as Supabase (behind /sb), so strip the internal host. */
-export function toSameOrigin(url: string): string {
-  const u = new URL(url, 'http://internal.invalid');
-  return `/sb${u.pathname}${u.search}`;
-}
 
 export function meRoutes(deps: AppDeps) {
   return new Elysia()

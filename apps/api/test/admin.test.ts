@@ -224,3 +224,97 @@ describe('fix claims, flags, hide, restore, bans', () => {
     expect(await code(res)).toBe('cannot_ban_admin');
   });
 });
+
+describe('admin reads', () => {
+  const pub = '/sb/storage/v1/object/public/photos-public/';
+  const ref = (path: string) => ({ path, width: 10, height: 10 });
+  const queueStore = (calls: unknown[][]): Partial<Store> => ({
+    adminCounts: async () => ({ reports: 3, claims: 1, flags: 2 }),
+    queueReports: async () => [{ id: 'q1', photos: [ref('u/a.webp')] }] as never,
+    queueClaims: async () =>
+      [{ id: 'c1', photo: ref('n/c.webp'), report: { id: 'r1', photos: [ref('r1/b.webp')] } }] as never,
+    queueFlags: async () =>
+      [
+        { flag_id: 'f1', target_type: 'report', target_id: 'r1', hidden: true, report: { id: 'r1', status: 'hidden', photo: ref('r1/a.webp') }, comment: null },
+        { flag_id: 'f2', target_type: 'report', target_id: 'r2', hidden: false, report: { id: 'r2', status: 'open', photo: ref('r2/a.webp') }, comment: null },
+        { flag_id: 'f3', target_type: 'comment', target_id: 'c3', hidden: true, report: { id: 'r3', status: 'open', photo: ref('r3/a.webp') }, comment: { id: 'c3', body: 'x', photo: ref('r3/c.webp') } },
+      ] as never,
+    hiddenItems: async () => [{ target_type: 'report', target_id: 'r1', report: { id: 'r1', photo: ref('r1/a.webp') }, comment: null }] as never,
+    adminUsers: async (q: string) => {
+      calls.push(['users', q]);
+      return [];
+    },
+    adminLog: async (before: number | null) => {
+      calls.push(['log', before]);
+      return [];
+    },
+  });
+  const get = (app: ReturnType<typeof createApp>, path: string, auth?: string | null) => send(app, 'GET', path, undefined, auth);
+
+  for (const path of ['/admin/counts', '/admin/queue?type=reports', '/admin/users?q=a', '/admin/log']) {
+    test(`${path} needs an admin`, async () => {
+      expect((await get(setup().app, path, null)).status).toBe(401);
+      const member = setup({ member: { id: 'u', role: 'user', banned: false }, store: queueStore([]) });
+      expect((await get(member.app, path)).status).toBe(403);
+    });
+  }
+
+  test('counts', async () => {
+    const { app } = setup({ store: queueStore([]) });
+    expect(await (await get(app, '/admin/counts')).json()).toEqual({ reports: 3, claims: 1, flags: 2 });
+  });
+
+  test('review queue photos are signed', async () => {
+    const { app } = setup({ store: queueStore([]) });
+    const { items } = await (await get(app, '/admin/queue?type=reports')).json();
+    expect(items[0].photos[0].url).toBe('/sb/storage/v1/object/sign/photos-private/u/a.webp?token=t');
+    expect(items[0].photos[0].thumb_url).toBe('/sb/storage/v1/object/sign/photos-private/u/a_thumb.webp?token=t');
+  });
+
+  test('claims: the claim photo is signed, the report photos are public', async () => {
+    const { app } = setup({ store: queueStore([]) });
+    const { items } = await (await get(app, '/admin/queue?type=claims')).json();
+    expect(items[0].photo.url).toContain('/object/sign/');
+    expect(items[0].report.photos[0].url).toBe(`${pub}r1/b.webp`);
+  });
+
+  test('flags: a hidden report is signed, an open one public, a hidden comment photo signed', async () => {
+    const { app } = setup({ store: queueStore([]) });
+    const { items } = await (await get(app, '/admin/queue?type=flags')).json();
+    expect(items[0].report.photo.url).toContain('/object/sign/');
+    expect(items[1].report.photo.url).toBe(`${pub}r2/a.webp`);
+    expect(items[2].report.photo.url).toBe(`${pub}r3/a.webp`);
+    expect(items[2].comment.photo.url).toContain('/object/sign/');
+  });
+
+  test('hidden items are signed', async () => {
+    const { app } = setup({ store: queueStore([]) });
+    const { items } = await (await get(app, '/admin/queue?type=hidden')).json();
+    expect(items[0].report.photo.url).toContain('/object/sign/');
+  });
+
+  test('an unknown or missing queue type is invalid_request', async () => {
+    const { app } = setup({ store: queueStore([]) });
+    expect(await code(await get(app, '/admin/queue?type=x'))).toBe('invalid_request');
+    expect(await code(await get(app, '/admin/queue'))).toBe('invalid_request');
+  });
+
+  test('users: q is trimmed and cut to 100 characters', async () => {
+    const calls: unknown[][] = [];
+    const { app } = setup({ store: queueStore(calls) });
+    expect(await (await get(app, `/admin/users?q=${encodeURIComponent('  สม  ')}`)).json()).toEqual({ users: [] });
+    await get(app, `/admin/users?q=${'a'.repeat(150)}`);
+    await get(app, '/admin/users');
+    expect(calls).toEqual([['users', 'สม'], ['users', 'a'.repeat(100)], ['users', '']]);
+  });
+
+  test('log: before must be a positive integer', async () => {
+    const calls: unknown[][] = [];
+    const { app } = setup({ store: queueStore(calls) });
+    expect(await code(await get(app, '/admin/log?before=abc'))).toBe('invalid_request');
+    expect(await code(await get(app, '/admin/log?before=0'))).toBe('invalid_request');
+    expect(await (await get(app, '/admin/log?before=20')).json()).toEqual({ entries: [] });
+    await get(app, '/admin/log');
+    expect(calls).toEqual([['log', 20], ['log', null]]);
+  });
+});

@@ -1,4 +1,19 @@
-import type { FlagAction, FlagReason, FlagTarget, LocationMode, ModerationEffect, RejectReason } from '@jaeng/shared/admin';
+import type {
+  AdminCounts,
+  AdminUser,
+  FlagAction,
+  FlagReason,
+  FlagTarget,
+  HiddenItem,
+  LocationMode,
+  LogEntry,
+  ModerationEffect,
+  PhotoRef,
+  QueueClaim,
+  QueueFlag,
+  QueueReport,
+  RejectReason,
+} from '@jaeng/shared/admin';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
@@ -80,4 +95,15 @@ export type Store = {
   /** Acts on every open flag of the target of flagId. */
   resolveFlags(adminId: string, flagId: string, action: FlagAction): Promise<ModerationEffect>;
   setBan(adminId: string, userId: string, banned: boolean): Promise<ModerationEffect>;
+
+  // Admin reads: photos come without URLs; the route adds them.
+  adminCounts(): Promise<AdminCounts>;
+  queueReports(): Promise<QueueReport<PhotoRef>[]>;
+  queueClaims(): Promise<QueueClaim<PhotoRef>[]>;
+  queueFlags(): Promise<QueueFlag<PhotoRef>[]>;
+  hiddenItems(): Promise<HiddenItem<PhotoRef>[]>;
+  /** Name or e-mail contains q; blank q lists everyone (newest first, at most 50). */
+  adminUsers(q: string): Promise<AdminUser[]>;
+  /** Newest first, 50 per page; `before` is the last id of the previous page. */
+  adminLog(before: number | null): Promise<LogEntry[]>;
 };

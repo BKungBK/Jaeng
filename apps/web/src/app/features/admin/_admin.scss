@@ -1,0 +1,204 @@
+// Shared pieces of the /admin tabs (.impeccable/surfaces/apps-web-src-app-features-admin-admin-page-ts.md).
+// Each tab component @uses this file; the buttons and captions come from the report flow.
+@forward '../report-new/flow';
+@use '../report-new/flow';
+
+:host {
+  display: grid;
+  gap: 16px;
+  color: var(--ink);
+  font: 400 16px/1.6 flow.$plex;
+}
+
+h2,
+h3,
+p,
+ul,
+fieldset,
+legend {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+fieldset {
+  border: 0;
+  display: grid;
+  gap: 8px;
+}
+
+legend,
+.field {
+  font: 500 14px/1.4 flow.$plex;
+}
+
+legend {
+  margin-bottom: 8px;
+}
+
+// a whole report, claim or flag as one Card White block inside the page card
+.item {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 13px;
+  line-height: 1.5;
+
+  &.lvl {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--c) 55%, #fff);
+    color: flow.$slate;
+    font-weight: 500;
+  }
+}
+
+// the category icon on the level colour mixed into white (Ink On Pastel)
+.tile {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c, var(--line)) 45%, #fff);
+  color: flow.$slate;
+}
+
+// two decisions at opposite ends, different in fill and in word
+.decide,
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+textarea,
+input[type='text'],
+input[type='search'] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  font: inherit;
+  caret-color: var(--pri);
+
+  &::placeholder {
+    color: var(--ink2);
+  }
+}
+
+textarea {
+  resize: vertical;
+}
+
+.count {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+
+// a radio row: 44 px, the chosen one gets a 2 px Trust Blue edge and a check (shape, not colour)
+.reason {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surf);
+  color: var(--ink);
+  font: 400 15px/1.4 flow.$plex;
+  text-align: left;
+  cursor: pointer;
+
+  .mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--pri);
+  }
+
+  &[aria-checked='true'] {
+    padding: 0 11px;
+    border: 2px solid var(--pri);
+    background: color-mix(in srgb, var(--pri) 10%, var(--surf));
+    font-weight: 500;
+
+    .mark {
+      border-color: var(--pri);
+    }
+  }
+}
+
+.reasons {
+  display: grid;
+  gap: 6px;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px 0 8px;
+  text-align: center;
+
+  .disc {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--pri) 14%, var(--surf));
+    color: var(--pri);
+  }
+}
+
+.ghost {
+  height: 160px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.retry {
+  justify-self: start;
+}
+
+.email,
+.meta,
+time {
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 1.5;
+}

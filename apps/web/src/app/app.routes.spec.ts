@@ -1,5 +1,6 @@
 import { UrlSegment } from '@angular/router';
 import { mapMatcher, routes } from './app.routes';
+import { adminGuard } from './core/admin.guard';
 import { signedInGuard } from './core/signed-in.guard';
 
 describe('routes', () => {
@@ -7,6 +8,13 @@ describe('routes', () => {
     const report = routes.find((r) => r.path === 'report');
     expect(report?.canActivate).toEqual([signedInGuard]);
     expect(report?.loadComponent).toBeDefined();
+  });
+
+  it('puts /admin behind the admin guard, before the catch-all', () => {
+    const admin = routes.find((r) => r.path === 'admin');
+    expect(admin?.canActivate).toEqual([adminGuard]);
+    expect(admin?.loadComponent).toBeDefined();
+    expect(routes.indexOf(admin!)).toBeLessThan(routes.findIndex((r) => r.path === '**'));
   });
 
   it('puts /me behind the signed-in guard, before the catch-all', () => {

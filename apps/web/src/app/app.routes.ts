@@ -1,4 +1,5 @@
 import { Routes, UrlMatchResult, UrlSegment } from '@angular/router';
+import { adminGuard } from './core/admin.guard';
 import { signedInGuard } from './core/signed-in.guard';
 
 /** `/` and `/r/:id` share one route so the map page (and its WebGL context) is never rebuilt. */
@@ -23,6 +24,11 @@ export const routes: Routes = [
     path: 'me',
     canActivate: [signedInGuard],
     loadComponent: () => import('./features/me/me.page').then((m) => m.MePage),
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./features/admin/admin.page').then((m) => m.AdminPage),
   },
   {
     path: 'login',

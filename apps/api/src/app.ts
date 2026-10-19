@@ -1,6 +1,7 @@
 import type { LiveSignal } from '@jaeng/shared/api';
 import { Elysia } from 'elysia';
 import type { Env } from './env';
+import { adminRoutes } from './routes/admin';
 import { devRoutes } from './routes/dev';
 import { meRoutes } from './routes/me';
 import { moderationRoutes } from './routes/moderation';
@@ -52,5 +53,6 @@ export function createApp(deps: AppDeps) {
     .use(reportRoutes(deps))
     .use(meRoutes(deps))
     .use(photoRoutes(deps))
-    .use(moderationRoutes(deps));
+    .use(moderationRoutes(deps))
+    .use(adminRoutes(deps));
 }

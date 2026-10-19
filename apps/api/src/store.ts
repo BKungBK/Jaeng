@@ -1,4 +1,4 @@
-import type { FlagReason, FlagTarget, ModerationEffect } from '@jaeng/shared/admin';
+import type { FlagAction, FlagReason, FlagTarget, LocationMode, ModerationEffect, RejectReason } from '@jaeng/shared/admin';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
@@ -65,4 +65,19 @@ export type Store = {
     note: string | null;
     limit: number;
   }): Promise<{ flagId: string; hidden: boolean; effect: ModerationEffect }>;
+
+  // Admin actions: each throws ApiError invalid_state when someone else got there first.
+  /** null edits keep the current value. */
+  approveReport(
+    adminId: string,
+    reportId: string,
+    edits: { category: CategorySlug | null; danger: number | null; title: string | null; location: LocationMode; lng: number | null; lat: number | null },
+  ): Promise<ModerationEffect>;
+  rejectReport(adminId: string, reportId: string, reason: RejectReason, note: string | null): Promise<ModerationEffect>;
+  reviewFixClaim(adminId: string, claimId: string, approve: boolean): Promise<ModerationEffect>;
+  hide(adminId: string, targetType: FlagTarget, targetId: string): Promise<ModerationEffect>;
+  restore(adminId: string, targetType: FlagTarget, targetId: string): Promise<ModerationEffect>;
+  /** Acts on every open flag of the target of flagId. */
+  resolveFlags(adminId: string, flagId: string, action: FlagAction): Promise<ModerationEffect>;
+  setBan(adminId: string, userId: string, banned: boolean): Promise<ModerationEffect>;
 };

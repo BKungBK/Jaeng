@@ -62,6 +62,12 @@ export function toEffect(raw: unknown): ModerationEffect {
 }
 
 export function createSupabaseStore(client: SupabaseClient): Store {
+  const effectRpc = async (fn: string, args: Record<string, unknown>): Promise<ModerationEffect> => {
+    const { data, error } = await client.rpc(fn, args);
+    if (error) rethrow(error);
+    return toEffect(data);
+  };
+
   return {
     async member(id) {
       const { data, error } = await client.from('profiles').select('id, role, banned_at').eq('id', id).maybeSingle();
@@ -264,5 +270,29 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       if (typeof row?.flag_id !== 'string' || typeof row.hidden !== 'boolean') throw new Error('create_flag returned a bad row');
       return { flagId: row.flag_id, hidden: row.hidden, effect: toEffect(data) };
     },
+
+    approveReport: (adminId, reportId, e) =>
+      effectRpc('admin_approve_report', {
+        p_admin: adminId,
+        p_report: reportId,
+        p_category: e.category,
+        p_danger: e.danger,
+        p_title: e.title,
+        p_location_mode: e.location,
+        p_lng: e.lng,
+        p_lat: e.lat,
+      }),
+    rejectReport: (adminId, reportId, reason, note) =>
+      effectRpc('admin_reject_report', { p_admin: adminId, p_report: reportId, p_reason: reason, p_note: note }),
+    reviewFixClaim: (adminId, claimId, approve) =>
+      effectRpc('admin_review_fix_claim', { p_admin: adminId, p_claim: claimId, p_approve: approve }),
+    hide: (adminId, targetType, targetId) =>
+      effectRpc('admin_hide', { p_admin: adminId, p_target_type: targetType, p_target_id: targetId }),
+    restore: (adminId, targetType, targetId) =>
+      effectRpc('admin_restore', { p_admin: adminId, p_target_type: targetType, p_target_id: targetId }),
+    resolveFlags: (adminId, flagId, action) =>
+      effectRpc('admin_resolve_flags', { p_admin: adminId, p_flag: flagId, p_action: action }),
+    setBan: (adminId, userId, banned) =>
+      effectRpc('admin_set_ban', { p_admin: adminId, p_user: userId, p_banned: banned }),
   };
 }

@@ -36,8 +36,11 @@
         @case ('flags') {
           <app-flags-queue (changed)="refreshCounts()" />
         }
-        @default {
-          <p class="caption">แท็บนี้กำลังมาในขั้นถัดไป</p>
+        @case ('users') {
+          <app-users-tab />
+        }
+        @case ('log') {
+          <app-log-tab />
         }
       }
     </section>

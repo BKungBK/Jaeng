@@ -36,6 +36,6 @@ export const LOG_ACTION_TH: Record<(typeof LOG_ACTIONS)[number], string> = {
   restore: 'คืน',
   auto_hide: 'ซ่อนอัตโนมัติ (รายงานครบ 3 คน)',
   dismiss_flags: 'ยกเลิกรายงาน',
-  ban: 'แบนผู้ใช้',
+  ban: 'แบน',
   unban: 'ยกเลิกแบน',
 };

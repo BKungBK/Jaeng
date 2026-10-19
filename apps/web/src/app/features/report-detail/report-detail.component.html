@@ -80,26 +80,47 @@
         </div>
       }
 
-      <div class="actions">
-        @if (d.status === 'resolved') {
-          <p class="agreed"><app-icon name="hand" [size]="18" />มีคนเจอเหมือนกัน {{ d.confirm_count }} คน</p>
-        } @else {
+      @if (form()?.kind === 'fix') {
+        <app-fix-claim-form [reportId]="d.id" (done)="fixDone($event)" (cancel)="closeForm()" (stale)="fixStale($event)" />
+      } @else if (isFlagging('report', d.id)) {
+        <app-flag-form [target]="{ type: 'report', id: d.id }" (done)="flagDone()" (cancel)="closeForm()" />
+      } @else {
+        <div class="actions">
+          @if (d.status === 'resolved') {
+            <p class="agreed"><app-icon name="hand" [size]="18" />มีคนเจอเหมือนกัน {{ d.confirm_count }} คน</p>
+          } @else {
+            <button
+              type="button"
+              class="btn metoo"
+              [attr.aria-pressed]="confirmed()"
+              [disabled]="confirming()"
+              (click)="toggle()"
+            >
+              <!-- pressed is shown by shape too, not by fill colour alone -->
+              <app-icon [name]="confirmed() ? 'check' : 'hand'" [size]="20" />
+              เจอเหมือนกัน · <span class="n">{{ d.confirm_count }}</span>
+            </button>
+          }
+          @if (d.status === 'fix_claimed') {
+            <p class="waiting"><app-icon name="wrench" [size]="18" />มีคนแจ้งว่าแก้แล้ว รอผู้ดูแลตรวจ</p>
+          }
+          @if (d.status === 'open') {
+            <button type="button" class="btn fix" (click)="openFix($event)">
+              <app-icon name="wrench" [size]="18" />แจ้งว่าแก้แล้ว
+            </button>
+          }
           <button
+            #moreBtn
             type="button"
-            class="btn metoo"
-            [attr.aria-pressed]="confirmed()"
-            [disabled]="confirming()"
-            (click)="toggle()"
+            class="ctl more"
+            aria-label="ตัวเลือกเพิ่มเติม"
+            aria-haspopup="menu"
+            (click)="openMenu($event)"
           >
-            <!-- pressed is shown by shape too, not by fill colour alone -->
-            <app-icon [name]="confirmed() ? 'check' : 'hand'" [size]="20" />
-            เจอเหมือนกัน · <span class="n">{{ d.confirm_count }}</span>
+            <app-icon name="ellipsis" [size]="22" />
           </button>
-        }
-        <button type="button" class="btn copy" (click)="copyLink()">
-          <app-icon name="link" [size]="18" />คัดลอกลิงก์
-        </button>
-      </div>
+        </div>
+      }
       <p class="status" role="status">{{ message() }}</p>
 
       <section class="comments" aria-labelledby="report-comments-title">
@@ -114,10 +135,16 @@
                     <span class="badge">ผู้แจ้ง</span>
                   }
                   <time [attr.datetime]="c.created_at" [title]="date(c.created_at)">{{ ago(c.created_at) }}</time>
+                  <button type="button" class="flag-comment" aria-label="รายงานความคิดเห็นนี้" (click)="flagComment(c, $event)">
+                    <app-icon name="flag" [size]="18" />
+                  </button>
                 </p>
                 <p class="body">{{ c.body }}</p>
                 @if (c.photo_path; as p) {
                   <img class="attached" [src]="thumbUrl(p)" alt="รูปที่แนบในความคิดเห็น" />
+                }
+                @if (isFlagging('comment', c.id)) {
+                  <app-flag-form class="comment-flag" [target]="{ type: 'comment', id: c.id }" (done)="flagDone()" (cancel)="closeForm()" />
                 }
               </li>
             }

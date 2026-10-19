@@ -182,12 +182,12 @@ export class MapPage {
     this.map.flyTo({ center: centerFor([d.lng, d.lat], zoom, offset), zoom });
   }
 
-  /** The linked report is not public (or never existed): say so and go home. */
-  protected onMissing() {
+  /** The linked report is not public (or never existed): say so and go home. The panel may name why (an admin hid it). */
+  protected onMissing(message?: string | void) {
     this.closing = this.id();
     this.clicked = null;
     this.beacons?.setSelected(null);
-    this.showToast('ไม่พบเรื่องนี้ หรือเรื่องนี้ยังไม่เปิดให้เห็นนะ');
+    this.showToast(message || 'ไม่พบเรื่องนี้ หรือเรื่องนี้ยังไม่เปิดให้เห็นนะ');
     void this.router.navigate(['/'], { replaceUrl: true });
   }
 

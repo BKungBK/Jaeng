@@ -381,6 +381,13 @@ describe('MapPage', () => {
     expect(navigate).toHaveBeenCalledWith(['/'], { replaceUrl: true });
   });
 
+  it('uses the panel\'s own words when it closes itself (an admin hid the report)', async () => {
+    const { fixture, root } = await setup(undefined, { wide: true });
+    (fixture.componentInstance as unknown as { onMissing(m?: string): void }).onMissing('ซ่อนเรื่องนี้แล้ว');
+    await settle(fixture);
+    expect(root.querySelector('.toast')?.textContent).toContain('ซ่อนเรื่องนี้แล้ว');
+  });
+
   it('reloads the beams at once when the panel changes a count', async () => {
     vi.useFakeTimers();
     const { fixture, inBbox } = await setup(undefined, { wide: true });

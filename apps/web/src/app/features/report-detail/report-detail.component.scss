@@ -270,8 +270,32 @@ h2 {
 // ---- actions ----
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.fix {
+  flex: 1 1 auto;
+}
+
+.more {
+  flex: none;
+}
+
+// fix_claimed: words and an icon say it waits for the admin (never colour alone)
+.waiting {
+  display: flex;
+  flex: 1 1 0;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink2);
+  font-size: 14px;
+  line-height: 1.5;
+
+  app-icon {
+    flex: none;
+  }
 }
 
 .btn {
@@ -293,8 +317,10 @@ h2 {
   }
 }
 
+// the main action keeps a whole line; "แจ้งว่าแก้แล้ว" and ⋯ share the next one
 .metoo {
-  flex: 1;
+  flex: 1 0 100%;
+  white-space: nowrap;
   border-color: var(--pri);
   color: var(--pri);
 
@@ -386,6 +412,31 @@ h3 {
     color: var(--ink2);
     font-size: 13px;
   }
+}
+
+// a quiet 44 px report button at the end of each comment's name line
+.flag-comment {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px -10px -12px auto;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--ink2);
+  cursor: pointer;
+  align-self: center;
+
+  &:hover {
+    background: var(--bg);
+    color: var(--ink);
+  }
+}
+
+.comment-flag {
+  margin-top: 8px;
 }
 
 .badge {

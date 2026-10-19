@@ -39,7 +39,7 @@
         [reportId]="rid"
         (closed)="close()"
         (loaded)="onLoaded($event)"
-        (missing)="onMissing()"
+        (missing)="onMissing($event)"
         (changed)="scheduleLoad(0)"
       />
     </aside>
@@ -62,7 +62,7 @@
             [reportId]="rid"
             (closed)="close()"
             (loaded)="onLoaded($event)"
-            (missing)="onMissing()"
+            (missing)="onMissing($event)"
             (changed)="scheduleLoad(0)"
           />
         }

@@ -365,8 +365,40 @@ isOneToOne: false
 "admin_approve_report":
 { Args: { "p_admin": string,"p_category": string,"p_danger": number,"p_lat": number,"p_lng": number,"p_location_mode": string,"p_report": string,"p_title": string }; Returns: Json
                            },
+"admin_before_photos":
+{ Args: { "p_report": string }; Returns: Json
+                           },
+"admin_counts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "claims": number,"flags": number,"reports": number
+            }[]
+                           },
+"admin_cover":
+{ Args: { "p_report": string }; Returns: Json
+                           },
+"admin_hidden":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
 "admin_hide":
 { Args: { "p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
+"admin_log":
+{ Args: { "p_before": number,"p_limit"?: number }; Returns: Json
+                           },
+"admin_person":
+{ Args: { "p_id": string }; Returns: Json
+                           },
+"admin_photo":
+{ Args: { "p_photo": string }; Returns: Json
+                           },
+"admin_queue_claims":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
+"admin_queue_flags":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
+"admin_queue_reports":
+{ Args: { "p_limit"?: number }; Returns: Json
                            },
 "admin_reject_report":
 { Args: { "p_admin": string,"p_note": string,"p_reason": string,"p_report": string }; Returns: Json
@@ -382,6 +414,9 @@ isOneToOne: false
                            },
 "admin_set_ban":
 { Args: { "p_admin": string,"p_banned": boolean,"p_user": string }; Returns: Json
+                           },
+"admin_users":
+{ Args: { "p_limit"?: number,"p_q": string }; Returns: Json
                            },
 "area_name_at":
 { Args: { "lat": number,"lng": number }; Returns: string

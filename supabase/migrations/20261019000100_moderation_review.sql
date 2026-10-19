@@ -124,7 +124,8 @@ begin
     end if;
   end if;
 
-  if v_cat.slug = 'hazard' and p_location_mode = 'keep'
+  -- 'point' too: a pin dropped on the exact true spot is not the explicit 'exact' choice
+  if v_cat.slug = 'hazard' and p_location_mode in ('keep', 'point')
      and extensions.st_equals(v_public::extensions.geometry, v_r.location::extensions.geometry) then
     v_public := public.fuzz_point(v_r.location, 150);
   end if;

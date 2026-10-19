@@ -152,7 +152,8 @@ select ok(not exists (select 1 from jsonb_array_elements(public.admin_hidden(500
 -- ================================================================ counts
 select is((select reports - :c0_reports from public.admin_counts()), 2, 'counts: two more pending reports');
 select is((select claims - :c0_claims from public.admin_counts()), 1, 'counts: one more reviewable claim');
-select is((select flags - :c0_flags from public.admin_counts()), 2, 'counts: two more flagged targets');
+-- rf was restored above, which settles its flags; only the hidden comment cmf still has an open one
+select is((select flags - :c0_flags from public.admin_counts()), 1, 'counts: one more flagged target (restore settled the other)');
 
 -- ================================================================ users
 select public.admin_set_ban(:'adm', :'c', true) is not null as x \gset
@@ -186,6 +187,13 @@ select ok((select x -> 'admin_name' = 'null'::jsonb from jsonb_array_elements(pu
 select ok((select x ->> 'admin_name' is not null from jsonb_array_elements(public.admin_log(null, 50)) x
            where x ->> 'action' = 'ban' and x ->> 'target_id' = :'c'), 'log: an admin action has the admin name');
 
+-- ================================================================ log target names (final review M6)
+select ok((select x ->> 'target_name' = (select display_name from public.profiles where id = :'c')
+           from jsonb_array_elements(public.admin_log(null, 100)) x where x ->> 'action' = 'ban' and x ->> 'target_id' = :'c'),
+  'M6: a ban row carries the user name');
+select ok((select x ->> 'target_name' = 'เรื่องทดสอบ'
+           from jsonb_array_elements(public.admin_log(null, 100)) x where x ->> 'action' = 'auto_hide' and x ->> 'target_id' = :'o1'),
+  'M6: a report row carries the report title');
 -- ================================================================ privileges
 select tests.as_anon();
 select throws_ok($q$select * from public.admin_counts()$q$, '42501', null, 'anon: admin_counts');

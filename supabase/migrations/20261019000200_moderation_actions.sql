@@ -236,6 +236,11 @@ begin
     raise exception 'invalid_request';
   end if;
 
+  -- Restoring is the admin's decision that the content may stay: its open flags are settled, so one
+  -- more flag (even a repeat from an earlier flagger) cannot hide it again at once.
+  update public.flags f set status = 'dismissed'
+  where f.target_type = p_target_type and f.target_id = p_target_id and f.status = 'open';
+
   perform public.log_action(p_admin, 'restore', p_target_type, p_target_id,
                             jsonb_build_object('target_type', p_target_type));
   return public.moderation_effect(
@@ -268,7 +273,8 @@ begin
   update public.profiles pf
      set banned_at = case when p_banned then coalesce(pf.banned_at, now()) else null end
    where pf.id = p_user;
-  perform public.log_action(p_admin, case when p_banned then 'ban' else 'unban' end, 'user', p_user, '{}'::jsonb);
+  perform public.log_action(p_admin, case when p_banned then 'ban' else 'unban' end, 'user', p_user,
+                            jsonb_build_object('user_name', (select pf.display_name from public.profiles pf where pf.id = p_user)));
   return public.moderation_effect(null);
 end;
 $$;
@@ -362,6 +368,12 @@ begin
   end if;
   if p_action is null or p_action not in ('dismiss', 'hide', 'ban') then
     raise exception 'invalid_request';
+  end if;
+  -- the target first (the order create_flag and hide_target lock in), then its open flags
+  if v_f.target_type = 'report' then
+    perform 1 from public.reports r where r.id = v_f.target_id for update;
+  else
+    perform 1 from public.comments cm where cm.id = v_f.target_id for update;
   end if;
   perform 1 from public.flags f
   where f.target_type = v_f.target_type and f.target_id = v_f.target_id and f.status = 'open'

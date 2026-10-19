@@ -1,5 +1,5 @@
 begin;
-select plan(67);
+select plan(69);
 
 -- Start from an empty map; the demo seed comes back when the transaction rolls back.
 delete from public.reports;
@@ -137,6 +137,19 @@ select ok((select count(*) from public.reports
            where id = any (:'hz_ids'::uuid[])
              and extensions.st_distance(location, public_location) > 0) >= 1,
   'hazard approved with keep: the published point moves');
+
+-- a pin dropped exactly on a hazard's true point is not the explicit "exact" choice: it is fuzzed too
+select array_agg(pg_temp.mk(:'a', 'road', :px, :py, 1)) as hp_ids from generate_series(1, 10) \gset
+set local role service_role;
+select public.admin_approve_report(:'adm', x, 'hazard', null, null, 'point', :px, :py)
+from unnest(:'hp_ids'::uuid[]) x;
+reset role;
+select is((select count(*)::int from public.reports
+           where id = any (:'hp_ids'::uuid[]) and extensions.st_distance(location, public_location) <= 150), 10,
+  'hazard pinned on its true point: every published point is within 150 m');
+select ok((select count(*) from public.reports
+           where id = any (:'hp_ids'::uuid[]) and extensions.st_distance(location, public_location) > 0) >= 1,
+  'hazard pinned on its true point: the published point moves');
 
 -- ================================================================ approve: fuzz
 select array_agg(pg_temp.mk(:'a', 'road', :px, :py, 1)) as fz_ids from generate_series(1, 10) \gset

@@ -71,7 +71,9 @@ export class ReviewQueueComponent {
   protected readonly picking = computed(() => this.mode() === 'approve' && this.location() === 'point');
   protected readonly hazard = computed(() => this.category() === 'hazard');
   protected readonly titleLength = computed(() => [...this.title().trim()].length);
-  protected readonly canApprove = computed(() => !this.busy() && this.titleLength() <= TITLE_MAX);
+  protected readonly canApprove = computed(
+    () => !this.busy() && this.titleLength() <= TITLE_MAX && (this.location() !== 'point' || this.point() !== null),
+  );
   protected readonly canReject = computed(
     () => !this.busy() && this.reason() !== null && [...this.note().trim()].length <= REJECT_NOTE_MAX,
   );
@@ -138,8 +140,9 @@ export class ReviewQueueComponent {
     if (this.danger() !== r.danger_level) body.danger_level = this.danger();
     const title = this.title().trim();
     if (title && title !== r.title) body.title = title;
-    if (body.location === 'point') {
-      const p = this.point() ?? { lng: r.lng, lat: r.lat };
+    // the pin's point only, as the map reported it (canApprove waits for one): never the true point by default
+    const p = this.point();
+    if (body.location === 'point' && p) {
       body.lng = p.lng;
       body.lat = p.lat;
     }

@@ -269,7 +269,14 @@ as $$
       'target_type', l.target_type,
       'target_id', l.target_id,
       'detail', l.detail,
-      'admin_name', pf.display_name) as item
+      'admin_name', pf.display_name,
+      -- who or what, so an audit row answers that without a lookup: a user's name, else the report title
+      'target_name', case l.target_type
+                       when 'user' then (select u.display_name from public.profiles u where u.id = l.target_id)
+                       when 'report' then (select r.title from public.reports r where r.id = l.target_id)
+                       when 'comment' then (select r.title from public.comments cm join public.reports r on r.id = cm.report_id
+                                            where cm.id = l.target_id)
+                     end) as item
     from public.moderation_log l
     left join public.profiles pf on pf.id = l.admin_id
     where p_before is null or l.id < p_before

@@ -12,6 +12,7 @@ const entry = (id: number, over: Partial<LogEntry> = {}): LogEntry => ({
   target_id: 'r1',
   detail: {},
   admin_name: 'ผู้ดูแลแจ้ง',
+  target_name: null,
   ...over,
 });
 
@@ -38,6 +39,11 @@ describe('LogTabComponent', () => {
     expect(rows()[0].textContent).toContain('ผู้ดูแลแจ้ง');
     expect(rows()[1].textContent).toContain('ระบบ');
     expect(rows()[2].textContent).toContain('mystery');
+  });
+
+  it('names who or what the action was about', async () => {
+    const { rows } = await setup([[entry(2, { action: 'ban', target_type: 'user', target_id: 'u1', target_name: 'สมชาย' })]]);
+    expect(rows()[0].textContent).toContain('สมชาย');
   });
 
   it('links a report target to its page', async () => {

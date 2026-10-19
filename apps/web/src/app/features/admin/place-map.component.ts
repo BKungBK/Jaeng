@@ -129,11 +129,23 @@ export class PlaceMapComponent {
       const p = this.truePoint();
       untracked(() => this.map?.jumpTo({ center: [p.lng, p.lat], zoom: ZOOM }));
     });
+    // Picking starts from the shown point, never the true one (a hazard's true point must not be one
+    // click away), and that start is reported at once so what is sent is what the pin shows.
+    effect(() => {
+      if (!this.picking()) return;
+      untracked(() => this.startPicking());
+    });
     inject(DestroyRef).onDestroy(() => {
       this.destroyed = true;
       this.stopTheme?.();
       this.map?.remove();
     });
+  }
+
+  private startPicking() {
+    const p = this.publicPoint();
+    this.map?.jumpTo({ center: [p.lng, p.lat], zoom: ZOOM });
+    this.picked.emit({ lng: p.lng, lat: p.lat });
   }
 
   private px(p: LngLat): { x: number; y: number } | null {

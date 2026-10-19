@@ -62,6 +62,18 @@ describe('PlaceMapComponent', () => {
     expect(picked).toHaveBeenCalledWith({ lng: 100.52, lat: 13.71 });
   });
 
+  it('starting to pick moves to the shown point and reports it at once (never the true point)', async () => {
+    const { fixture, set, settle, map } = setup();
+    const picked = vi.fn();
+    fixture.componentInstance.picked.subscribe(picked);
+    set([100.5, 13.7], [100.501, 13.701]);
+    await settle();
+    set([100.5, 13.7], [100.501, 13.701], true);
+    await settle();
+    expect(map.jumpTo).toHaveBeenLastCalledWith({ center: [100.501, 13.701], zoom: 16 });
+    expect(picked).toHaveBeenCalledWith({ lng: 100.501, lat: 13.701 });
+  });
+
   it('removes the map when destroyed', async () => {
     const { fixture, set, settle, map } = setup();
     set([100.5, 13.7], [100.5, 13.7]);

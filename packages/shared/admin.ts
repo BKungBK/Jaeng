@@ -113,6 +113,8 @@ export type LogEntry = {
   detail: Record<string, unknown>;
   /** null for the system (auto-hide). */
   admin_name: string | null;
+  /** Who or what: the user's name, or the report's title (for a comment, its report's). */
+  target_name: string | null;
 };
 
 export const LOG_ACTIONS = [

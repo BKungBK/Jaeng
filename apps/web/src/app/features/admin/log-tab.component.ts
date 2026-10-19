@@ -28,6 +28,9 @@ const KIND_TH: Record<string, string> = { report: 'เรื่อง', comment:
           <p class="line">
             <strong>{{ action(e) }}</strong>
             <span class="kind">{{ kind(e) }}</span>
+            @if (e.target_name) {
+              <span class="name">{{ e.target_name }}</span>
+            }
             @if (e.target_type === 'report' && e.target_id) {
               <a [routerLink]="['/r', e.target_id]">เปิดเรื่องนี้</a>
             }

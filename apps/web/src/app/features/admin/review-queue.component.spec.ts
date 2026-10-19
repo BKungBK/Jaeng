@@ -117,6 +117,15 @@ describe('ReviewQueueComponent', () => {
     expect(admin.approve).toHaveBeenCalledWith('r1', { location: 'point', lng: 100.502, lat: 13.701 });
   });
 
+  it('choosing point without moving sends the shown point, never the true one', async () => {
+    const { admin, click, root, settle } = await setup([item({ category: 'hazard', public_lng: 100.501, public_lat: 13.701 })]);
+    await click('อนุมัติ…');
+    root.querySelector<HTMLInputElement>('input[value="point"]')!.click();
+    await settle();
+    await click('อนุมัติ ขึ้นแผนที่');
+    expect(admin.approve).toHaveBeenCalledWith('r1', { location: 'point', lng: 100.501, lat: 13.701 });
+  });
+
   it('a hazard says it will be moved unless exact is chosen', async () => {
     const { click, root } = await setup([item({ category: 'hazard' })]);
     await click('อนุมัติ…');

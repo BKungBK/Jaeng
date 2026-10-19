@@ -348,6 +348,23 @@ select ok(not exists (select 1 from public.report_photos ph where ph.kind = 'cla
 select ok(not exists (select 1 from public.public_comments pc join public.comments cm on cm.id = pc.id where cm.status = 'hidden'),
   'no hidden comment in public_comments');
 
+-- ================================================================ restore clears open flags (final review I2)
+select pg_temp.open(:'a', :'adm', :px, :py) as rr2 \gset
+select public.create_flag(:'b', 'report', :'rr2', 'spam', null, 1000) is not null as x \gset
+select public.create_flag(:'c', 'report', :'rr2', 'spam', null, 1000) is not null as x \gset
+select public.create_flag(:'d', 'report', :'rr2', 'spam', null, 1000) is not null as x \gset
+select is((select status from public.reports where id = :'rr2'), 'hidden', 'I2: three flags hide it');
+select public.admin_restore(:'adm', 'report', :'rr2') is not null as x \gset
+select is((select count(*)::int from public.flags where target_id = :'rr2' and status = 'open'), 0,
+  'I2: restore dismisses the open flags of the target');
+select is(public.create_flag(:'b', 'report', :'rr2', 'spam', null, 1000) ->> 'hidden', 'false',
+  'I2: one repeat flag after a restore does not hide it again');
+select is((select status from public.reports where id = :'rr2'), 'open', 'I2: still public');
+
+-- ================================================================ ban logs the user's name (final review M6)
+select public.admin_set_ban(:'adm', :'q', true) is not null as x \gset
+select is((select detail ->> 'user_name' from public.moderation_log where action = 'ban' and target_id = :'q'),
+          (select display_name from public.profiles where id = :'q'), 'M6: the ban log names the user');
 -- ================================================================ privileges
 select tests.as_anon();
 select throws_ok(format($q$select public.create_fix_claim(%L, %L, null, null, 9)$q$, :'a', :'rcf'), '42501', null, 'anon: create_fix_claim');

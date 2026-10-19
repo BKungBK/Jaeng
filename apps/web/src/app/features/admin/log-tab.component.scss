@@ -30,6 +30,11 @@
     font-size: 13px;
   }
 
+  .name {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
   // a 44 px target around a short link
   a {
     display: inline-flex;

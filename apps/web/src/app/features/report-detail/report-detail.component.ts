@@ -12,7 +12,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { COMMENT_MAX, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
+import { COMMENT_MAX, LiveSignal, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { LEVELS } from '@jaeng/shared/levels';
 import { thumbPath } from '@jaeng/shared/report';
 import { ApiError } from '../../core/api.service';
@@ -156,7 +156,7 @@ export class ReportDetailComponent {
    * anyone with the anon key can send one. A burst is coalesced into one refetch, and the refetched
    * report is what gets shown.
    */
-  private onSignal(s: ReportSignal) {
+  private onSignal(s: LiveSignal) {
     const d = this.detail();
     if (!d || s.id !== this.reportId() || s.id !== d.id) return;
     clearTimeout(this.liveTimer);

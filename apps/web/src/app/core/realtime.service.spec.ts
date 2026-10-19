@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { REPORT_EVENT, REPORTS_CHANNEL, ReportSignal } from '@jaeng/shared/api';
-import { RealtimeService } from './realtime.service';
+import { isLiveSignal, RealtimeService } from './realtime.service';
 import { SupabaseService } from './supabase.service';
 
 function setup() {
@@ -109,5 +109,20 @@ describe('RealtimeService', () => {
     service.listen(() => {});
     await flush();
     expect(client.channel).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('isLiveSignal', () => {
+  const ok = { id: 'r1', status: 'open', confirm_count: 1, comment_count: 0 };
+  it('accepts the public statuses and hidden', () => {
+    for (const status of ['open', 'fix_claimed', 'resolved', 'hidden']) expect(isLiveSignal({ ...ok, status })).toBe(true);
+  });
+  it('drops anything else', () => {
+    expect(isLiveSignal({ ...ok, status: 'pending_review' })).toBe(false);
+    expect(isLiveSignal({ ...ok, id: '' })).toBe(false);
+    expect(isLiveSignal({ ...ok, confirm_count: -1 })).toBe(false);
+    expect(isLiveSignal({ ...ok, comment_count: 1.5 })).toBe(false);
+    expect(isLiveSignal(null)).toBe(false);
+    expect(isLiveSignal('x')).toBe(false);
   });
 });

@@ -115,6 +115,17 @@ describe('AccountButtonComponent', () => {
     expect(prompt.ask).not.toHaveBeenCalled();
   });
 
+  it('opens /admin when the menu asks for "หน้าผู้ดูแล"', async () => {
+    const { button, router } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'admin' },
+      dismissRole: 'admin',
+    });
+    button.click();
+    await flush();
+    expect(router.navigate).toHaveBeenCalledWith(['/admin']);
+  });
+
   it('signs out when the menu asks to', async () => {
     const { button, auth } = await setup({
       signedIn: true,
@@ -198,6 +209,14 @@ describe('AccountMenuComponent', () => {
     expect(rows).toEqual(['เรื่องของฉัน', 'สลับผู้ใช้', 'ออกจากระบบ']);
     button('เรื่องของฉัน').click();
     expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'mine');
+  });
+
+  it('shows "หน้าผู้ดูแล" between my reports and switch user, for an admin only', () => {
+    const { root, button, popovers } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin' });
+    const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
+    expect(rows).toEqual(['เรื่องของฉัน', 'หน้าผู้ดูแล', 'สลับผู้ใช้', 'ออกจากระบบ']);
+    button('หน้าผู้ดูแล').click();
+    expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'admin');
   });
 
   it('dismisses with the chosen action', () => {

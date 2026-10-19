@@ -6,7 +6,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
-type MenuRole = 'mine' | 'switch' | 'signout';
+type MenuRole = 'mine' | 'admin' | 'switch' | 'signout';
 
 // Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
 const THAI_LEADING_VOWEL = /^[เ-ไ]$/u;
@@ -38,6 +38,12 @@ export function initialOf(name: string): string {
         <app-icon name="fileText" [size]="20" />
         เรื่องของฉัน
       </button>
+      @if (profile()?.role === 'admin') {
+        <button type="button" class="account-menu-item" (click)="choose('admin')">
+          <app-icon name="shieldCheck" [size]="20" />
+          หน้าผู้ดูแล
+        </button>
+      }
       <button type="button" class="account-menu-item" (click)="choose('switch')">
         <app-icon name="circleUser" [size]="20" />
         สลับผู้ใช้
@@ -210,6 +216,7 @@ export class AccountButtonComponent {
     await popover.present();
     const { role } = await popover.onDidDismiss();
     if (role === 'mine') await this.router.navigate(['/me']);
+    else if (role === 'admin') await this.router.navigate(['/admin']);
     else if (role === 'switch') await this.prompt.ask();
     else if (role === 'signout') {
       // leaving on purpose: an unsent report draft goes too (a lapsed session keeps it, see ReportDraftService)

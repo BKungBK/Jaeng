@@ -43,6 +43,32 @@ function setup(opts: { session?: unknown; profile?: unknown; failClientTimes?: n
 describe('AuthService', () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  describe('loadedProfile', () => {
+    it('waits for the profile that is still loading', async () => {
+      const profile = { id: 'u1', display_name: 'แอดมิน', role: 'admin' };
+      const { service, maybeSingle } = setup({ session: session(), profile });
+      let release!: (v: unknown) => void;
+      maybeSingle.mockReturnValueOnce(new Promise((r) => (release = r)));
+      const p = service.loadedProfile();
+      await flush();
+      await flush();
+      expect(service.profile()).toBeNull(); // the read is still in flight
+      release({ data: profile, error: null });
+      expect(await p).toEqual(profile);
+    });
+
+    it('is null when signed out', async () => {
+      const { service } = setup();
+      expect(await service.loadedProfile()).toBeNull();
+    });
+
+    it('is null when the profile read fails', async () => {
+      const { service, maybeSingle } = setup({ session: session() });
+      maybeSingle.mockRejectedValueOnce(new Error('boom'));
+      expect(await service.loadedProfile()).toBeNull();
+    });
+  });
+
   it('loads the own profile when a session appears and clears it on sign out', async () => {
     const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user' };
     const { service, emit, from, eq } = setup({ profile });

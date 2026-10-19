@@ -365,8 +365,23 @@ isOneToOne: false
 "admin_approve_report":
 { Args: { "p_admin": string,"p_category": string,"p_danger": number,"p_lat": number,"p_lng": number,"p_location_mode": string,"p_report": string,"p_title": string }; Returns: Json
                            },
+"admin_hide":
+{ Args: { "p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
 "admin_reject_report":
 { Args: { "p_admin": string,"p_note": string,"p_reason": string,"p_report": string }; Returns: Json
+                           },
+"admin_resolve_flags":
+{ Args: { "p_action": string,"p_admin": string,"p_flag": string }; Returns: Json
+                           },
+"admin_restore":
+{ Args: { "p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
+"admin_review_fix_claim":
+{ Args: { "p_admin": string,"p_approve": boolean,"p_claim": string }; Returns: Json
+                           },
+"admin_set_ban":
+{ Args: { "p_admin": string,"p_banned": boolean,"p_user": string }; Returns: Json
                            },
 "area_name_at":
 { Args: { "lat": number,"lng": number }; Returns: string
@@ -376,6 +391,12 @@ isOneToOne: false
                            },
 "claim_photos":
 { Args: { "p_photo_ids": (string)[],"p_user": string }; Returns: undefined
+                           },
+"create_fix_claim":
+{ Args: { "p_limit": number,"p_note": string,"p_photo": string,"p_report": string,"p_user": string }; Returns: Json
+                           },
+"create_flag":
+{ Args: { "p_limit": number,"p_note": string,"p_reason": string,"p_target_id": string,"p_target_type": string,"p_user": string }; Returns: Json
                            },
 "create_report":
 { Args: { "p_category": string,"p_danger": number,"p_description": string,"p_flagged": boolean,"p_hide_author": boolean,"p_lat": number,"p_limit": number,"p_lng": number,"p_photo_ids": (string)[],"p_tags": (string)[],"p_title": string,"p_user": string }; Returns: {
@@ -398,6 +419,9 @@ isOneToOne: false
 "fuzz_point":
 { Args: { "max_m": number,"p": unknown }; Returns: unknown
                            },
+"hide_target":
+{ Args: { "p_action": string,"p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
+                           },
 "lock_profile":
 { Args: { "p_user": string }; Returns: undefined
                            },
@@ -417,6 +441,9 @@ isOneToOne: false
                            },
 "register_photo":
 { Args: { "p_blurred": boolean,"p_height": number,"p_id": string,"p_limit": number,"p_path": string,"p_uploader": string,"p_width": number }; Returns: undefined
+                           },
+"report_public_paths":
+{ Args: { "p_report": string }; Returns: Json
                            },
 "reports_in_bbox":
 { Args: { "categories"?: (string)[],"levels"?: (number)[],"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"q"?: string,"statuses"?: (string)[] }; Returns: Json

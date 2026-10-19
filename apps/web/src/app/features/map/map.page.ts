@@ -15,7 +15,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
@@ -25,6 +25,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { AccountButtonComponent } from '../auth/account-button.component';
 import type { ReportDetail } from '../report-detail/report-detail';
 import { ReportDetailComponent } from '../report-detail/report-detail.component';
+import { ReportFabComponent } from '../report-new/report-fab.component';
 import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
 import { FilterBarComponent } from './filter-bar.component';
@@ -72,6 +73,7 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     IconComponent,
     AccountButtonComponent,
     ReportDetailComponent,
+    ReportFabComponent,
     IonModal,
   ],
   host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
@@ -129,6 +131,17 @@ export class MapPage {
     });
     // every live signal re-runs the debounced bbox load, so a burst becomes one request
     destroyRef.onDestroy(inject(RealtimeService).listen(() => this.scheduleLoad()));
+    // a page that sends the reader here can leave a word for them ("ขอบคุณนะ นับให้แล้ว" after a merge);
+    // only for that navigation itself, not when Back/Forward lands on the same history entry later
+    let trigger: NavigationStart['navigationTrigger'];
+    const nav = this.router.events.subscribe((e) => {
+      if (e instanceof NavigationStart) trigger = e.navigationTrigger;
+      else if (e instanceof NavigationEnd && trigger === 'imperative') {
+        const toast = (history.state as { toast?: unknown } | null)?.toast;
+        if (typeof toast === 'string') this.showToast(toast);
+      }
+    });
+    destroyRef.onDestroy(() => nav.unsubscribe());
     afterNextRender(() => void this.start());
     destroyRef.onDestroy(() => {
       this.destroyed = true;

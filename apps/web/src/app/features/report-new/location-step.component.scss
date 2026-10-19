@@ -1,0 +1,75 @@
+@use 'flow';
+
+:host {
+  display: grid;
+  gap: 8px;
+}
+
+.frame {
+  position: relative;
+  height: max(280px, 46dvh);
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--sea);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+@media (min-width: 820px) {
+  .frame {
+    height: 380px;
+  }
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+// the pin's tip is the map's centre: the icon stands on a small ground dot drawn at the exact point
+.pin {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+
+  app-icon {
+    position: absolute;
+    left: -22px;
+    bottom: -4px; // Lucide's map-pin tip sits ~2 of its 24 units above the bottom: 3.7 px at 44 px
+    color: var(--pri);
+    filter: drop-shadow(0 2px 3px rgba(60, 50, 40, 0.3));
+  }
+
+  ::ng-deep svg {
+    fill: var(--surf);
+  }
+}
+
+.foot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 2px var(--surf);
+}
+
+.zoom {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  gap: 8px;
+
+  .ctl {
+    box-shadow: var(--sh);
+  }
+}
+
+.where {
+  min-height: 1.5em;
+}

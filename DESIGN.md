@@ -138,6 +138,25 @@ components:
     rounded: "{rounded.card}"
     padding: "12px"
     width: "380px"
+  fab-report:
+    backgroundColor: "{colors.trust-blue}"
+    textColor: "{colors.on-trust-blue}"
+    typography: "{typography.title}"
+    rounded: "{rounded.chip}"
+    padding: "0 20px"
+    height: "56px"
+    width: "116px"
+  report-card:
+    backgroundColor: "{colors.card-white}"
+    textColor: "{colors.slate-ink}"
+    rounded: "{rounded.card}"
+    padding: "16px"
+    width: "600px"
+  report-row:
+    backgroundColor: "{colors.card-white}"
+    textColor: "{colors.slate-ink}"
+    rounded: "{rounded.card}"
+    padding: "12px"
   toast:
     backgroundColor: "{colors.slate-ink}"
     textColor: "{colors.cream-ground}"
@@ -243,6 +262,8 @@ A full-bleed map with floating controls. No top app bar and no tab bar on the ma
 - Bottom-left: the zoom-level hint card (max 340px on desktop). On phones it stretches to the control column and both sit 52px above the bottom so the attribution fits beneath.
 - Attribution: bottom-right MapLibre strip; folded to its ⓘ button under 820px.
 - Report detail: at ≥ 820px a 380px panel on the right (12px from the top, right and bottom edges, scrolling inside); below 820px a bottom sheet (24px top corners) that opens at 64% height and can be dragged to full height or away. It sits on `/r/:id` on the same map page, so the map is never rebuilt. The login form opens as a sheet over the map (auto-height under 820px, a centred 420px card from 820px), and `/login` is a page of its own for direct links.
+- Report button (FAB "แจ้ง", chosen in the plan 4 shape pass and owner-constrained): the extended pill sits bottom-right on every screen size. On phones it is 12px from the right edge in the row 52px above the bottom, where the controls column used to end (the most thumb-reachable spot, clear of the folded attribution button beneath); the controls column lifts to sit 8px above it and the hint card stops 8px short of it. From 820px it is 12px from the right and 48px from the bottom so the attribution strip stays readable under it, and while the detail panel is open it steps left of the panel with the controls. It is hidden while the report sheet is open on phones.
+- Report flow (`/report`): on phones a full page on Cream Ground; from 820px a centred Card White card, 600px wide, 24px from the top. The page scrolls, the card does not. `/me` uses the same grammar.
 - Toast: centred, 84px from the top.
 - Gutters are 12px from every edge plus the safe-area inset. Gaps between floating elements are 8px.
 - Breakpoint: 820px is the only layout breakpoint; under 420px the chip tray tightens (4px gaps, 8px chip padding, no wrap).
@@ -291,6 +312,13 @@ The four level shapes are one solid SVG set on a 12-unit grid: a filled circle (
 - **Comments:** a hairline above, heading "ความคิดเห็น · N" (Prompt 500 15px), then each comment as name (500), a "ผู้แจ้ง" badge (9px radius, Sand Line outline) when the author is the reporter, the age, and the body (Body, line breaks kept, user text only through text interpolation). The composer is a 14px-radius textarea with a `n/500` counter and a 44px Trust Blue send icon button, disabled while blank. Signed out, a secondary button "เข้าสู่ระบบเพื่อแสดงความคิดเห็น" takes its place. Hidden author names show as "ผู้ใช้นิรนาม", never the real name.
 - **Login form:** the same form in a bottom sheet over the map and on the `/login` page: heading, a short lede, one field per step (email, then the 6-digit code with `autocomplete="one-time-code"`), a 44px Trust Blue primary button, "เปลี่ยนอีเมล" and "ส่งรหัสใหม่" (locked for 60 seconds with a countdown) as text links, and errors in `role="alert"` directly under the field. When quick login is configured, a "สลับผู้ใช้สำหรับเดโม" section lists one secondary button per demo user.
 - **Account button and menu:** the account icon button above (person icon when signed out, opens the login sheet; the name's initial when signed in, opens the menu). The menu is an 18px-radius Card White popover, 240px wide, with the name (and a "ผู้ดูแล" tag for admins), "สลับผู้ใช้" and "ออกจากระบบ" as 44px rows.
+- **Report button (FAB):** a Trust Blue pill, 56px tall and 116px wide, 14px radius, Float shadow, a Lucide `plus` and the word "แจ้ง" (Prompt 600 17px, white), `aria-label="แจ้งเรื่องใหม่"`. Signed out it opens the login sheet and goes on to `/report` only after a successful login.
+- **Report flow (three steps):** a short form, not a wizard. Each step has a 44px icon button on the left (`x` back to the map on step 1, `chevronLeft` after), the caption "ขั้น N จาก 3" above the step title (Prompt 600 22px), and a decorative three-segment track (done and current segments Trust Blue, the current one wider, future ones a Sand Line outline) so the words, not the colour, carry the state. Focus moves to the step title on every change. Step 1, "ถ่ายรูปปัญหา": a primary "ถ่ายรูป" and a secondary "เลือกจากคลัง", a four-column strip of square 12px-radius tiles (preview, an upload overlay, a retry button on error, a 44px remove button in the corner, a `check` badge when ready), and the caption "รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ". Step 2, "เป็นเรื่องอะไร": the eight categories as large buttons (2 columns on phones, 4 from 820px, at least 96px tall, a 32px icon over the Thai name); the chosen one gets a 2px Trust Blue edge, a 10% tint and a `check`, and a tap moves straight on. Step 3, "ปักหมุดตรงไหน": a street-map picker with a fixed centre pin (Lucide `mapPin`, 44px, Trust Blue), 44px zoom buttons, a caption saying where the pin came from, then the 52px "ส่งเรื่อง" button with "เล่าที่ปัญหา ไม่ระบุชื่อหรือกล่าวหาบุคคล" directly under it, and a collapsed "เพิ่มรายละเอียด" fold (title, description, a level radio group in the chip style, up to five tags, the "ไม่แสดงชื่อฉัน" switch). Send stays disabled below zoom 14 for every pin source.
+- **Duplicate card:** replaces the step 3 body. Heading "เรื่องนี้ใช่ไหม?", up to three rows, each with a 72px tile (cover photo, else the category icon on the level colour mixed 45% into white), the title, a meta line (level shape and name, status, เจอเหมือนกัน N) and a Trust Blue outline "ใช่ กดเจอเหมือนกันแทน" button in the me-too style; under the list a secondary "ไม่ใช่ แจ้งเป็นเรื่องใหม่". A note says the first photo will be attached as a comment.
+- **Sent card:** replaces the whole flow. A 64px disc in a 14% Trust Blue tint holding a `check`, "ส่งแล้ว รอผู้ดูแลตรวจ", a line promising the beam appears after review, then a primary "ดูเรื่องของฉัน" and a secondary "กลับไปแผนที่".
+- **My reports (`/me`):** the same page grammar as the report flow (a 600px card from 820px). Top to bottom: the name row (the display name in Prompt 500 18px, a 44px "แก้ชื่อ" button that swaps the row for an input with an `n/30` counter, save and cancel, errors in `role="alert"`), the list "เรื่องที่แจ้ง · N" and a secondary "ออกจากระบบ".
+- **Report row:** Card White, 18px radius, 12px apart. A 72px tile at the left (thumb, else the category icon on the level colour mixed 45% into white), then the title, a status line, and a muted meta line (level shape and name, place, age, เจอเหมือนกัน N for public ones). The status line is always a Lucide icon plus a word, six pairs with none shared: `clock` รอผู้ดูแลตรวจ, `eye` เปิดอยู่, `wrench` รอตรวจว่าแก้แล้ว, `circleCheck` แก้แล้ว, `circleX` ไม่ผ่านการตรวจ, `eyeOff` ถูกซ่อน, all in Slate Ink so status never rests on colour. A rejected row adds "ไม่ผ่านเพราะ: {reason}". Public reports (`open`, `fix_claimed`, `resolved`) are whole-card links to `/r/:id` that fill Cream Ground on hover; the rest are plain rows because nothing public exists to open.
+- **Comment photo:** a comment with a photo shows its thumbnail under the text, at most 160px wide, 12px radius, `alt="รูปที่แนบในความคิดเห็น"`, lazy loaded; no lightbox.
 - **Toast:** Slate Ink fill, Cream Ground text, 14px radius, `role="status"`.
 
 ### Beacon (signature component)
@@ -322,6 +350,7 @@ MapLibre's strip on the surface at 88%, Muted Ink text and links, Trust Blue foc
 - **Do** show an off filter chip as an outline (transparent, 1px Sand Line, Muted Ink, line-through), not as a faded chip.
 - **Do** keep every target at least 44 × 44 px and give every beacon an `aria-label` of "{title} ระดับ{level} {status}".
 - **Do** use Lucide SVG icons for pictograms so they look the same on every device; never emoji.
+- **Do** say a report's status in words with its own Lucide icon, and say only what is true about photos ("รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ").
 - **Do** credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution.
 
 ### Don't:
@@ -332,3 +361,4 @@ MapLibre's strip on the surface at 88%, Muted Ink text and links, Trust Blue foc
 - **Don't** type level shapes as characters (● ▲ ◆ ⚠); draw them from the SVG set.
 - **Don't** move a map name away from its town to make it fit; hide it.
 - **Don't** claim photos are blurred until blurring exists.
+- **Do** say plainly that the first photo of a duplicate merge shows as a comment at once, with no reviewer check; **Don't** promise review for it (the "after the reviewer checks" caption is for new reports only).

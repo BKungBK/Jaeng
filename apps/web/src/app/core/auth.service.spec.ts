@@ -198,4 +198,21 @@ describe('AuthService', () => {
     await service.signOut();
     expect(auth.signOut).toHaveBeenCalled();
   });
+
+  it('setDisplayName changes the name on the profile that is shown', async () => {
+    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user' };
+    const { service, emit } = setup({ profile });
+    await service.ready;
+    emit('SIGNED_IN', session());
+    await flush();
+    service.setDisplayName('น้องบี');
+    expect(service.profile()).toEqual({ ...profile, display_name: 'น้องบี' });
+  });
+
+  it('setDisplayName does nothing while no profile is loaded', async () => {
+    const { service } = setup();
+    await service.ready;
+    service.setDisplayName('น้องบี');
+    expect(service.profile()).toBeNull();
+  });
 });

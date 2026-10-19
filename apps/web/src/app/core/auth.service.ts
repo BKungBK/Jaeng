@@ -98,6 +98,11 @@ export class AuthService {
     }
   }
 
+  /** After the API accepted a new display name: what the app shows follows without another read. */
+  setDisplayName(name: string): void {
+    this.profileSig.update((p) => (p ? { ...p, display_name: name } : p));
+  }
+
   async sendCode(email: string): Promise<void> {
     const client = await this.clientReady();
     const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });

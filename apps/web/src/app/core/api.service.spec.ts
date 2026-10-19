@@ -103,6 +103,70 @@ describe('ApiService', () => {
     await expect(service.post('/x')).rejects.toMatchObject({ status: 502, code: 'internal' });
   });
 
+  it('get sends GET with the bearer token and no body or content type', async () => {
+    const { service, fetchMock } = setup({ access: 'tok' }, jsonRes(200, { a: 1 }));
+    expect(await service.get('/me/reports')).toEqual({ a: 1 });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/me/reports');
+    expect(init.method).toBe('GET');
+    expect(init.headers.Authorization).toBe('Bearer tok');
+    expect(init.headers['Content-Type']).toBeUndefined();
+    expect(init.body).toBeUndefined();
+  });
+
+  it('patch sends PATCH with a JSON body', async () => {
+    const { service, fetchMock } = setup({ access: 'tok' }, jsonRes(200, { ok: true }));
+    expect(await service.patch('/me', { display_name: 'x' })).toEqual({ ok: true });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/me');
+    expect(init.method).toBe('PATCH');
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(init.body).toBe('{"display_name":"x"}');
+  });
+
+  it('upload posts the FormData as is and sets no Content-Type', async () => {
+    const { service, fetchMock } = setup({ access: 'tok' }, jsonRes(201, { photo_id: 'p' }));
+    const form = new FormData();
+    form.set('file', new Blob(['x']), 'a.webp');
+    expect(await service.upload('/photos', form)).toEqual({ photo_id: 'p' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/photos');
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(form);
+    expect(init.headers.Authorization).toBe('Bearer tok');
+    expect(Object.keys(init.headers).map((k) => k.toLowerCase())).not.toContain('content-type');
+  });
+
+  it.each([
+    ['get', (s: ApiService) => s.get('/x')],
+    ['patch', (s: ApiService) => s.patch('/x', {})],
+    ['upload', (s: ApiService) => s.upload('/x', new FormData())],
+  ])('%s refreshes once on 401 and retries once', async (_name, call) => {
+    const body = { error: { code: 'unauthorized', message_th: 'x', message_en: 'x' } };
+    const { service, fetchMock, refresh } = setup(
+      { access: 'old', refreshed: 'new' },
+      jsonRes(401, body),
+      jsonRes(401, body),
+    );
+    await expect(call(service)).rejects.toMatchObject({ status: 401 });
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1][1].headers.Authorization).toBe('Bearer new');
+  });
+
+  it('get rejects with 401 and no fetch when there is no token', async () => {
+    const { service, fetchMock } = setup({ access: null });
+    await expect(service.get('/x')).rejects.toMatchObject({ status: 401, code: 'unauthorized' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('maps a bare non-JSON 413 (body size limit) to photo_too_large', async () => {
+    const { service } = setup({ access: 't' }, new Response('Request Entity Too Large', { status: 413 }));
+    const err = await service.upload('/photos', new FormData()).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ status: 413, code: 'photo_too_large', messageTh: 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)' });
+  });
+
   it("words its own internal error exactly like the API's internal message", async () => {
     const { service } = setup({ access: 't' }, new Response('<html>oops</html>', { status: 502 }));
     await expect(service.post('/x')).rejects.toMatchObject({ messageTh: 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ' });

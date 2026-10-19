@@ -1,0 +1,37 @@
+<h2 id="rn-dup-title" tabindex="-1">เรื่องนี้ใช่ไหม?</h2>
+<p class="lede">มีคนแจ้งเรื่องหมวดเดียวกันไว้ใกล้ๆ จุดนี้ ถ้าเป็นเรื่องเดียวกัน กดเจอเหมือนกันแทนได้เลย</p>
+<p class="note">
+  <app-icon name="image" [size]="18" />
+  <span>ถ้ากดใช่ รูปแรกของคุณจะขึ้นเป็นความคิดเห็นในเรื่องนั้นทันที โดยผู้ดูแลยังไม่ได้ตรวจก่อน รูปอื่นไม่ถูกใช้</span>
+</p>
+
+<ul class="list">
+  @for (c of shown(); track c.id) {
+    <li class="item" [style.--c]="level(c).color">
+      <div class="thumb">
+        @if (photo(c); as src) {
+          <img [src]="src" alt="" />
+        } @else {
+          <app-icon [name]="icon(c)" [size]="30" />
+        }
+      </div>
+      <div class="text">
+        <strong class="title">{{ c.title }}</strong>
+        <span class="meta">
+          <app-level-shape [level]="level(c).level" />
+          {{ level(c).nameTh }} · {{ status(c) }} · เจอเหมือนกัน {{ c.confirm_count }}
+        </span>
+      </div>
+      <button type="button" class="btn same" [disabled]="busy() !== null" [attr.aria-busy]="busy() === c.id" (click)="same(c)">
+        <app-icon name="hand" [size]="20" />
+        {{ busy() === c.id ? 'กำลังนับ…' : 'ใช่ กดเจอเหมือนกันแทน' }}
+      </button>
+    </li>
+  }
+</ul>
+
+<p class="status" role="status">{{ message() }}</p>
+
+<button type="button" class="btn big wide" [disabled]="busy() !== null" (click)="different()">
+  {{ busy() === 'new' ? 'กำลังส่ง…' : 'ไม่ใช่ แจ้งเป็นเรื่องใหม่' }}
+</button>

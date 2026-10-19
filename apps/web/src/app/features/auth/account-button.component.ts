@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation } from '@angular/core';
+import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { IconComponent } from '../../shared/icon.component';
+import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
-type MenuRole = 'switch' | 'signout';
+type MenuRole = 'mine' | 'switch' | 'signout';
 
 // Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
 const THAI_LEADING_VOWEL = /^[เ-ไ]$/u;
@@ -32,6 +34,10 @@ export function initialOf(name: string): string {
           <span class="tag">ผู้ดูแล</span>
         }
       </p>
+      <button type="button" class="account-menu-item" (click)="choose('mine')">
+        <app-icon name="fileText" [size]="20" />
+        เรื่องของฉัน
+      </button>
       <button type="button" class="account-menu-item" (click)="choose('switch')">
         <app-icon name="circleUser" [size]="20" />
         สลับผู้ใช้
@@ -174,6 +180,8 @@ export class AccountButtonComponent {
   protected readonly auth = inject(AuthService);
   private prompt = inject(LoginPromptService);
   private popovers = inject(PopoverController);
+  private router = inject(Router);
+  private draft = inject(ReportDraftService);
 
   protected readonly label = computed(() => {
     if (!this.auth.signedIn()) return 'เข้าสู่ระบบ';
@@ -201,7 +209,12 @@ export class AccountButtonComponent {
     });
     await popover.present();
     const { role } = await popover.onDidDismiss();
-    if (role === 'switch') await this.prompt.ask();
-    else if (role === 'signout') await this.auth.signOut();
+    if (role === 'mine') await this.router.navigate(['/me']);
+    else if (role === 'switch') await this.prompt.ask();
+    else if (role === 'signout') {
+      // leaving on purpose: an unsent report draft goes too (a lapsed session keeps it, see ReportDraftService)
+      this.draft.reset();
+      await this.auth.signOut();
+    }
   }
 }

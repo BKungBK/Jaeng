@@ -91,6 +91,15 @@
   }
 }
 
+// the floating "แจ้ง" button (surface brief pp-features-report-new-*): bottom-right, 48 px up on
+// desktop so the attribution strip stays readable under it; phones below
+.fab {
+  position: absolute;
+  z-index: 5;
+  right: 12px;
+  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+}
+
 .hint {
   position: absolute;
   z-index: 4;
@@ -138,6 +147,10 @@ $beside: calc(#{$panel} + 24px); // the panel and its two 12 px gutters
 
 .top.beside {
   right: calc(#{$beside} + 8px);
+}
+
+.fab.beside {
+  right: $beside;
 }
 
 :host.with-panel ::ng-deep .maplibregl-ctrl-bottom-right {
@@ -221,15 +234,21 @@ ion-modal.detail-sheet::part(handle) {
     right: 12px;
   }
 
+  // the FAB takes the thumb's corner, 52 px up so the folded attribution fits beneath; the controls
+  // column stands 8 px above it and the hint card stops 8 px left of it
+  .fab {
+    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+  }
+
   .controls {
     top: auto;
-    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(116px + env(safe-area-inset-bottom, 0px));
     transform: none;
   }
 
   .hint {
     bottom: calc(52px + env(safe-area-inset-bottom, 0px));
-    right: 68px;
+    right: 136px;
     max-width: none;
   }
 }

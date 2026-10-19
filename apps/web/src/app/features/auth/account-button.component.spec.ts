@@ -1,8 +1,10 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService, Profile } from '../../core/auth.service';
 import { AccountButtonComponent, AccountMenuComponent, initialOf } from './account-button.component';
+import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
 async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismissRole?: string } = {}) {
@@ -17,18 +19,22 @@ async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismi
     onDidDismiss: vi.fn().mockResolvedValue({ role: opts.dismissRole }),
   };
   const popovers = { create: vi.fn().mockResolvedValue(popover) };
+  const router = { navigate: vi.fn().mockResolvedValue(true) };
+  const draft = { reset: vi.fn() };
   TestBed.configureTestingModule({
     providers: [
       { provide: AuthService, useValue: auth },
       { provide: LoginPromptService, useValue: prompt },
       { provide: PopoverController, useValue: popovers },
+      { provide: Router, useValue: router },
+      { provide: ReportDraftService, useValue: draft },
     ],
   });
   const fixture = TestBed.createComponent(AccountButtonComponent);
   await fixture.whenStable();
   const root = fixture.nativeElement as HTMLElement;
   const button = root.querySelector<HTMLButtonElement>('button')!;
-  return { fixture, root, button, auth, prompt, popovers, popover };
+  return { fixture, root, button, auth, prompt, popovers, popover, router, draft };
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
@@ -97,6 +103,18 @@ describe('AccountButtonComponent', () => {
     expect(prompt.ask).toHaveBeenCalled();
   });
 
+  it('opens /me when the menu asks for "เรื่องของฉัน"', async () => {
+    const { button, router, prompt } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      dismissRole: 'mine',
+    });
+    button.click();
+    await flush();
+    expect(router.navigate).toHaveBeenCalledWith(['/me']);
+    expect(prompt.ask).not.toHaveBeenCalled();
+  });
+
   it('signs out when the menu asks to', async () => {
     const { button, auth } = await setup({
       signedIn: true,
@@ -106,6 +124,29 @@ describe('AccountButtonComponent', () => {
     button.click();
     await flush();
     expect(auth.signOut).toHaveBeenCalled();
+  });
+
+  it('throws away an unsent report draft on a deliberate sign-out', async () => {
+    const { button, auth, draft } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      dismissRole: 'signout',
+    });
+    button.click();
+    await flush();
+    expect(auth.signOut).toHaveBeenCalled();
+    expect(draft.reset).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the draft when the menu only switches user (the draft drops itself if the user changes)', async () => {
+    const { button, draft } = await setup({
+      signedIn: true,
+      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      dismissRole: 'switch',
+    });
+    button.click();
+    await flush();
+    expect(draft.reset).not.toHaveBeenCalled();
   });
 });
 
@@ -149,6 +190,14 @@ describe('AccountMenuComponent', () => {
   it('tags an admin with "ผู้ดูแล"', () => {
     const { root } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin' });
     expect(root.querySelector('.tag')?.textContent?.trim()).toBe('ผู้ดูแล');
+  });
+
+  it('lists "เรื่องของฉัน" first among the actions, signed in', () => {
+    const { root, button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user' });
+    const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
+    expect(rows).toEqual(['เรื่องของฉัน', 'สลับผู้ใช้', 'ออกจากระบบ']);
+    button('เรื่องของฉัน').click();
+    expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'mine');
   });
 
   it('dismisses with the chosen action', () => {

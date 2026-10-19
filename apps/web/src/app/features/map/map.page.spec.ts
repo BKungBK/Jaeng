@@ -12,6 +12,8 @@ import { LoginPromptService } from '../auth/login-prompt.service';
 import { ReportDetailComponent } from '../report-detail/report-detail.component';
 import { ReportDetailService } from '../report-detail/report-detail.service';
 import { By } from '@angular/platform-browser';
+import { NavigationEnd, NavigationStart } from '@angular/router';
+import { Subject } from 'rxjs';
 import { MAP_FACTORY } from './map-factory';
 import { centerFor, MapPage } from './map.page';
 import { EMPTY_COLLECTION } from './report';
@@ -116,10 +118,11 @@ async function setup(
   mockWide(opts.wide ?? true);
   const map = fakeMap();
   const navigate = vi.fn().mockResolvedValue(true);
+  const events = new Subject<unknown>();
   const detailSvc = fakeDetailService(opts.detail === undefined ? DETAIL : opts.detail);
   TestBed.configureTestingModule({
     providers: [
-      { provide: Router, useValue: { navigate } },
+      { provide: Router, useValue: { navigate, events } },
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: ReportsService, useValue: { inBbox } },
       { provide: ReportDetailService, useValue: detailSvc },
@@ -131,7 +134,7 @@ async function setup(
   await Promise.resolve(); // the factory result is awaited
   await Promise.resolve();
   const root = fixture.nativeElement as HTMLElement;
-  return { map, fixture, root, inBbox, navigate, detailSvc };
+  return { map, fixture, root, inBbox, navigate, detailSvc, events };
 }
 
 describe('MapPage', () => {
@@ -442,6 +445,52 @@ describe('MapPage', () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(map.remove).toHaveBeenCalled();
+  });
+
+  it('has the floating "แจ้ง" button after the controls', async () => {
+    const { root } = await setup();
+    const fab = root.querySelector('app-report-fab button');
+    expect(fab?.getAttribute('aria-label')).toBe('แจ้งเรื่องใหม่');
+    const order = [...root.querySelectorAll('.controls, app-report-fab')].map((e) => e.tagName);
+    expect(order).toEqual(['DIV', 'APP-REPORT-FAB']);
+  });
+
+  it('hides the floating button while the report sheet is open on a phone', async () => {
+    const { fixture, root } = await setup(undefined, { wide: false });
+    expect(root.querySelector('app-report-fab')).not.toBeNull();
+    fixture.componentRef.setInput('id', DETAIL.id);
+    fixture.detectChanges();
+    expect(root.querySelector('app-report-fab')).toBeNull();
+    fixture.componentRef.setInput('id', undefined);
+    fixture.detectChanges();
+    expect(root.querySelector('app-report-fab')).not.toBeNull();
+  });
+
+  it('keeps the floating button beside the open panel on a wide screen', async () => {
+    const { fixture, root } = await setup(undefined, { wide: true });
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    expect(root.querySelector('app-report-fab')?.classList).toContain('beside');
+  });
+
+  it('shows the toast a page sent along with its navigation', async () => {
+    const { fixture, root, events } = await setup();
+    history.replaceState({ toast: 'ขอบคุณนะ นับให้แล้ว' }, '');
+    events.next(new NavigationStart(1, '/r/d1', 'imperative'));
+    events.next(new NavigationEnd(1, '/r/d1', '/r/d1'));
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')?.textContent).toContain('ขอบคุณนะ นับให้แล้ว');
+    history.replaceState(null, '');
+  });
+
+  it('does not repeat that toast when the reader comes back with Back', async () => {
+    const { fixture, root, events } = await setup();
+    history.replaceState({ toast: 'ขอบคุณนะ นับให้แล้ว' }, '');
+    events.next(new NavigationStart(2, '/r/d1', 'popstate'));
+    events.next(new NavigationEnd(2, '/r/d1', '/r/d1'));
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')).toBeNull();
+    history.replaceState(null, '');
   });
 
   it('zooms with the buttons', async () => {

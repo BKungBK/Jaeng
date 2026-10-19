@@ -10,6 +10,14 @@ export const ERRORS = {
   invalid_body: { status: 400, th: 'ความคิดเห็นต้องยาว 1–500 ตัวอักษร', en: 'Comments must be 1–500 characters.' },
   invalid_request: { status: 400, th: 'ข้อมูลไม่ถูกต้อง', en: 'Invalid request.' },
   not_found: { status: 404, th: 'ไม่พบหน้านี้', en: 'Not found.' },
+  rate_limited: { status: 429, th: 'วันนี้ทำรายการนี้ครบโควตาแล้ว พรุ่งนี้ลองใหม่นะ', en: 'Daily limit reached. Please try again tomorrow.' },
+  profanity: { status: 422, th: 'ข้อความมีคำที่ไม่เหมาะสม ลองเรียบเรียงใหม่นะ', en: 'The text contains inappropriate words. Please rephrase it.' },
+  invalid_photo: { status: 415, th: 'ไฟล์นี้ไม่ใช่รูปที่ใช้ได้ ลองเลือกรูปอื่นนะ', en: 'This file is not a usable image. Please choose another.' },
+  photo_too_large: { status: 413, th: 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)', en: 'The photo is too large (3 MB max).' },
+  invalid_photos: { status: 400, th: 'รูปที่แนบไม่ถูกต้อง หรือถูกใช้ไปแล้ว', en: 'The attached photos are invalid or already used.' },
+  invalid_report: { status: 400, th: 'ข้อมูลเรื่องที่แจ้งไม่ถูกต้อง', en: 'The report details are invalid.' },
+  invalid_location: { status: 400, th: 'ตำแหน่งต้องอยู่ในประเทศไทย', en: 'The location must be in Thailand.' },
+  invalid_display_name: { status: 400, th: 'ชื่อที่แสดงต้องยาว 2–30 ตัวอักษร', en: 'The display name must be 2–30 characters.' },
   internal: { status: 500, th: MSG_INTERNAL_TH, en: 'Something went wrong. Please try again.' },
 } as const satisfies Record<ServerErrorCode, Entry>;
 

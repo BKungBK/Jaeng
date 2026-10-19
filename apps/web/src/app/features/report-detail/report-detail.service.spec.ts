@@ -76,6 +76,13 @@ describe('ReportDetailService', () => {
     expect(calls).toContainEqual(['limit', [200]]);
   });
 
+  it('asks for the photo path of each comment', async () => {
+    const { service, calls } = setup({ data: [], error: null });
+    await service.comments(ID);
+    const select = calls.find(([m]) => m === 'select');
+    expect(String(select?.[1][0])).toContain('photo_path');
+  });
+
   it('says not confirmed when signed out, without a request', async () => {
     const { service, client } = setup();
     expect(await service.myConfirmation(ID)).toBe(false);

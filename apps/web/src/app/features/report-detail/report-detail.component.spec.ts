@@ -45,6 +45,7 @@ function comment(over: Partial<PublicComment> = {}): PublicComment {
     author_name: 'น้องบี',
     by_reporter: false,
     created_at: '2026-10-14T08:00:00Z',
+    photo_path: null,
     ...over,
   };
 }
@@ -551,6 +552,17 @@ describe('ReportDetailComponent', () => {
       await afterDebounce();
       expect(root.querySelectorAll('.comments li')).toHaveLength(3);
     });
+  });
+
+  it('shows the photo of a comment as a thumb with a fixed alt', async () => {
+    const { root } = await setup({
+      comments: [comment({ id: 'p1', photo_path: 'u1/abc.webp' }), comment({ id: 'p2', photo_path: null })],
+    });
+    const items = root.querySelectorAll('.comments li');
+    const img = items[0].querySelector('img');
+    expect(img?.getAttribute('src')).toMatch(/\/photos-public\/u1\/abc_thumb\.webp$/);
+    expect(img?.getAttribute('alt')).toBe('รูปที่แนบในความคิดเห็น');
+    expect(items[1].querySelector('img')).toBeNull();
   });
 
   it('emits closed from its close button', async () => {

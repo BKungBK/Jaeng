@@ -1,0 +1,64 @@
+@use 'flow';
+
+:host {
+  display: grid;
+  gap: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 820px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cat {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  min-height: 104px;
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 160ms ease-out;
+
+  &:hover {
+    background: var(--bg);
+  }
+
+  // chosen: a thicker Trust Blue edge, a tint and a tick, so it does not rest on colour alone
+  &[aria-pressed='true'] {
+    border-color: var(--pri);
+    box-shadow: inset 0 0 0 1px var(--pri);
+    background: color-mix(in srgb, var(--pri) 10%, var(--surf));
+  }
+}
+
+.name {
+  font: 500 15px/1.35 flow.$prompt;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.tick {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  background: var(--pri);
+  color: var(--onpri);
+}

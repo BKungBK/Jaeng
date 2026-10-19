@@ -1,8 +1,21 @@
 // Lucide icons (ISC), the app's only icon set (owner decision 2026-10-17: no emoji).
 // Plain DOM for map markers and controls.
 import {
+  Camera,
   Check,
+  ChevronDown,
+  ChevronLeft,
+  CircleCheck,
   CircleUser,
+  CircleX,
+  Clock,
+  Eye,
+  EyeOff,
+  FileText,
+  Wrench,
+  Image,
+  RefreshCw,
+  Upload,
   Construction,
   createElement,
   Droplet,
@@ -16,6 +29,7 @@ import {
   MapPin,
   MessageCircle,
   Minus,
+  Pencil,
   Phone,
   Plus,
   Send,
@@ -48,6 +62,21 @@ export const ICONS = {
   link: Link,
   messageCircle: MessageCircle,
   phone: Phone,
+  camera: Camera,
+  image: Image,
+  chevronLeft: ChevronLeft,
+  chevronDown: ChevronDown,
+  upload: Upload,
+  refreshCw: RefreshCw,
+  fileText: FileText,
+  // one icon per report status on /me (with the word, never colour alone)
+  clock: Clock,
+  eye: Eye,
+  wrench: Wrench,
+  circleCheck: CircleCheck,
+  circleX: CircleX,
+  eyeOff: EyeOff,
+  pencil: Pencil,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

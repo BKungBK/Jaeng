@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { FeatureCollection } from 'geojson';
-import { SEA_FRAME_MS, SeaClock } from './sea-clock';
+import { SEA_FRAME_MS, SeaClock, seaOutOfSight } from './sea-clock';
 import { SEA_ANCHOR, seaTriangles } from './sea-geometry';
 import { seaPalette } from './sea-palette';
 import { seaFoamFade, seaInView } from './sea-layer';
@@ -96,5 +96,12 @@ describe('SeaClock', () => {
     t += 100;
     expect(clock.nextFrameIn(false)).toBe(0);
     expect(clock.nextFrameIn(true)).toBeNull();
+  });
+
+  it('counts a map page put behind another page (0 px) as out of sight, like a hidden tab', () => {
+    expect(seaOutOfSight(false, { clientWidth: 375, clientHeight: 812 })).toBe(false);
+    expect(seaOutOfSight(true, { clientWidth: 375, clientHeight: 812 })).toBe(true);
+    expect(seaOutOfSight(false, { clientWidth: 0, clientHeight: 0 })).toBe(true);
+    expect(seaOutOfSight(false, { clientWidth: 375, clientHeight: 0 })).toBe(true);
   });
 });

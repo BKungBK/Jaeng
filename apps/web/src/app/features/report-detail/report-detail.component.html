@@ -116,6 +116,9 @@
                   <time [attr.datetime]="c.created_at" [title]="date(c.created_at)">{{ ago(c.created_at) }}</time>
                 </p>
                 <p class="body">{{ c.body }}</p>
+                @if (c.photo_path; as p) {
+                  <img class="attached" [src]="thumbUrl(p)" alt="รูปที่แนบในความคิดเห็น" />
+                }
               </li>
             }
           </ul>

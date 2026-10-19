@@ -176,8 +176,8 @@
   4. คำอธิบาย
   5. ผู้แจ้งและเวลา (แสดงเป็น "ผู้ใช้นิรนาม" ถ้าผู้แจ้งเลือกปิดชื่อ)
   6. ปุ่ม **เจอเหมือนกัน · N** (กดซ้ำเพื่อยกเลิก)
-  7. ปุ่ม **แจ้งว่าแก้แล้ว** (มาในแผน 5 พร้อม endpoint)
-  8. เมนู ⋯ สำหรับรายงานเนื้อหาไม่เหมาะสมและคัดลอกลิงก์ (เมนูรายงานเนื้อหามาในแผน 5 ส่วนแผน 3 ใส่ปุ่ม "คัดลอกลิงก์" ไว้ข้างปุ่มเจอเหมือนกันก่อน)
+  7. ปุ่ม **แจ้งว่าแก้แล้ว** (เรื่อง `fix_claimed` แสดงข้อความ "มีคนแจ้งว่าแก้แล้ว รอผู้ดูแลตรวจ" แทน) ฟอร์มแจ้งแก้และฟอร์มรายงานเปิดแทนแถวปุ่มในแผงเดียวกัน
+  8. เมนู ⋯: คัดลอกลิงก์, รายงานเนื้อหาไม่เหมาะสม และ (แอดมินเท่านั้น) ซ่อนเรื่องนี้ · ความคิดเห็นแต่ละรายการมีปุ่มรายงานของตัวเอง
   9. ความคิดเห็น พร้อมช่องพิมพ์
 - แต่ละเรื่องมี URL ของตัวเอง `/r/:id` เปิดลิงก์มาแล้วแผนที่บินไปที่จุดนั้นและเปิดแผงให้เลย
 
@@ -249,8 +249,11 @@
        ▼
     resolved
 
- สถานะใดก็ได้ ──(แอดมินซ่อน)──► hidden
+ สถานะใดก็ได้ (ยกเว้น rejected) ──(แอดมินซ่อน / รายงานครบ 3 คน)──► hidden ──(แอดมินคืน)──► สถานะเดิม
 ```
+
+- **คืน (แผน 5):** `reports.hidden_from` จำสถานะก่อนซ่อน แอดมินคืนได้ทั้งที่ซ่อนเองและที่ระบบซ่อนอัตโนมัติ การคืนถือเป็นการตัดสินของแอดมิน รายงานที่ยังเปิดอยู่ของเป้าหมายนั้นจึงถูกปิดเป็น `dismissed` ด้วย
+- **คำขอแจ้งแก้ระหว่างถูกซ่อน:** เรื่อง `fix_claimed` ที่ถูกซ่อน คำขอยังรออยู่ แต่ไม่ขึ้นคิวและตรวจไม่ได้จนกว่าจะคืน
 
 - **แจ้งว่าแก้แล้ว** (**ตัดสินแล้ว**: ใครก็ได้กด แล้วส่งให้แอดมินตรวจ): แนบ "รูปหลังแก้" ได้ (ไม่บังคับ แต่แนะนำ) และใส่หมายเหตุได้ เรื่องหนึ่งมีคำขอที่รอตรวจได้ทีละ 1 คำขอ
 - ถ้าแอดมินปฏิเสธการแจ้งแก้ เรื่องจะกลับเป็น `open` และนับวันค้างต่อจากวันที่แจ้งครั้งแรก
@@ -494,7 +497,7 @@ Jaeng/
 
 ดัชนีที่ต้องมี: GiST บน `public_location`, btree บน `(status, approved_at)` และ trigram บน `title`
 
-**`report_photos`**: `id`, `report_id`, `kind` (`before`/`after`/`comment`), `storage_path`, `width`, `height`, `blurred boolean default false`, `created_at`
+**`report_photos`**: `id`, `report_id`, `kind` (`before`/`after`/`comment`/`claim`), `storage_path`, `width`, `height`, `blurred boolean default false`, `created_at` · `claim` (แผน 5) คือรูปหลังแก้ที่ยังรอแอดมินยืนยัน อยู่ใน `photos-private` และกลายเป็น `after` ตอนยืนยัน
 
 **`tags`**: `id`, `name` (unique, เก็บตัวพิมพ์เล็กและตัด #)
 **`report_tags`**: `report_id`, `tag_id` (PK คู่)
@@ -505,11 +508,13 @@ Jaeng/
 
 **`fix_claims`**: `id`, `report_id`, `claimant_id`, `note null`, `photo_id null`, `status` (`pending`/`approved`/`rejected`), `reviewed_by null`, `reviewed_at null`, `created_at` มี unique index บางส่วนเพื่อให้เรื่องหนึ่งมี `pending` ได้ทีละ 1 รายการ
 
-**`flags`** (รายงานเนื้อหา): `id`, `target_type` (`report`/`comment`), `target_id`, `reporter_id`, `reason` (`spam`/`false`/`personal_attack`/`privacy`/`other`), `note`, `status` (`open`/`dismissed`/`actioned`), `created_at`
+**`flags`** (รายงานเนื้อหา): `id`, `target_type` (`report`/`comment`), `target_id`, `reporter_id`, `reason` (`spam`/`false`/`personal_attack`/`privacy`/`other`), `note`, `status` (`open`/`dismissed`/`actioned`), `created_at` · unique index บางส่วน (แผน 5): สมาชิกหนึ่งคนมีรายงาน `open` ต่อเป้าหมายหนึ่งได้รายการเดียว
 
 **`admin_areas`**: `id`, `level` (1 = จังหวัด, 2 = อำเภอ), `name_th`, `name_en`, `province_th`, `region`, `geom geography(MultiPolygon)` นำเข้าจาก OCHA COD-AB ด้วยสคริปต์ ใช้หา `place_name` และใช้กับตัวเลขกำลังใจรายจังหวัด
 
-**`moderation_log`**: `id`, `admin_id`, `action`, `target_type`, `target_id`, `detail jsonb`, `created_at`
+**`moderation_log`**: `id`, `admin_id` (null = ระบบ เช่นซ่อนอัตโนมัติ), `action`, `target_type`, `target_id`, `detail jsonb`, `created_at`
+
+**`reports.hidden_from`** (แผน 5): สถานะก่อนถูกซ่อน (null เมื่อไม่ได้ซ่อน) ใช้ตอน "คืน" และไม่อยู่ใน `public_reports`
 
 ### 5.2 View สาธารณะ (ให้ Angular อ่าน)
 
@@ -540,6 +545,8 @@ Jaeng/
 - ชื่อไฟล์: `{report_id}/{photo_id}.webp` ใน `photos-public` ส่วนระหว่างรอการอนุมัติรูปอยู่ที่ `photos-private/{uploader_id}/{photo_id}.webp` (กับ `{photo_id}_thumb.webp`) เพราะตอนอัปโหลดยังไม่มี `report_id` ตอนอนุมัติ API ย้ายมาเป็นชื่อแบบแรก
 - **ข้อยกเว้น (เจ้าของตัดสินแล้ว, แผน 4):** รูปแรกจากการ "ใช่ กดเจอเหมือนกันแทน" ใน `merge` ถูกแนบเป็นความคิดเห็นและย้ายไป `photos-public` ทันที โดยผู้ดูแลยังไม่ได้ตรวจ และยังไม่มีการเบลอ (ทำในแผน 9) UI ต้องบอกตรงๆ ว่ารูปนี้ขึ้นทันที
 - **ไม่เก็บไฟล์ต้นฉบับ** เก็บเฉพาะไฟล์ที่ re-encode แล้วและไม่มี metadata (**ตัดสินแล้วในแชตเดิม**)
+- **ไฟล์ย้ายตามการมองเห็น (แผน 5):** ไฟล์อยู่ใน `photos-public` ก็ต่อเมื่อเรื่องสาธารณะ (และความคิดเห็นนั้น `visible`) ซ่อน → ย้ายกลับ `photos-private` ที่พาธเดิม, คืน → ย้ายกลับ `photos-public` ทั้งไฟล์เต็มและ `_thumb` ฐานข้อมูลบอกรายการไฟล์ (`promote`/`demote`) API เป็นผู้ย้าย ล้มเหลวลองอีกครั้งแล้ว log
+- **รูปหลังแก้ (แผน 5):** อยู่ `photos-private/{claimant}/{photo}.webp` จนแอดมินยืนยัน แล้วย้ายไป `photos-public/{report}/{photo}.webp`
 
 ---
 
@@ -561,12 +568,16 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 | POST | `/api/reports/:id/comments` | เพิ่มความคิดเห็น (photo_id ได้) | สมาชิก |
 | POST | `/api/reports/:id/fix-claims` | แจ้งว่าแก้แล้ว (note, photo_id) | สมาชิก |
 | POST | `/api/flags` | รายงานเนื้อหา | สมาชิก |
-| GET | `/api/admin/queue?type=reports\|claims\|flags` | คิวงานแอดมิน | แอดมิน |
-| POST | `/api/admin/reports/:id/approve` | อนุมัติ (แก้ช่องได้) | แอดมิน |
+| GET | `/api/admin/counts` | (แผน 5) ตัวเลขบนหัวแท็บ `{reports, claims, flags}` | แอดมิน |
+| GET | `/api/admin/queue?type=reports\|claims\|flags\|hidden` | คิวงานแอดมิน รูปมี URL แล้ว (signed เมื่อไฟล์ยังไม่สาธารณะ) `flags` รวมหนึ่งรายการต่อเป้าหมาย `hidden` (แผน 5) คือสิ่งที่ซ่อนอยู่ | แอดมิน |
+| POST | `/api/admin/reports/:id/approve` | อนุมัติ (แก้หมวด ระดับ หัวข้อ และตำแหน่งที่แสดง `keep\|exact\|fuzz\|point`) | แอดมิน |
 | POST | `/api/admin/reports/:id/reject` | ปฏิเสธพร้อมเหตุผล | แอดมิน |
 | POST | `/api/admin/fix-claims/:id/approve` / `reject` | ยืนยัน/ปฏิเสธการแก้ | แอดมิน |
-| POST | `/api/admin/flags/:id/resolve` | `{action: dismiss\|hide\|ban}` | แอดมิน |
-| POST | `/api/admin/users/:id/ban` / `unban` | | แอดมิน |
+| POST | `/api/admin/flags/:id/resolve` | `{action: dismiss\|hide\|ban}` ใช้กับรายงาน `open` **ทุกรายการ** ของเป้าหมายเดียวกัน (dismiss ของเป้าหมายที่ซ่อนอยู่จะคืนให้ด้วย) คืน `{report}` | แอดมิน |
+| POST | `/api/admin/hide` / `restore` | (แผน 5) `{target_type, target_id}` ซ่อนหรือคืนเรื่อง/ความคิดเห็น | แอดมิน |
+| POST | `/api/admin/users/:id/ban` / `unban` | แบนบัญชีผู้ดูแลไม่ได้ (`cannot_ban_admin`) | แอดมิน |
+| GET | `/api/admin/users?q=` | (แผน 5) ค้นชื่อหรืออีเมล | แอดมิน |
+| GET | `/api/admin/log?before=` | (แผน 5) บันทึก 50 รายการต่อหน้า ใหม่ก่อน พร้อมชื่อผู้กระทำและชื่อเป้าหมาย | แอดมิน |
 
 ข้อผิดพลาดทุกตัวตอบในรูปแบบ `{ error: { code, message_th, message_en } }`
 
@@ -583,7 +594,7 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 - กรองคำหยาบด้วยรายการคำไทยและอังกฤษใน `apps/api/src/moderation/badwords.ts`
   - ความคิดเห็นที่มีคำหยาบถูกปฏิเสธพร้อมข้อความบอก
   - เรื่องที่มีคำหยาบยังรับได้ (เพราะผ่านแอดมินอยู่แล้ว) แต่จะติดธงให้แอดมินเห็น
-- เรื่องที่ถูกรายงานตั้งแต่ 3 ครั้งขึ้นไป จะถูกซ่อนชั่วคราว (`hidden`) รอแอดมินตัดสิน
+- เรื่อง**และความคิดเห็น**ที่ถูกรายงานโดยสมาชิก **3 คนที่ต่างกัน** (รายงานที่ยัง `open`) จะถูกซ่อนชั่วคราว (`hidden`) รอแอดมินตัดสิน คนเดียวรายงานซ้ำไม่นับเพิ่ม (แผน 5) ชื่อ env ของโควตาแจ้งแก้และรายงานคือ `RATE_LIMIT_FIX_CLAIMS_PER_DAY` (10) และ `RATE_LIMIT_FLAGS_PER_DAY` (20) หมายเหตุของการแจ้งแก้และการรายงานไม่ผ่านตัวกรองคำหยาบเพราะมีแต่แอดมินที่เห็น
 
 ### 6.3 การจัดการรูป
 
@@ -596,12 +607,13 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
    - ใช้ `sharp` re-encode เป็น WebP อีกรอบ (ลบ metadata ทุกชนิด) และย่ออีกครั้งถ้าจำเป็น
    - **เรียก `processForPrivacy(image)`** ซึ่งตอนนี้คืนรูปเดิมและตั้ง `blurred=false` (จุดต่อระบบเบลอ ดูหัวข้อ 9)
    - เก็บใน `photos-private/{uploader_id}/{photo_id}.webp` (กับ `{photo_id}_thumb.webp`) เพราะตอนอัปโหลดยังไม่มี `report_id`
-3. **ตอนแอดมินอนุมัติ:** ย้ายรูปไป `photos-public` **ข้อยกเว้น:** รูปแรกของ `merge` (การ์ดเรื่องซ้ำ "ใช่") ไปที่ `photos-public` ทันทีโดยไม่ผ่านการตรวจ (ดู 5.4) ยังไม่เบลอจนกว่าจะถึงแผน 9
+3. **ตอนแอดมินอนุมัติ:** ย้ายรูปไป `photos-public` (ซ่อน/คืนย้ายไฟล์ตาม ดู 5.4) **ข้อยกเว้น:** รูปแรกของ `merge` (การ์ดเรื่องซ้ำ "ใช่") ไปที่ `photos-public` ทันทีโดยไม่ผ่านการตรวจ (ดู 5.4) ยังไม่เบลอจนกว่าจะถึงแผน 9
 4. **thumbnail:** API สร้างไฟล์ขนาด 400 px ด้วย `sharp` เก็บคู่กันเป็น `{photo_id}_thumb.webp` (**ผู้ออกแบบเลือก**: ไม่ใช้ image transformation ของ Supabase เพราะต้องเปิด imgproxy ที่กินแรมเพิ่ม และต้องเรียกผ่าน endpoint `/render/image/` แยกต่างหาก)
 
 ### 6.4 ความเป็นส่วนตัวของพิกัด
 
 - หมวด `hazard` (ความปลอดภัย) ระบบจะเลื่อน `public_location` แบบสุ่มภายใน 150 เมตรโดยอัตโนมัติ (**ผู้ออกแบบเลือก**) แอดมินปิดการเลื่อนหรือตั้งเองได้ตอนอนุมัติ
+- **ตำแหน่งตอนอนุมัติ 4 แบบ (แผน 5):** `keep` (ตามเดิม), `exact` (พิกัดจริง = ปิดการเลื่อน), `fuzz` (สุ่มใหม่ ≤ 150 ม.), `point` (แอดมินปักเอง ต้องอยู่ในไทยและห่างจุดจริง ≤ 1,000 ม.; หมุดเริ่มที่จุดที่แสดง ไม่ใช่จุดจริง) ถ้าหมวดสุดท้ายเป็น hazard และจุดที่ได้จาก `keep` หรือ `point` ตรงกับจุดจริงพอดี ระบบเลื่อนให้ มีแต่ `exact` ที่เปิดเผยพิกัดจริงได้ หัวข้ออัตโนมัติและ `place_name` มาจากจุดที่แสดงเสมอ
 - หมวดอื่นใช้พิกัดจริง เพราะต้องรู้จุดที่ชัดเจนถึงจะแก้ปัญหาได้
 
 ---

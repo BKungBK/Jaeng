@@ -70,6 +70,7 @@ declare
   v_title text := nullif(btrim(p_title), '');
   v_public extensions.geography;
   v_promote jsonb;
+  v_old_default text;
   v_detail jsonb := jsonb_build_object('location_mode', p_location_mode);
 begin
   select * into v_r from public.reports r where r.id = p_report for update;
@@ -89,6 +90,8 @@ begin
     end if;
     v_detail := v_detail || jsonb_build_object('category', p_category);
   end if;
+  select btrim(c.name_th || ' ' || coalesce(v_r.place_name, '')) into v_old_default
+  from public.categories c where c.id = v_r.category_id;
   if p_danger is not null then
     if p_danger not between 0 and 3 then
       raise exception 'invalid_report';
@@ -136,6 +139,15 @@ begin
          approved_at = now(),
          reject_reason = null
    where r.id = p_report;
+
+  -- A default title names the category and the area of the old published point. Rebuild it from
+  -- the new ones, so a hazard's title can never name the area of its true point.
+  if v_title is null then
+    update public.reports r
+       set title = btrim(v_cat.name_th || ' ' || coalesce(r.place_name, ''))
+     where r.id = p_report
+       and r.title = v_old_default;
+  end if;
 
   -- Photos move to the public bucket under the report's id; the API moves the files.
   with old as (
@@ -298,6 +310,8 @@ begin
 end;
 $$;
 
+-- Searches the published point only: searching the true location of a hazard would let a
+-- caller narrow it down by probing (trilateration). Returns no coordinates or distances.
 -- The radius is clamped to 0..200 m whatever the caller passes.
 create or replace function public.find_duplicates(p_lng float8, p_lat float8, p_category text, p_radius float8 default 50)
 returns table (id uuid, title text, category text, status text, danger_level int, confirm_count int, cover_photo_path text)

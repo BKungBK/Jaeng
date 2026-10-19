@@ -1,5 +1,5 @@
 begin;
-select plan(63);
+select plan(67);
 
 -- Start from an empty map; the demo seed comes back when the transaction rolls back.
 delete from public.reports;
@@ -95,7 +95,6 @@ select is((select status from public.reports where id = :'r4'), 'pending_review'
 
 -- ================================================================ approve: location modes
 select pg_temp.mk(:'a', 'hazard', :px, :py, 1) as rh \gset
-select pg_temp.mk(:'a', 'road', :px, :py, 1) as rf \gset
 select pg_temp.mk(:'a', 'road', :px, :py, 1) as rp \gset
 select pg_temp.mk(:'a', 'road', :px, :py, 1) as rfail \gset
 select st_x(g::extensions.geometry) as p3x, st_y(g::extensions.geometry) as p3y
@@ -105,7 +104,6 @@ from pg_temp.shift(:px, :py, 1500) g \gset
 
 set local role service_role;
 select public.admin_approve_report(:'adm', :'rh', null, null, null, 'exact', null, null);
-select public.admin_approve_report(:'adm', :'rf', null, null, null, 'fuzz', null, null);
 select public.admin_approve_report(:'adm', :'rp', null, null, null, 'point', :p3x, :p3y);
 select throws_ok(format($q$select public.admin_approve_report(%L, %L, null, null, null, 'point', %s, %s)$q$,
   :'adm', :'rfail', :far_x, :far_y), 'P0001', 'invalid_location', 'point more than 1000 m away is rejected');
@@ -117,8 +115,6 @@ reset role;
 
 select ok((select extensions.st_equals(public_location::extensions.geometry, location::extensions.geometry)
            from public.reports where id = :'rh'), 'exact: the published point is the true point');
-select ok((select extensions.st_distance(location, public_location) <= 150
-           from public.reports where id = :'rf'), 'fuzz: the published point is within 150 m');
 select ok((select extensions.st_distance(public_location,
                   extensions.st_point(:p3x, :p3y, 4326)::extensions.geography) < 0.01
            from public.reports where id = :'rp'), 'point: the published point is the admin pin');
@@ -141,6 +137,45 @@ select ok((select count(*) from public.reports
            where id = any (:'hz_ids'::uuid[])
              and extensions.st_distance(location, public_location) > 0) >= 1,
   'hazard approved with keep: the published point moves');
+
+-- ================================================================ approve: fuzz
+select array_agg(pg_temp.mk(:'a', 'road', :px, :py, 1)) as fz_ids from generate_series(1, 10) \gset
+
+set local role service_role;
+select public.admin_approve_report(:'adm', x, null, null, null, 'fuzz', null, null)
+from unnest(:'fz_ids'::uuid[]) x;
+reset role;
+
+select is((select count(*)::int from public.reports
+           where id = any (:'fz_ids'::uuid[])
+             and extensions.st_distance(location, public_location) <= 150), 10,
+  'fuzz: every published point is within 150 m');
+select ok((select count(*) from public.reports
+           where id = any (:'fz_ids'::uuid[])
+             and extensions.st_distance(location, public_location) > 0) >= 1,
+  'fuzz: the published point moves');
+
+-- ================================================================ approve: default title
+-- A default title names the area of the published point. After a category change to hazard,
+-- the title must name the fuzzed point, never the area of the true point.
+select pg_temp.mk(:'a', 'road', :px, :py, 1, '  ') as rt1 \gset
+select pg_temp.mk(:'a', 'road', :px, :py, 1, 'หลุมลึก') as rt2 \gset
+
+set local role service_role;
+select public.admin_approve_report(:'adm', :'rt1', 'hazard', null, null, 'keep', null, null);
+select public.admin_approve_report(:'adm', :'rt2', 'hazard', null, null, 'keep', null, null);
+reset role;
+
+select is((select title from public.reports where id = :'rt1'),
+  btrim('จุดเสี่ยง/ความปลอดภัย ' || coalesce((select place_name from public.reports where id = :'rt1'), '')),
+  'hazard approve: a default title names the place of the published point');
+select ok((select place_name is not distinct from public.area_name_at(
+                 extensions.st_x(public_location::extensions.geometry),
+                 extensions.st_y(public_location::extensions.geometry))
+           from public.reports where id = :'rt1'),
+  'hazard approve: place_name follows the published point');
+select is((select title from public.reports where id = :'rt2'), 'หลุมลึก',
+  'hazard approve: a custom title is kept');
 
 -- ================================================================ states
 set local role service_role;
@@ -221,7 +256,7 @@ select throws_ok(format($q$select public.register_photo(gen_random_uuid(), %L, '
 select throws_ok(format($q$select * from public.add_comment(%L, %L, 'hi', null)$q$, :'r1', :'b'),
   'P0001', 'rate_limited', 'add_comment: a null quota counts as zero');
 
--- Two public reports 150 m and 300 m north-east of Q; a huge radius is clamped to 200 m.
+-- Q is 5000 m due north of P. Two public reports 150 m and 300 m due east of Q; a huge radius is clamped to 200 m.
 select st_x(g::extensions.geometry) as qx, st_y(g::extensions.geometry) as qy
 from pg_temp.shift(:px, :py, 5000, 0) g \gset
 select st_x(g::extensions.geometry) as x150, st_y(g::extensions.geometry) as y150

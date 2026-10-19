@@ -32,7 +32,7 @@ Angular + Ionic + Capacitor (APK สำหรับ Android) · Elysia (Bun) · 
 bash scripts/dev-up.sh
 ```
 
-แอปอยู่ที่ http://localhost:8000 · Supabase Studio อยู่ที่ http://localhost:54323 · Mailpit (อีเมล OTP) อยู่ที่ http://localhost:54324
+แอปอยู่ที่ http://localhost:8000 · Mailpit (อีเมล OTP) อยู่ที่ http://localhost:54324 · Supabase Studio ปิดไว้เพื่อประหยัดแรม (เปิดได้ที่ `[studio] enabled` ใน `supabase/config.toml` แล้วจะอยู่ที่ http://localhost:54323)
 
 ```bash
 bash scripts/dev-down.sh

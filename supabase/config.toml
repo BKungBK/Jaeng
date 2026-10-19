@@ -93,7 +93,8 @@ enabled = true
 # max_header_length = 4096
 
 [studio]
-enabled = true
+# Off to keep WSL inside 4 GB (Studio + pg_meta use ~230 MB); turn on when you need the UI.
+enabled = false
 # Port to use for Supabase Studio.
 port = 54323
 # External URL of the API server that frontend connects to.

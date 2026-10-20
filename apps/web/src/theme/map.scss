@@ -95,7 +95,10 @@
     width: 60px;
     height: var(--h);
     pointer-events: none;
+    transform-origin: 50% 100%;
     transition: height 400ms cubic-bezier(0.3, 0.7, 0.2, 1);
+    // a new beacon grows up from its base (plan 6b)
+    animation: pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
   .beam {
@@ -147,6 +150,10 @@
 
   .sym {
     @include level-badge;
+  }
+
+  .disc {
+    transition: box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .disc.selected {
@@ -207,6 +214,13 @@
   }
 }
 
+@keyframes pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
 @keyframes beacon-pulse {
   from {
     transform: scale(0.3, 0.14);
@@ -257,6 +271,7 @@
     font: 600 18px/1 var(--font);
     font-variant-numeric: tabular-nums;
     cursor: pointer;
+    animation: pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 
     .sym {
       @include level-badge;

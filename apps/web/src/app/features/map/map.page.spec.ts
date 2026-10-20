@@ -24,6 +24,7 @@ import { MapViewService } from '../../core/map-view.service';
 import { I18nService } from '../../core/i18n.service';
 import { THAILAND_BOUNDS } from './map-factory';
 import { FilterState } from '../../core/filter-state.service';
+import { FIT, FLY } from '../../core/motion';
 
 // Stand-in for maplibregl.Map: records handlers and lets a test fire events.
 function fakeMap() {
@@ -678,14 +679,14 @@ describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
   it('flies back to the whole country and opens the list', async () => {
     const { root, map, navigate } = await setup();
     root.querySelector<HTMLButtonElement>('button[aria-label="กลับไปดูทั้งประเทศ"]')!.click();
-    expect(map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything() }));
+    expect(map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything(), duration: 1200 }));
     root.querySelector<HTMLButtonElement>('button[aria-label="ดูเป็นรายการ"]')!.click();
     expect(navigate).toHaveBeenCalledWith(['/list']);
     TestBed.resetTestingModule();
     // phones: the map tab you are on flies home; the summary pill opens the list
     const phone = await setup(undefined, { wide: false });
     phone.root.querySelector<HTMLButtonElement>('.dock button[aria-current="page"]')!.click();
-    expect(phone.map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything() }));
+    expect(phone.map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything(), duration: 1200 }));
     phone.root.querySelector<HTMLButtonElement>('.summary button.open-list')!.click();
     expect(phone.navigate).toHaveBeenCalledWith(['/list']);
   });
@@ -768,9 +769,9 @@ describe('MapPage plan 6: filters and search', () => {
     const { fixture, map, navigate } = await setup();
     const page = fixture.componentInstance;
     page.flyToPlace({ name: 'อ.เมือง', detail: null, lng: 99, lat: 18.8, bbox: [98.9, 18.7, 99.1, 18.9], source: 'local' });
-    expect(map.fitBounds).toHaveBeenCalledWith([98.9, 18.7, 99.1, 18.9], { padding: 48, maxZoom: 14 });
+    expect(map.fitBounds).toHaveBeenCalledWith([98.9, 18.7, 99.1, 18.9], { padding: 48, maxZoom: 14, ...FIT });
     page.flyToPlace({ name: 'ท่าแพ', detail: null, lng: 98.99, lat: 18.79, bbox: null, source: 'osm' });
-    expect(map.flyTo).toHaveBeenCalledWith({ center: [98.99, 18.79], zoom: 13 });
+    expect(map.flyTo).toHaveBeenCalledWith({ center: [98.99, 18.79], zoom: 13, ...FLY });
     page.openReport({ id: 'r9' } as never);
     expect(navigate).toHaveBeenCalledWith(['/r', 'r9']);
   });

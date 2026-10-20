@@ -70,6 +70,16 @@
   pointer-events: none;
 }
 
+// panels rise into place once, on mount (core/motion.ts EASE). Only a `from` frame: with no animation
+// the panel is simply there.
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+}
+
 // visually hidden, still read aloud
 .sr-only {
   position: absolute !important;

@@ -24,6 +24,7 @@ import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { MapViewService } from '../../core/map-view.service';
+import { FIT, FLY } from '../../core/motion';
 import type { MessageKey } from '../../i18n/keys';
 import { LanguageToggleComponent } from '../../shared/language-toggle.component';
 import { RealtimeService } from '../../core/realtime.service';
@@ -235,7 +236,7 @@ export class MapPage {
     const zoom = Math.max(this.map.getZoom(), DETAIL_ZOOM);
     // phones: the beam's foot just above the sheet's 64% edge, so the disc above it stays in view
     const offset: [number, number] = this.wide() ? [-PANEL_SPACE / 2, 0] : [0, -Math.round(innerHeight * 0.14 + 32)];
-    this.map.flyTo({ center: centerFor([d.lng, d.lat], zoom, offset), zoom });
+    this.map.flyTo({ center: centerFor([d.lng, d.lat], zoom, offset), zoom, ...FLY });
   }
 
   /** The linked report is not public (or never existed): say so and go home. The panel may name why (an admin hid it). */
@@ -442,15 +443,15 @@ export class MapPage {
   home() {
     const map = this.map;
     if (!map) return;
-    map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth) });
+    map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth), ...FIT });
   }
 
   /** A place from the search: its own box when it has one (not closer than street level), else its point. */
   flyToPlace(p: Place) {
     const map = this.map;
     if (!map) return;
-    if (p.bbox) map.fitBounds(p.bbox, { padding: 48, maxZoom: 14 });
-    else map.flyTo({ center: [p.lng, p.lat], zoom: 13 });
+    if (p.bbox) map.fitBounds(p.bbox, { padding: 48, maxZoom: 14, ...FIT });
+    else map.flyTo({ center: [p.lng, p.lat], zoom: 13, ...FLY });
   }
 
   /** A report from the search opens like a shared link: the panel loads it and the map flies there. */
@@ -489,7 +490,7 @@ export class MapPage {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }),
+      (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, ...FLY }),
       () => this.showToast('map.toast.geoDenied'),
       { enableHighAccuracy: true, timeout: 10000 },
     );

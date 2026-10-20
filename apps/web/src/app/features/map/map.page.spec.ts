@@ -482,6 +482,9 @@ describe('MapPage', () => {
   it('still loads reports when the toy decoration fails to load', async () => {
     vi.useFakeTimers();
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    // the real beacon layer would lazy-load the whole MapLibre bundle, which can finish evaluating after
+    // this file's jsdom is gone and fail another file ("reading '_buffer'"); it has its own spec
+    vi.spyOn(MapPage.prototype as unknown as { startBeacons: () => Promise<void> }, 'startBeacons').mockResolvedValue();
     const { map, inBbox } = await setup();
     map.fire('load');
     await vi.advanceTimersByTimeAsync(10);

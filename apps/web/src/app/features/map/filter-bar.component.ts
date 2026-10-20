@@ -1,6 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, signal } from '@angular/core';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
+import { FilterState } from '../../core/filter-state.service';
 import { I18nService } from '../../core/i18n.service';
+import { IconComponent } from '../../shared/icon.component';
+import { FiltersPanelComponent } from './filters-panel.component';
 import { TPipe } from '../../i18n/t.pipe';
 import { LevelShapeComponent } from './level-shape';
 
@@ -10,7 +13,7 @@ import { LevelShapeComponent } from './level-shape';
 @Component({
   selector: 'app-filter-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LevelShapeComponent, TPipe],
+  imports: [LevelShapeComponent, TPipe, IconComponent, FiltersPanelComponent],
   template: `
     <div class="chips" role="group" [attr.aria-label]="'map.filterGroup' | t">
       @for (l of levelsInfo; track l.level) {
@@ -18,14 +21,31 @@ import { LevelShapeComponent } from './level-shape';
           type="button"
           class="chip"
           [style.--c]="l.color"
-          [attr.aria-pressed]="levels().includes(l.level)"
+          [attr.aria-pressed]="filters.levels().includes(l.level)"
           (click)="toggle(l.level)"
         >
           <app-level-shape [level]="l.level" />
           {{ i18n.levelName(l.level) }}
         </button>
       }
+      @let n = filters.extraCount();
+      <button
+        type="button"
+        class="more"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="panelOpen()"
+        [attr.aria-label]="n ? ('filters.buttonOn' | t: { n }) : ('filters.button' | t)"
+        (click)="panelOpen.set(!panelOpen())"
+      >
+        <app-icon name="slidersHorizontal" [size]="20" />
+        @if (n) {
+          <span class="count" aria-hidden="true">{{ n }}</span>
+        }
+      </button>
     </div>
+    @if (panelOpen()) {
+      <app-filters-panel (closed)="closePanel()" />
+    }
   `,
   styles: `
     .chips {
@@ -59,9 +79,48 @@ import { LevelShapeComponent } from './level-shape';
       color: var(--ink2);
       text-decoration: line-through;
     }
-    .chip:focus-visible {
+    .chip:focus-visible,
+    .more:focus-visible {
       outline: 3px solid var(--pri);
       outline-offset: 2px;
+    }
+    :host {
+      position: relative;
+      display: block;
+    }
+    .more {
+      position: relative;
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surf);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .more:hover {
+      background: var(--bg);
+    }
+    .more[aria-expanded='true'] {
+      border-color: var(--pri);
+    }
+    .count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      box-sizing: border-box;
+      border-radius: 10px;
+      background: var(--pri);
+      color: var(--onpri);
+      font: 600 12px/20px 'Prompt', sans-serif;
+      text-align: center;
     }
     @media (max-width: 419px) {
       .chips {
@@ -79,12 +138,20 @@ import { LevelShapeComponent } from './level-shape';
   `,
 })
 export class FilterBarComponent {
-  readonly levels = model<readonly DangerLevel[]>([0, 1, 2, 3]);
+  protected readonly filters = inject(FilterState);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  protected readonly panelOpen = signal(false);
   protected readonly levelsInfo = LEVELS;
   protected readonly i18n = inject(I18nService);
 
   protected toggle(level: DangerLevel) {
-    const on = this.levels();
-    this.levels.set(on.includes(level) ? on.filter((l) => l !== level) : [...on, level].sort((a, b) => a - b));
+    const on = this.filters.levels();
+    this.filters.levels.set(on.includes(level) ? on.filter((l) => l !== level) : [...on, level].sort((a, b) => a - b));
+  }
+
+  /** Done, Escape or a press outside: focus goes back to the button that opened it. */
+  protected closePanel() {
+    this.panelOpen.set(false);
+    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.more')?.focus());
   }
 }

@@ -22,6 +22,7 @@ import { StatsService } from './stats.service';
 import { MapViewService } from '../../core/map-view.service';
 import { I18nService } from '../../core/i18n.service';
 import { THAILAND_BOUNDS } from './map-factory';
+import { FilterState } from '../../core/filter-state.service';
 
 // Stand-in for maplibregl.Map: records handlers and lets a test fire events.
 function fakeMap() {
@@ -178,7 +179,7 @@ describe('MapPage', () => {
   it('shows the brand, the level chips and the map controls', async () => {
     const { root } = await setup();
     expect(root.querySelector('h1')?.textContent?.trim()).toBe('แจ้ง');
-    expect(root.querySelectorAll('app-filter-bar button')).toHaveLength(4);
+    expect(root.querySelectorAll('app-filter-bar button.chip')).toHaveLength(4);
     for (const label of ['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน']) {
       expect(root.querySelector(`button[aria-label="${label}"]`)).not.toBeNull();
     }
@@ -198,13 +199,13 @@ describe('MapPage', () => {
     expect(inBbox).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(300);
     expect(inBbox).toHaveBeenCalledTimes(1);
-    expect(inBbox).toHaveBeenCalledWith([97, 5, 106, 21], [0, 1, 2, 3]);
+    expect(inBbox).toHaveBeenCalledWith([97, 5, 106, 21], { levels: [0, 1, 2, 3], categories: [], statuses: ['open', 'fix_claimed', 'resolved'] });
   });
 
   it('says so when every level chip is off', async () => {
     vi.useFakeTimers();
     const { fixture, root } = await setup();
-    for (const b of [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button')]) b.click();
+    for (const b of [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button.chip')]) b.click();
     await vi.advanceTimersByTimeAsync(300);
     fixture.detectChanges();
     expect(root.querySelector('.hint')?.textContent).toContain('ปิดตัวกรองครบทุกระดับแล้ว');
@@ -635,5 +636,45 @@ describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
     for (const label of ['Back to the whole country', 'Show as a list', 'About Jaeng']) {
       expect(root.querySelector(`button[aria-label="${label}"]`)).not.toBeNull();
     }
+  });
+});
+describe('MapPage plan 6: filters and search', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('reloads with the chosen categories and without fixed reports, after the debounce', async () => {
+    vi.useFakeTimers();
+    const { inBbox } = await setup();
+    const f = TestBed.inject(FilterState);
+    f.toggleCategory('flood');
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(inBbox).toHaveBeenLastCalledWith([97, 5, 106, 21], expect.objectContaining({ categories: ['flood'] }));
+    f.showResolved.set(false);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(inBbox).toHaveBeenLastCalledWith([97, 5, 106, 21], expect.objectContaining({ statuses: ['open', 'fix_claimed'] }));
+  });
+
+  it('fits a place with a box, flies to one without, and opens a report like a link', async () => {
+    const { fixture, map, navigate } = await setup();
+    const page = fixture.componentInstance;
+    page.flyToPlace({ name: 'อ.เมือง', detail: null, lng: 99, lat: 18.8, bbox: [98.9, 18.7, 99.1, 18.9], source: 'local' });
+    expect(map.fitBounds).toHaveBeenCalledWith([98.9, 18.7, 99.1, 18.9], { padding: 48, maxZoom: 14 });
+    page.flyToPlace({ name: 'ท่าแพ', detail: null, lng: 98.99, lat: 18.79, bbox: null, source: 'osm' });
+    expect(map.flyTo).toHaveBeenCalledWith({ center: [98.99, 18.79], zoom: 13 });
+    page.openReport({ id: 'r9' } as never);
+    expect(navigate).toHaveBeenCalledWith(['/r', 'r9']);
+  });
+
+  it('puts a search field between the brand and the chips on a wide screen, an icon in the brand card on a phone', async () => {
+    const wide = await setup();
+    const order = [...wide.root.querySelectorAll('.top > *')].map((e) => e.tagName.toLowerCase());
+    expect(order).toEqual(['header', 'app-search-box', 'app-filter-bar']);
+    TestBed.resetTestingModule();
+    const phone = await setup(undefined, { wide: false });
+    expect(phone.root.querySelector('.brand app-search-box button[aria-label="ค้นหา"]')).not.toBeNull();
   });
 });

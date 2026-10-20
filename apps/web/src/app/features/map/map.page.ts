@@ -17,7 +17,9 @@ import {
 } from '@angular/core';
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { IonModal } from '@ionic/angular';
-import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
+import { LEVELS } from '@jaeng/shared/levels';
+import type { Place } from '@jaeng/shared/places';
+import { FilterState, type ReportFilter } from '../../core/filter-state.service';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { I18nService, type Said } from '../../core/i18n.service';
@@ -43,6 +45,7 @@ import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
 import { StatsLineComponent, type StatsState } from './stats-line.component';
 import { StatsService } from './stats.service';
+import { SearchBoxComponent } from './search-box.component';
 import { toyOpacity, zoomHint } from './toy';
 
 const LOAD_DEBOUNCE_MS = 300;
@@ -90,6 +93,7 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     TPipe,
     StatsLineComponent,
     LanguageToggleComponent,
+    SearchBoxComponent,
   ],
   host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
 })
@@ -99,7 +103,8 @@ export class MapPage {
   private statsSvc = inject(StatsService);
   private view = inject(MapViewService);
   private statsSeq = 0;
-  private loader = new ReportsLoader((bbox, levels) => this.reports.inBbox(bbox, levels));
+  private loader = new ReportsLoader<ReportFilter>((bbox, f) => this.reports.inBbox(bbox, f));
+  protected readonly filters = inject(FilterState);
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
 
   private map?: maplibregl.Map;
@@ -122,7 +127,8 @@ export class MapPage {
 
   /** Bound from the route (`/r/:id`); undefined on `/`. */
   readonly id = input<string>();
-  readonly levels = signal<readonly DangerLevel[]>([0, 1, 2, 3]);
+  /** the phone search card is open: the brand and chips step aside */
+  readonly searching = signal(false);
   readonly zoom = signal(5);
   readonly shown = signal<number | null>(null);
   readonly hover = signal<{ p: ReportProps; x: number; y: number } | null>(null);
@@ -138,7 +144,7 @@ export class MapPage {
     computation: (id, prev) => id ?? prev?.value,
   });
 
-  readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length, (k) => this.i18n.t(k)));
+  readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.filters.levels().length, (k) => this.i18n.t(k)));
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -150,6 +156,13 @@ export class MapPage {
     effect(() => {
       const id = this.id();
       untracked(() => this.follow(id));
+    });
+    // a filter change (here or on /list) reloads the view through the usual debounce; not on the first run
+    let seenFilter: string | undefined;
+    effect(() => {
+      const key = JSON.stringify(this.filters.filter());
+      if (seenFilter !== undefined && key !== seenFilter) untracked(() => this.scheduleLoad());
+      seenFilter = key;
     });
     // every live signal re-runs the debounced bbox load, so a burst becomes one request
     destroyRef.onDestroy(inject(RealtimeService).listen(() => this.scheduleLoad()));
@@ -369,7 +382,7 @@ export class MapPage {
     const c = map.getCenter();
     this.view.set(bbox, [c.lng, c.lat]);
     void this.loadStats(bbox);
-    const result = await this.loader.load(bbox, this.levels());
+    const result = await this.loader.load(bbox, this.filters.filter());
     if (!result || this.destroyed) return;
     if ('error' in result) {
       this.showToast('map.toast.loadFailed', { label: 'common.retry', run: () => this.scheduleLoad(0) });
@@ -407,6 +420,21 @@ export class MapPage {
     const map = this.map;
     if (!map) return;
     map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth) });
+  }
+
+  /** A place from the search: its own box when it has one (not closer than street level), else its point. */
+  flyToPlace(p: Place) {
+    const map = this.map;
+    if (!map) return;
+    if (p.bbox) map.fitBounds(p.bbox, { padding: 48, maxZoom: 14 });
+    else map.flyTo({ center: [p.lng, p.lat], zoom: 13 });
+  }
+
+  /** A report from the search opens like a shared link: the panel loads it and the map flies there. */
+  openReport(p: ReportProps) {
+    this.hover.set(null);
+    this.clicked = null;
+    void this.router.navigate(['/r', p.id]);
   }
 
   openList() {

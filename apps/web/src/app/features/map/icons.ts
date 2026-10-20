@@ -15,6 +15,7 @@ import {
   Sun,
   SunMoon,
   Search,
+  SlidersHorizontal,
   ShieldCheck,
   Undo2,
   Users,
@@ -115,6 +116,7 @@ export const ICONS = {
   house: House,
   list: List,
   map: MapIcon,
+  slidersHorizontal: SlidersHorizontal,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

@@ -1,20 +1,26 @@
 <!-- DOM order is tab order: the skip link, the brand card, chips and controls, then the map's markers -->
 <a class="skip" href="/list" (click)="skipToList($event)">{{ 'map.skipToList' | t }}</a>
 
-<div class="top" [class.beside]="panelOpen()">
+<div class="top" [class.beside]="panelOpen()" [class.searching]="searching()">
   <header class="card brand">
     <div class="brand-text">
       <h1>{{ 'app.title' | t }}</h1>
       <p>{{ 'map.tagline' | t }}</p>
     </div>
     <div class="brand-actions">
+      @if (!wide()) {
+        <app-search-box [collapsed]="true" (place)="flyToPlace($event)" (report)="openReport($event)" (opened)="searching.set($event)" />
+      }
       <app-language-toggle />
       <button type="button" class="ctl flat" [attr.aria-label]="'account.about' | t" (click)="openAbout()">
         <app-icon name="info" />
       </button>
     </div>
   </header>
-  <app-filter-bar [(levels)]="levels" (levelsChange)="scheduleLoad()" />
+  @if (wide()) {
+    <app-search-box (place)="flyToPlace($event)" (report)="openReport($event)" />
+  }
+  <app-filter-bar />
 </div>
 
 <div class="controls" [class.beside]="panelOpen()">

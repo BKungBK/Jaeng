@@ -80,6 +80,15 @@
   min-width: 0;
 }
 
+// phones, while the search card is open: everything else in the top group steps aside
+.top.searching > * {
+  visibility: hidden;
+}
+
+.top.searching app-search-box {
+  visibility: visible;
+}
+
 .brand-actions {
   display: flex;
   gap: 4px;

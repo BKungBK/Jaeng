@@ -68,6 +68,14 @@ describe('I18nService', () => {
     expect(s.t('common.reportCount')).toBe('{n} เรื่อง');
   });
 
+  it('picks English singular or plural', () => {
+    const s = make();
+    s.setLocale('en');
+    expect(s.t('age.days', { n: 1 })).toBe('Open for 1 day');
+    expect(s.t('age.days', { n: 4 })).toBe('Open for 4 days');
+    expect(s.t('common.reportCount', { n: 1 })).toBe('1 report');
+  });
+
   it('adopts the profile locale only while the reader has not chosen', () => {
     const s = make();
     s.adoptProfileLocale('en');
@@ -85,6 +93,17 @@ describe('I18nService', () => {
     expect(s.errorText(e)).toBe('วันนี้ครบแล้ว');
     s.setLocale('en');
     expect(s.errorText(e)).toBe('Too many today');
+  });
+
+  it('says keys, errors and nothing, in the current language', () => {
+    const s = make();
+    expect(s.say(null)).toBe('');
+    expect(s.say({ key: 'common.reportCount', params: { n: 2 } })).toBe('2 เรื่อง');
+    expect(s.say('common.close')).toBe('ปิด');
+    expect(s.say('free text')).toBe('free text');
+    s.setLocale('en');
+    expect(s.say('common.close')).toBe('Close');
+    expect(s.say({ error: new ApiError(500, 'internal', 'ก', 'boom') })).toBe('boom');
   });
 
   it('words anything else as the internal error', () => {

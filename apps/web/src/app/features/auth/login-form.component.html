@@ -1,9 +1,9 @@
 <form class="steps" novalidate [attr.aria-labelledby]="id + '-title'" (submit)="submit($event)">
   @if (step() === 'email') {
-    <h2 class="head" [id]="id + '-title'">เข้าสู่ระบบ</h2>
-    <p class="lede">ใส่อีเมลไว้ เดี๋ยวเราส่งรหัส 6 หลักไปให้ <span class="nowrap">ไม่ต้องจำรหัสผ่าน</span></p>
+    <h2 class="head" [id]="id + '-title'">{{ 'auth.login' | t }}</h2>
+    <p class="lede">{{ 'auth.lede' | t }} <span class="nowrap">{{ 'auth.ledeNoPassword' | t }}</span></p>
 
-    <label class="field" [for]="id + '-email'">อีเมล</label>
+    <label class="field" [for]="id + '-email'">{{ 'auth.email' | t }}</label>
     <input
       #emailInput
       class="input"
@@ -23,15 +23,15 @@
 
     <button type="submit" class="primary" [disabled]="!emailOk() || busy() !== null">
       <app-icon name="send" [size]="20" />
-      {{ busy() === 'send' ? 'กำลังส่งรหัส…' : 'ส่งรหัส' }}
+      {{ (busy() === 'send' ? 'auth.sending' : 'auth.send') | t }}
     </button>
   } @else {
-    <h2 class="head" [id]="id + '-title'">ใส่รหัสจากอีเมล</h2>
+    <h2 class="head" [id]="id + '-title'">{{ 'auth.codeTitle' | t }}</h2>
     <p class="lede">
-      เราส่งรหัสไปที่ <strong class="sent">{{ sentTo() }}</strong> แล้ว ถ้ายังไม่เห็น ลองดูในกล่องสแปมนะ
+      {{ 'auth.sentTo' | t }} <strong class="sent">{{ sentTo() }}</strong>{{ i18n.locale() === 'en' ? '' : ' ' }}{{ 'auth.sentToAfter' | t }}
     </p>
 
-    <label class="field" [for]="id + '-code'">รหัส 6 หลัก</label>
+    <label class="field" [for]="id + '-code'">{{ 'auth.code' | t }}</label>
     <input
       #codeInput
       class="input code"
@@ -49,38 +49,38 @@
     <ng-container *ngTemplateOutlet="stepError" />
 
     <button type="submit" class="primary" [disabled]="!codeOk() || busy() !== null">
-      {{ busy() === 'verify' ? 'กำลังตรวจรหัส…' : 'ยืนยัน' }}
+      {{ (busy() === 'verify' ? 'auth.verifying' : 'auth.verify') | t }}
     </button>
 
     <div class="links">
-      <button type="button" class="link" [disabled]="busy() !== null" (click)="back()">เปลี่ยนอีเมล</button>
+      <button type="button" class="link" [disabled]="busy() !== null" (click)="back()">{{ 'auth.changeEmail' | t }}</button>
       <button type="button" class="link" [disabled]="wait() > 0 || busy() !== null" (click)="resend()">
-        ส่งรหัสใหม่@if (wait() > 0) {<span class="wait">ได้ใน {{ wait() }} วินาที</span>}
+        {{ 'auth.resend' | t }}@if (wait() > 0) {<span class="wait">{{ 'auth.resendIn' | t: { n: wait() } }}</span>}
       </button>
     </div>
   }
-  <p class="sr-only" aria-live="polite">{{ status() }}</p>
+  <p class="sr-only" aria-live="polite">{{ i18n.say(status()) }}</p>
 </form>
 
 <!-- the error sits right under the field it is about -->
 <ng-template #stepError>
   @if (error(); as message) {
-    <p class="error" role="alert" [id]="id + '-error'">{{ message }}</p>
+    <p class="error" role="alert" [id]="id + '-error'">{{ i18n.say(message) }}</p>
   }
 </ng-template>
 
 @if (demo().length) {
   <section class="demo" [attr.aria-labelledby]="id + '-demo'">
-    <h3 class="demo-head" [id]="id + '-demo'">สลับผู้ใช้สำหรับเดโม</h3>
+    <h3 class="demo-head" [id]="id + '-demo'">{{ 'auth.demo' | t }}</h3>
     <div class="who">
       @for (u of demo(); track u.who) {
         <button type="button" class="secondary" [disabled]="busy() !== null" (click)="quick(u.who)">
-          {{ busy() === u.who ? 'กำลังเข้า…' : u.label_th }}
+          {{ busy() === u.who ? ('auth.entering' | t) : demoLabel(u) }}
         </button>
       }
     </div>
     @if (demoError(); as message) {
-      <p class="error" role="alert">{{ message }}</p>
+      <p class="error" role="alert">{{ i18n.say(message) }}</p>
     }
   </section>
 }

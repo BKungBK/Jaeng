@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { LoginFormComponent } from './login-form.component';
 import { safeNext } from './safe-next';
 
@@ -8,15 +9,15 @@ import { safeNext } from './safe-next';
 @Component({
   selector: 'app-login-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LoginFormComponent],
+  imports: [LoginFormComponent, TPipe],
   host: { class: 'ion-page' },
   template: `
     <main class="wrap">
-      <h1 class="brand">แจ้ง</h1>
+      <h1 class="brand">{{ 'app.title' | t }}</h1>
       <div class="card">
         <app-login-form (done)="finish()" />
       </div>
-      <a class="back" href="/" (click)="home($event)">กลับไปดูแผนที่</a>
+      <a class="back" href="/" (click)="home($event)">{{ 'auth.backToMap' | t }}</a>
     </main>
   `,
   styles: `

@@ -7,7 +7,8 @@ import { IconComponent } from '../../shared/icon.component';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { isIconName, type IconName } from '../map/icons';
 import { LevelShapeComponent } from '../map/level-shape';
-import { coverPhotoUrl, STATUS_TH } from '../map/report';
+import { coverPhotoUrl } from '../map/report';
+import { I18nService } from '../../core/i18n.service';
 import { MapReturnService } from './map-return.service';
 import { ReportDraftService } from './report-draft.service';
 import { withLogin } from './with-login';
@@ -45,7 +46,8 @@ export class DuplicateCardComponent {
     return isIconName(name) ? name : 'mapPin';
   }
   protected photo = (c: DuplicateCandidate) => (c.cover_photo_path ? coverPhotoUrl(c.cover_photo_path) : null);
-  protected status = (c: DuplicateCandidate) => STATUS_TH[c.status];
+  private i18n = inject(I18nService);
+  protected status = (c: DuplicateCandidate) => this.i18n.t(`status.${c.status}`);
 
   protected async same(c: DuplicateCandidate) {
     await this.run(c.id, async () => {

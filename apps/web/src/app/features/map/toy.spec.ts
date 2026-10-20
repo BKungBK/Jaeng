@@ -1,5 +1,12 @@
+import { TestBed } from '@angular/core/testing';
+import { I18nService } from '../../core/i18n.service';
 import { clampCenter, MAP_BOUNDS, THAILAND_BOUNDS } from './map-factory';
 import { toyOpacity, zoomHint } from './toy';
+
+const t = () => {
+  const i18n = TestBed.inject(I18nService);
+  return i18n.t.bind(i18n);
+};
 
 describe('toyOpacity', () => {
   it.each([
@@ -15,11 +22,11 @@ describe('toyOpacity', () => {
 
 describe('zoomHint', () => {
   it('says the filters are all off', () => {
-    expect(zoomHint(5, 0, 0)).toBe('ปิดตัวกรองครบทุกระดับแล้ว แตะชิปด้านบนเพื่อดูเรื่องอีกครั้ง');
+    expect(zoomHint(5, 0, 0, t())).toBe('ปิดตัวกรองครบทุกระดับแล้ว แตะชิปด้านบนเพื่อดูเรื่องอีกครั้ง');
   });
 
   it('says nothing matches here', () => {
-    expect(zoomHint(5, 0, 4)).toBe('ยังไม่มีเรื่องตรงกับตัวกรองในบริเวณนี้');
+    expect(zoomHint(5, 0, 4, t())).toBe('ยังไม่มีเรื่องตรงกับตัวกรองในบริเวณนี้');
   });
 
   it.each([
@@ -29,7 +36,12 @@ describe('zoomHint', () => {
     [10, 'แผนที่ปกติ: เรื่องที่อยู่ใกล้กันรวมเป็นวงตัวเลข'],
     [14, 'ระดับย่าน: ลำแสงยิ่งสูง ยิ่งมีคนเจอเหมือนกันมาก'],
   ])('zoom %d', (zoom, hint) => {
-    expect(zoomHint(zoom, 5, 4)).toBe(hint);
+    expect(zoomHint(zoom, 5, 4, t())).toBe(hint);
+  });
+
+  it('speaks English after a switch', () => {
+    TestBed.inject(I18nService).setLocale('en');
+    expect(zoomHint(14, 5, 4, t())).toBe('Neighbourhood: the taller the beam, the more neighbours saw it too.');
   });
 });
 

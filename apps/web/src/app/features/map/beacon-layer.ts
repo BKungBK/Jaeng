@@ -2,7 +2,16 @@
 // (spec 4.4: HTML beacons, at most 150 on screen).
 import type { DangerLevel } from '@jaeng/shared/levels';
 import maplibregl, { GeoJSONFeature, GeoJSONSource } from 'maplibre-gl';
-import { beaconView, createBeaconElement, createClusterElement, pickLabelIds, updateBeaconElement } from './beacon';
+import type { I18nService, Words } from '../../core/i18n.service';
+import {
+  beaconAriaLabel,
+  beaconView,
+  clusterAriaLabel,
+  createBeaconElement,
+  createClusterElement,
+  pickLabelIds,
+  updateBeaconElement,
+} from './beacon';
 import { REPORT_SOURCE } from './map-style';
 import type { ReportProps } from './report';
 import { SyncGate } from './sync-gate';
@@ -14,6 +23,8 @@ export type BeaconHandlers = {
   leave(): void;
   select(p: ReportProps): void;
 };
+
+export type LayerWords = Words & Pick<I18nService, 'watch'>;
 
 type Entry = { marker: maplibregl.Marker; el: HTMLElement; kind: 'beacon' | 'cluster'; props?: ReportProps; count?: number; maxLevel?: number };
 
@@ -33,12 +44,29 @@ export class BeaconLayer {
     if (e.sourceId === REPORT_SOURCE) this.gate.dataChanged();
   };
 
+  private stopWords: () => void;
+
   constructor(
     private map: maplibregl.Map,
     private handlers: BeaconHandlers,
+    private words: LayerWords,
   ) {
     map.on('render', this.onRender);
     map.on('sourcedata', this.onSourceData);
+    this.stopWords = words.watch(() => this.relabel());
+  }
+
+  /** A language switch rewords every marker in place: no rebuild, so a focused disc keeps focus. */
+  private relabel() {
+    for (const entry of this.entries.values()) {
+      if (entry.kind === 'beacon' && entry.props) {
+        entry.el.querySelector('.disc')?.setAttribute('aria-label', beaconAriaLabel(entry.props, this.words));
+      } else if (entry.kind === 'cluster' && entry.count !== undefined && entry.maxLevel !== undefined) {
+        entry.el
+          .querySelector('button')
+          ?.setAttribute('aria-label', clusterAriaLabel(entry.count, entry.maxLevel as DangerLevel, this.words));
+      }
+    }
   }
 
   /** Coalesce bursts of render events into one sync per frame, and skip frames where neither the
@@ -124,12 +152,12 @@ export class BeaconLayer {
     const entry = this.entries.get(item.key);
     if (entry) {
       entry.props = item.props;
-      updateBeaconElement(entry.el, item.props, view, label);
+      updateBeaconElement(entry.el, item.props, view, label, this.words);
       entry.marker.setLngLat(item.lngLat);
       this.applySelected(entry);
       return;
     }
-    const el = createBeaconElement(item.props, view, label);
+    const el = createBeaconElement(item.props, view, label, this.words);
     const created: Entry = { el, kind: 'beacon', props: item.props, marker: this.place(el, item.lngLat) };
     this.wireBeacon(created);
     this.applySelected(created);
@@ -193,7 +221,7 @@ export class BeaconLayer {
       return;
     }
     entry?.marker.remove();
-    const el = createClusterElement(item.count, item.maxLevel);
+    const el = createClusterElement(item.count, item.maxLevel, this.words);
     el.querySelector('button')!.addEventListener('click', () => this.expand(item.clusterId, item.lngLat));
     this.entries.set(item.key, { el, kind: 'cluster', count: item.count, maxLevel: item.maxLevel, marker: this.place(el, item.lngLat) });
   }
@@ -216,6 +244,7 @@ export class BeaconLayer {
 
   destroy(): void {
     this.destroyed = true;
+    this.stopWords();
     cancelAnimationFrame(this.frame);
     this.map.off('render', this.onRender);
     this.map.off('sourcedata', this.onSourceData);

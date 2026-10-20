@@ -1,30 +1,36 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import type { DemoWho } from '@jaeng/shared/api';
 import type { Session } from '@supabase/supabase-js';
+import { en } from '../i18n/en';
+import { th } from '../i18n/th';
 import { SupabaseService } from './supabase.service';
 
 export type Profile = { id: string; display_name: string; role: 'user' | 'admin'; locale: 'th' | 'en' };
 
-const MSG_BAD_CODE = 'รหัสไม่ถูก หรือหมดอายุแล้ว ลองขอรหัสใหม่นะ';
-const MSG_TOO_OFTEN = 'ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ';
-export const MSG_LOGIN_FAILED = 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ';
-const MSG_GENERIC = MSG_LOGIN_FAILED;
+export type AuthErrorKey = keyof typeof th.auth.error;
 
-/** An error whose message is Thai text written for the visitor; anything else is never shown as is. */
+/** An error worded for the visitor in both languages; anything else is never shown as is. */
 export class AuthError extends Error {
   override name = 'AuthError';
+  readonly messageTh: string;
+  readonly messageEn: string;
+  constructor(readonly key: AuthErrorKey) {
+    super(th.auth.error[key]);
+    this.messageTh = th.auth.error[key];
+    this.messageEn = en.auth.error[key];
+  }
 }
 
 type AuthErr = { status?: number; code?: string; message?: string };
 
-function thaiError(e: AuthErr): AuthError {
+function toAuthError(e: AuthErr): AuthError {
   if (e.status === 429 || e.code === 'over_email_send_rate_limit' || e.code === 'over_request_rate_limit') {
-    return new AuthError(MSG_TOO_OFTEN);
+    return new AuthError('tooOften');
   }
   if (e.code === 'otp_expired' || e.code === 'otp_disabled' || e.status === 403 || e.status === 400) {
-    return new AuthError(MSG_BAD_CODE);
+    return new AuthError('badCode');
   }
-  return new AuthError(MSG_GENERIC);
+  return new AuthError('failed');
 }
 
 @Injectable({ providedIn: 'root' })
@@ -120,13 +126,13 @@ export class AuthService {
   async sendCode(email: string): Promise<void> {
     const client = await this.clientReady();
     const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-    if (error) throw thaiError(error);
+    if (error) throw toAuthError(error);
   }
 
   async verifyCode(email: string, code: string): Promise<void> {
     const client = await this.clientReady();
     const { error } = await client.auth.verifyOtp({ email, token: code, type: 'email' });
-    if (error) throw thaiError(error);
+    if (error) throw toAuthError(error);
   }
 
   async quickLogin(who: DemoWho): Promise<void> {
@@ -141,14 +147,14 @@ export class AuthService {
       tokens = (await res.json()) as typeof tokens;
       if (typeof tokens?.access_token !== 'string' || typeof tokens?.refresh_token !== 'string') throw new Error('no tokens');
     } catch {
-      throw new AuthError(MSG_GENERIC); // offline, API down, not JSON, or a refusal: one Thai message
+      throw new AuthError('failed'); // offline, API down, not JSON, or a refusal: one message
     }
     try {
       const client = await this.clientReady();
       const { error } = await client.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token });
       if (error) throw error;
     } catch {
-      throw new AuthError(MSG_GENERIC);
+      throw new AuthError('failed');
     }
   }
 

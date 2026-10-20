@@ -98,7 +98,7 @@ describe('FixClaimFormComponent', () => {
     const { out, submit, settle } = await setup({ claimFix: vi.fn().mockRejectedValue(err) });
     submit().click();
     await settle();
-    expect(out.stale).toHaveBeenCalledWith('มีคนแจ้งว่าแก้แล้ว กำลังรอผู้ดูแลตรวจอยู่นะ');
+    expect(out.stale).toHaveBeenCalledWith(err);
     expect(out.done).not.toHaveBeenCalled();
   });
 

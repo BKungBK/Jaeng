@@ -1,16 +1,16 @@
 <!-- DOM order is tab order: chips and controls first, then the map's markers -->
 <div class="top" [class.beside]="panelOpen()">
   <header class="card brand">
-    <h1>แจ้ง</h1>
-    <p>ทุกเรื่องคือสัญญาณไฟ</p>
+    <h1>{{ 'app.title' | t }}</h1>
+    <p>{{ 'map.tagline' | t }}</p>
   </header>
   <app-filter-bar [(levels)]="levels" (levelsChange)="scheduleLoad()" />
 </div>
 
 <div class="controls" [class.beside]="panelOpen()">
-  <button type="button" class="ctl" aria-label="ซูมเข้า" (click)="zoomIn()"><app-icon name="plus" /></button>
-  <button type="button" class="ctl" aria-label="ซูมออก" (click)="zoomOut()"><app-icon name="minus" /></button>
-  <button type="button" class="ctl" aria-label="ไปที่ตำแหน่งของฉัน" (click)="locate()">
+  <button type="button" class="ctl" [attr.aria-label]="'map.zoomIn' | t" (click)="zoomIn()"><app-icon name="plus" /></button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.zoomOut' | t" (click)="zoomOut()"><app-icon name="minus" /></button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.locate' | t" (click)="locate()">
     <app-icon name="locateFixed" />
   </button>
   <app-account-button />
@@ -71,8 +71,8 @@
   </ion-modal>
 }
 
-@if (toast(); as t) {
-  <div class="toast" role="status">{{ t }}</div>
+@if (toast(); as said) {
+  <div class="toast" role="status">{{ i18n.say(said) }}</div>
 }
 
 <ng-template #summary let-p let-id="id">
@@ -86,11 +86,11 @@
   <strong class="title" [attr.id]="id">{{ p.title }}</strong>
   <span class="meta">
     <app-level-shape class="shape" [level]="p.danger_level" />
-    {{ level(p).nameTh }} · {{ status(p) }} · เจอเหมือนกัน {{ p.confirm_count }}
+    {{ i18n.levelName(p.danger_level) }} · {{ status(p) }} · {{ 'map.metooCount' | t: { n: p.confirm_count } }}
   </span>
   @if (p.status === 'open') {
     <span class="age" [class.long]="p.days_open > 30">
-      {{ p.days_open > 30 ? 'ค้างนาน · ' : '' }}ค้างมา {{ p.days_open }} วัน
+      {{ p.days_open > 30 ? ('age.long' | t) + ' · ' : '' }}{{ 'age.days' | t: { n: p.days_open } }}
     </span>
   }
 </ng-template>

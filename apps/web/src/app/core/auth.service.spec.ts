@@ -189,6 +189,7 @@ describe('AuthService', () => {
     const err = await service.quickLogin('admin').catch((e) => e);
     expect(err).toBeInstanceOf(AuthError);
     expect(err.message).toBe('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ');
+    expect(err.messageEn).toBe("Couldn't sign in. Please try again.");
   });
 
   it('sendCode asks for an email OTP and may create the user', async () => {

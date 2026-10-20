@@ -2,9 +2,9 @@ import type { DemoUser } from '@jaeng/shared/api';
 import { ApiError } from './errors';
 
 export const DEMO_USERS: readonly (DemoUser & { email: string })[] = [
-  { who: 'reporter', email: 'reporter@jaeng.local', label_th: 'ผู้แจ้ง (เพื่อนบ้านใจดี)' },
-  { who: 'neighbor1', email: 'neighbor1@jaeng.local', label_th: 'เพื่อนบ้านอีกคน' },
-  { who: 'admin', email: 'admin@jaeng.local', label_th: 'ผู้ดูแล' },
+  { who: 'reporter', email: 'reporter@jaeng.local', label_th: 'ผู้แจ้ง (เพื่อนบ้านใจดี)', label_en: 'Reporter (friendly neighbour)' },
+  { who: 'neighbor1', email: 'neighbor1@jaeng.local', label_th: 'เพื่อนบ้านอีกคน', label_en: 'Another neighbour' },
+  { who: 'admin', email: 'admin@jaeng.local', label_th: 'ผู้ดูแล', label_en: 'Moderator' },
 ];
 
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
@@ -31,7 +31,7 @@ export function createQuickLogin(opts: {
   const active = (host: string | null) => opts.enabled && !!opts.password && isLocalHost(host);
   const doFetch = opts.fetchFn ?? fetch;
   return {
-    users: (host) => (active(host) ? DEMO_USERS.map(({ who, label_th }) => ({ who, label_th })) : []),
+    users: (host) => (active(host) ? DEMO_USERS.map(({ who, label_th, label_en }) => ({ who, label_th, label_en })) : []),
     async signIn(host, who) {
       const user = active(host) ? DEMO_USERS.find((u) => u.who === who) : undefined;
       if (!user) throw new ApiError('not_found');

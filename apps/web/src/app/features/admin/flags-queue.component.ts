@@ -5,7 +5,8 @@ import { ApiError } from '../../core/api.service';
 import { IconComponent } from '../../shared/icon.component';
 import { formatAgo, formatDate } from '../../shared/time';
 import { STATUS_ICON, STATUS_TH } from '../me/reject-reason';
-import { FLAG_REASON_TH } from '../report-detail/flag-reason';
+import { I18nService } from '../../core/i18n.service';
+import { flagReasonText } from '../report-detail/flag-reason';
 import { AdminService } from './admin.service';
 
 type LoadState = 'loading' | 'ready' | 'error';
@@ -132,6 +133,7 @@ const DONE: Record<FlagAction, string> = {
 })
 export class FlagsQueueComponent {
   private admin = inject(AdminService);
+  private i18n = inject(I18nService);
   readonly changed = output<void>();
 
   protected readonly state = signal<LoadState>('loading');
@@ -191,7 +193,7 @@ export class FlagsQueueComponent {
 
   protected statusWord = (t: QueueFlag) => STATUS_TH[t.report.status];
   protected statusIcon = (t: QueueFlag) => STATUS_ICON[t.report.status];
-  protected reasonWord = (r: QueueFlag['flags'][number]['reason']) => FLAG_REASON_TH[r] ?? r;
+  protected reasonWord = (r: QueueFlag['flags'][number]['reason']) => flagReasonText(r, (k) => this.i18n.t(k));
   protected ago = formatAgo;
   protected date = formatDate;
 }

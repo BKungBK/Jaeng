@@ -29,7 +29,7 @@ export type PublicComment = {
 };
 
 export type DemoWho = 'reporter' | 'neighbor1' | 'admin';
-export type DemoUser = { who: DemoWho; label_th: string };
+export type DemoUser = { who: DemoWho; label_th: string; label_en: string };
 
 /** Every error code the web app can see: the API's codes, plus 'network' (web only: the request never got an answer). */
 export type ErrorCode =

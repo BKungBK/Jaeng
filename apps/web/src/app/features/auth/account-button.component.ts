@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation
 import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { I18nService } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
@@ -9,7 +11,7 @@ import { LoginPromptService } from './login-prompt.service';
 type MenuRole = 'mine' | 'admin' | 'switch' | 'signout';
 
 // Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
-const THAI_LEADING_VOWEL = /^[เ-ไ]$/u;
+const THAI_LEADING_VOWEL = /^[\u0E40-\u0E44]$/u;
 const graphemes = new Intl.Segmenter('th', { granularity: 'grapheme' });
 
 /** The first letter of a name as one whole grapheme (a Thai consonant keeps its vowel and tone marks). */
@@ -25,32 +27,32 @@ export function initialOf(name: string): string {
   selector: 'app-account-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
     <div class="account-menu-body">
       <p class="account-menu-who">
-        <span class="account-menu-name">{{ profile()?.display_name ?? 'บัญชีของฉัน' }}</span>
+        <span class="account-menu-name">{{ profile()?.display_name ?? ('account.mine' | t) }}</span>
         @if (profile()?.role === 'admin') {
-          <span class="tag">ผู้ดูแล</span>
+          <span class="tag">{{ 'account.admin' | t }}</span>
         }
       </p>
       <button type="button" class="account-menu-item" (click)="choose('mine')">
         <app-icon name="fileText" [size]="20" />
-        เรื่องของฉัน
+        {{ 'account.myReports' | t }}
       </button>
       @if (profile()?.role === 'admin') {
         <button type="button" class="account-menu-item" (click)="choose('admin')">
           <app-icon name="shieldCheck" [size]="20" />
-          หน้าผู้ดูแล
+          {{ 'account.adminPage' | t }}
         </button>
       }
       <button type="button" class="account-menu-item" (click)="choose('switch')">
         <app-icon name="circleUser" [size]="20" />
-        สลับผู้ใช้
+        {{ 'account.switch' | t }}
       </button>
       <button type="button" class="account-menu-item" (click)="choose('signout')">
         <app-icon name="logOut" [size]="20" />
-        ออกจากระบบ
+        {{ 'account.signOut' | t }}
       </button>
     </div>
   `,
@@ -188,11 +190,12 @@ export class AccountButtonComponent {
   private popovers = inject(PopoverController);
   private router = inject(Router);
   private draft = inject(ReportDraftService);
+  private i18n = inject(I18nService);
 
   protected readonly label = computed(() => {
-    if (!this.auth.signedIn()) return 'เข้าสู่ระบบ';
+    if (!this.auth.signedIn()) return this.i18n.t('auth.login');
     const name = this.auth.profile()?.display_name;
-    return name ? `บัญชี: ${name}` : 'บัญชีของฉัน';
+    return name ? this.i18n.t('account.of', { name }) : this.i18n.t('account.mine');
   });
 
   /** Empty while signed out or while the profile loads: the icon shows instead. */

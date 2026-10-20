@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
+import { I18nService } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { LevelShapeComponent } from './level-shape';
 
 // The four danger-level chips (spec 3.9, DESIGN.md "Chips"). Off is struck through and drained of
@@ -8,9 +10,9 @@ import { LevelShapeComponent } from './level-shape';
 @Component({
   selector: 'app-filter-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LevelShapeComponent],
+  imports: [LevelShapeComponent, TPipe],
   template: `
-    <div class="chips" role="group" aria-label="กรองตามระดับอันตราย">
+    <div class="chips" role="group" [attr.aria-label]="'map.filterGroup' | t">
       @for (l of levelsInfo; track l.level) {
         <button
           type="button"
@@ -20,7 +22,7 @@ import { LevelShapeComponent } from './level-shape';
           (click)="toggle(l.level)"
         >
           <app-level-shape [level]="l.level" />
-          {{ l.nameTh }}
+          {{ i18n.levelName(l.level) }}
         </button>
       }
     </div>
@@ -79,6 +81,7 @@ import { LevelShapeComponent } from './level-shape';
 export class FilterBarComponent {
   readonly levels = model<readonly DangerLevel[]>([0, 1, 2, 3]);
   protected readonly levelsInfo = LEVELS;
+  protected readonly i18n = inject(I18nService);
 
   protected toggle(level: DangerLevel) {
     const on = this.levels();

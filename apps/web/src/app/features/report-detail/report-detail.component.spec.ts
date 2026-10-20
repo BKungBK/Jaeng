@@ -10,6 +10,8 @@ import { LoginPromptService } from '../auth/login-prompt.service';
 import type { ReportDetail } from './report-detail';
 import { ReportDetailComponent, SIGNAL_DEBOUNCE_MS } from './report-detail.component';
 import { ReportDetailService } from './report-detail.service';
+import { I18nService } from '../../core/i18n.service';
+import { provideCategories } from '../report-new/categories.testing';
 
 const ID = '7b0c5a3e-1f7d-4c49-9a52-2b8f3d0c6e11';
 
@@ -78,6 +80,8 @@ type Opts = {
   failFirst?: boolean;
   admin?: boolean;
   menuRole?: string;
+  /** false: the categories table has not loaded */
+  categories?: boolean;
 };
 
 async function setup(opts: Opts = {}) {
@@ -112,6 +116,7 @@ async function setup(opts: Opts = {}) {
       { provide: LoginPromptService, useValue: { ask } },
       { provide: PopoverController, useValue: popovers },
       { provide: AdminService, useValue: admin },
+      opts.categories === false ? provideCategories([]) : provideCategories(),
     ],
   });
   const fixture = TestBed.createComponent(ReportDetailComponent);
@@ -658,7 +663,7 @@ describe('ReportDetailComponent (plan 5: fix claims, the more menu, reports)', (
     await flush();
     await settle();
     expect(admin.hide).toHaveBeenCalledWith('report', ID);
-    expect(out.missing).toHaveBeenCalledWith('ซ่อนเรื่องนี้แล้ว');
+    expect(out.missing).toHaveBeenCalledWith('detail.hidden');
   });
 
   it('every comment has a labelled report button that opens the form under it', async () => {
@@ -672,5 +677,64 @@ describe('ReportDetailComponent (plan 5: fix claims, the more menu, reports)', (
     const items = root.querySelectorAll('.comments li');
     expect(items[1].querySelector('app-flag-form h3')?.textContent).toContain('รายงานความคิดเห็นนี้');
     expect(items[0].querySelector('app-flag-form')).toBeNull();
+  });
+});
+describe('ReportDetailComponent in English (plan 6)', () => {
+  const english = () => TestBed.inject(I18nService).setLocale('en');
+
+  it('rewords the open panel in place: me too, fix, level, category, age', async () => {
+    const { root, settle, fixture } = await setup({ report: detail({ danger_level: 3 }) });
+    const panel = fixture.componentInstance;
+    english();
+    await settle();
+    expect(fixture.componentInstance).toBe(panel);
+    expect(root.querySelector('.metoo')!.textContent!.replace(/\s+/g, ' ').trim()).toBe('Me too · 3');
+    expect(root.querySelector('.fix')!.textContent).toContain('I saw it fixed');
+    const tags = root.querySelector('.tags')!.textContent!;
+    expect(tags).toContain('Critical level');
+    expect(tags).toContain('Roads & sidewalks');
+    expect(tags).toContain('Open for 4 days');
+    expect(root.querySelector('.emergency')!.textContent).toContain('not an emergency service');
+  });
+
+  it('says a claimed fix is waiting for review', async () => {
+    const { root, settle } = await setup({ report: detail({ status: 'fix_claimed' }) });
+    english();
+    await settle();
+    expect(root.querySelector('.tags')!.textContent).toContain('Waiting for review of the fix');
+  });
+
+  it('keeps a half-written comment across a switch, both ways', async () => {
+    const { root, settle } = await setup();
+    const box = root.querySelector('textarea')!;
+    box.value = 'ยังพิมพ์อยู่';
+    box.dispatchEvent(new Event('input'));
+    await settle();
+    english();
+    await settle();
+    TestBed.inject(I18nService).setLocale('th');
+    await settle();
+    expect(root.querySelector('textarea')!.value).toBe('ยังพิมพ์อยู่');
+    expect(root.querySelector('textarea')).toBe(box);
+  });
+
+  it('shows the API error in English, and rewords it after switching back', async () => {
+    const { root, settle, svc, meToo } = await setup();
+    svc.toggleConfirm.mockRejectedValue(new ApiError(409, 'report_resolved', 'เรื่องนี้แก้แล้ว', 'Already resolved.'));
+    english();
+    await settle();
+    meToo()!.click();
+    await settle();
+    expect(root.querySelector('.status')!.textContent).toBe('Already resolved.');
+    TestBed.inject(I18nService).setLocale('th');
+    await settle();
+    expect(root.querySelector('.status')!.textContent).toBe('เรื่องนี้แก้แล้ว');
+  });
+
+  it('shows no category tag before the categories load (never the slug)', async () => {
+    const { root } = await setup({ categories: false });
+    const tags = root.querySelector('.tags')!.textContent!;
+    expect(tags).not.toContain('road');
+    expect(tags).toContain('ยังไม่ได้แก้');
   });
 });

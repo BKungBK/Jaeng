@@ -7,6 +7,15 @@ import { formatAgo, formatDate } from '../shared/time';
 
 export const LOCALE_STORAGE_KEY = 'jaeng.locale';
 
+/**
+ * A message held in a signal: a dictionary key (with params), an error to word, or nothing. Kept
+ * as data rather than text so a language switch rewords what is already on screen.
+ */
+export type Said = { key: MessageKey; params?: MessageParams } | { error: unknown } | MessageKey | string | null;
+
+/** What code outside Angular views needs to word things (beacons, clusters, the hint). */
+export type Words = Pick<I18nService, 't' | 'levelName'>;
+
 type Tree = { readonly [k: string]: string | Tree };
 
 function flatten(o: Tree, prefix = '', out = new Map<string, string>()): Map<string, string> {
@@ -62,7 +71,11 @@ export class I18nService {
   t(key: MessageKey, params?: MessageParams): string {
     const s = DICTS[this._locale()].get(key) ?? key;
     if (!params) return s;
-    return s.replace(/\{(\w+)\}/g, (m, name: string) => (name in params ? String(params[name]) : m));
+    return s
+      .replace(/\{(\w+)\|([^|{}]*)\|([^|{}]*)\}/g, (m, name: string, one: string, other: string) =>
+        name in params ? (Number(params[name]) === 1 ? one : other) : m,
+      ) // English plurals: "{n|day|days}"
+      .replace(/\{(\w+)\}/g, (m, name: string) => (name in params ? String(params[name]) : m));
   }
 
   setLocale(l: Locale): void {
@@ -79,6 +92,14 @@ export class I18nService {
     if (this._chosen() || !isLocale(l)) return;
     this._chosen.set(true);
     this.apply(l);
+  }
+
+  /** Words for a status line kept as data, so it re-reads in the new language after a switch. */
+  say(s: Said): string {
+    if (s === null || s === '') return '';
+    if (typeof s === 'string') return this.t(s as MessageKey); // a key, or text from elsewhere as it is
+    if ('error' in s) return this.errorText(s.error);
+    return this.t(s.key, s.params);
   }
 
   errorText(e: unknown): string {

@@ -20,7 +20,9 @@ import { IonModal } from '@ionic/angular';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
+import { I18nService, type Said } from '../../core/i18n.service';
 import { RealtimeService } from '../../core/realtime.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { AccountButtonComponent } from '../auth/account-button.component';
 import type { ReportDetail } from '../report-detail/report-detail';
@@ -33,7 +35,7 @@ import { LevelShapeComponent } from './level-shape';
 import { MAP_FACTORY } from './map-factory';
 import { holdBaseLabels, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
 import { currentSeaTheme, SEA_HEX, SeaTheme, watchSeaTheme } from './sea/sea-palette';
-import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
+import { coverPhotoUrl, ReportProps, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
 import { toyOpacity, zoomHint } from './toy';
@@ -75,6 +77,7 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     ReportDetailComponent,
     ReportFabComponent,
     IonModal,
+    TPipe,
   ],
   host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
 })
@@ -93,6 +96,7 @@ export class MapPage {
   private destroyed = false;
 
   private router = inject(Router);
+  protected readonly i18n = inject(I18nService);
   /** The beacon last clicked here, so its own navigation is not treated as a link. */
   private clicked: ReportProps | null = null;
   private fromClick = false;
@@ -106,7 +110,7 @@ export class MapPage {
   readonly zoom = signal(5);
   readonly shown = signal<number | null>(null);
   readonly hover = signal<{ p: ReportProps; x: number; y: number } | null>(null);
-  readonly toast = signal<string | null>(null);
+  readonly toast = signal<Said>(null);
   /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
   readonly wide = signal(false);
   readonly panelOpen = computed(() => this.wide() && !!this.id());
@@ -116,7 +120,7 @@ export class MapPage {
     computation: (id, prev) => id ?? prev?.value,
   });
 
-  readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length));
+  readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length, (k) => this.i18n.t(k)));
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -138,7 +142,7 @@ export class MapPage {
       if (e instanceof NavigationStart) trigger = e.navigationTrigger;
       else if (e instanceof NavigationEnd && trigger === 'imperative') {
         const toast = (history.state as { toast?: unknown } | null)?.toast;
-        if (typeof toast === 'string') this.showToast(toast);
+        if (typeof toast === 'string') this.showToast(toast); // a dictionary key
       }
     });
     destroyRef.onDestroy(() => nav.unsubscribe());
@@ -183,11 +187,11 @@ export class MapPage {
   }
 
   /** The linked report is not public (or never existed): say so and go home. The panel may name why (an admin hid it). */
-  protected onMissing(message?: string | void) {
+  protected onMissing(message?: Said | void) {
     this.closing = this.id();
     this.clicked = null;
     this.beacons?.setSelected(null);
-    this.showToast(message || 'ไม่พบเรื่องนี้ หรือเรื่องนี้ยังไม่เปิดให้เห็นนะ');
+    this.showToast(message || 'map.toast.missing');
     void this.router.navigate(['/'], { replaceUrl: true });
   }
 
@@ -241,10 +245,10 @@ export class MapPage {
         },
         leave: () => this.hover.set(null),
         select: (p) => this.select(p),
-      });
+      }, this.i18n);
       this.beacons.setSelected(this.id() ?? null);
     } catch {
-      if (!this.destroyed) this.showToast('แผนที่โหลดไม่ครบ ลองรีเฟรชหน้านี้อีกครั้งนะ');
+      if (!this.destroyed) this.showToast('map.toast.beaconsFailed');
     }
   }
 
@@ -344,14 +348,14 @@ export class MapPage {
     const result = await this.loader.load(bbox, this.levels());
     if (!result || this.destroyed) return;
     if ('error' in result) {
-      this.showToast('โหลดข้อมูลไม่สำเร็จ ลองเลื่อนแผนที่อีกครั้งนะ');
+      this.showToast('map.toast.loadFailed');
       return;
     }
     this.shown.set(result.data.features.length);
     map.getSource<maplibregl.GeoJSONSource>(REPORT_SOURCE)?.setData(result.data);
   }
 
-  private showToast(message: string) {
+  private showToast(message: Said) {
     this.toast.set(message);
     clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
@@ -367,19 +371,19 @@ export class MapPage {
 
   locate() {
     if (!('geolocation' in navigator)) {
-      this.showToast('เครื่องนี้ยังหาตำแหน่งไม่ได้ ลองซูมไปเองก่อนนะ');
+      this.showToast('map.toast.noGeo');
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }),
-      () => this.showToast('เปิดสิทธิ์ตำแหน่งก่อนนะ แล้วลองใหม่อีกครั้ง'),
+      () => this.showToast('map.toast.geoDenied'),
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }
 
   // template helpers
   protected level = (p: ReportProps) => LEVELS[p.danger_level];
-  protected status = (p: ReportProps) => STATUS_TH[p.status];
+  protected status = (p: ReportProps) => this.i18n.t(`status.${p.status}`);
   protected icon = (p: ReportProps) => categoryIcon(p.category);
   protected photo = (p: ReportProps) => (p.cover_photo_path ? coverPhotoUrl(p.cover_photo_path) : null);
 }

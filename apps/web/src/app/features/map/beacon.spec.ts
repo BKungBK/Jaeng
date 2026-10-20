@@ -9,6 +9,10 @@ import {
   updateBeaconElement,
 } from './beacon';
 import type { ReportProps } from './report';
+import { TestBed } from '@angular/core/testing';
+import { I18nService } from '../../core/i18n.service';
+
+const words = () => TestBed.inject(I18nService);
 
 const report = (over: Partial<ReportProps> = {}): ReportProps => ({
   id: 'r1',
@@ -50,27 +54,32 @@ describe('beaconView', () => {
 
 describe('beaconAriaLabel', () => {
   it('reads title, level and status', () => {
-    expect(beaconAriaLabel(report())).toBe('หลุมลึก ระดับอันตราย ยังไม่ได้แก้');
+    expect(beaconAriaLabel(report(), words())).toBe('หลุมลึก ระดับอันตราย ยังไม่ได้แก้');
+  });
+
+  it('reads in English after a switch', () => {
+    words().setLocale('en');
+    expect(beaconAriaLabel(report({ danger_level: 3 }), words())).toBe('หลุมลึก Critical level, Not fixed yet');
   });
 });
 
 describe('createBeaconElement', () => {
   it('draws two pulse rings for level 2 and one for level 0', () => {
-    const two = createBeaconElement(report(), beaconView(report(), 13), true);
-    const one = createBeaconElement(report({ danger_level: 0 }), beaconView(report({ danger_level: 0 }), 13), true);
+    const two = createBeaconElement(report(), beaconView(report(), 13), true, words());
+    const one = createBeaconElement(report({ danger_level: 0 }), beaconView(report({ danger_level: 0 }), 13), true, words());
     expect(two.querySelectorAll('.ring')).toHaveLength(2);
     expect(one.querySelectorAll('.ring')).toHaveLength(1);
   });
 
   it('sets level colour, pulse and height as CSS variables', () => {
-    const el = createBeaconElement(report({ confirm_count: 3 }), beaconView(report({ confirm_count: 3 }), 13), true);
+    const el = createBeaconElement(report({ confirm_count: 3 }), beaconView(report({ confirm_count: 3 }), 13), true, words());
     expect(el.style.getPropertyValue('--c')).toBe(LEVELS[2].color);
     expect(el.style.getPropertyValue('--d')).toBe('1.6s');
     expect(el.style.getPropertyValue('--h')).toBe('132px');
   });
 
   it('makes the disc a keyboard button with the category icon and level badge', () => {
-    const el = createBeaconElement(report(), beaconView(report(), 13), true);
+    const el = createBeaconElement(report(), beaconView(report(), 13), true, words());
     const disc = el.querySelector<HTMLElement>('.disc')!;
     expect(disc.getAttribute('role')).toBe('button');
     expect(disc.tabIndex).toBe(0);
@@ -82,9 +91,9 @@ describe('createBeaconElement', () => {
   });
 
   it('marks fix_claimed and resolved by shape classes and a tick', () => {
-    const claimed = createBeaconElement(report({ status: 'fix_claimed' }), beaconView(report({ status: 'fix_claimed' }), 13), true);
+    const claimed = createBeaconElement(report({ status: 'fix_claimed' }), beaconView(report({ status: 'fix_claimed' }), 13), true, words());
     expect(claimed.classList).toContain('st-claimed');
-    const done = createBeaconElement(report({ status: 'resolved' }), beaconView(report({ status: 'resolved' }), 13), true);
+    const done = createBeaconElement(report({ status: 'resolved' }), beaconView(report({ status: 'resolved' }), 13), true, words());
     expect(done.classList).toContain('st-done');
     expect(done.querySelector('.disc svg.icon-construction')).toBeNull();
     expect(done.querySelector('.tick svg.icon-check')).not.toBeNull();
@@ -94,24 +103,24 @@ describe('createBeaconElement', () => {
 
   it('renders a hostile title as text', () => {
     const title = '<img src=x onerror=alert(1)>';
-    const el = createBeaconElement(report({ title }), beaconView(report({ title }), 13), true);
+    const el = createBeaconElement(report({ title }), beaconView(report({ title }), 13), true, words());
     expect(el.querySelector('img[src="x"]')).toBeNull();
     expect(el.querySelector('.lbl')!.textContent).toBe(title);
   });
 
   it('keeps the same focusable disc when only the label or height changes', () => {
     const p = report();
-    const el = createBeaconElement(p, beaconView(p, 13), false);
+    const el = createBeaconElement(p, beaconView(p, 13), false, words());
     const disc = el.querySelector('.disc');
-    updateBeaconElement(el, { ...p, confirm_count: 5 }, beaconView({ ...p, confirm_count: 5 }, 13), true);
+    updateBeaconElement(el, { ...p, confirm_count: 5 }, beaconView({ ...p, confirm_count: 5 }, 13), true, words());
     expect(el.querySelector('.disc')).toBe(disc);
-    updateBeaconElement(el, p, beaconView(p, 13), false);
+    updateBeaconElement(el, p, beaconView(p, 13), false, words());
     expect(el.querySelector('.disc')).toBe(disc);
     expect(el.querySelector('.lbl')).toBeNull();
   });
 
   it('draws the level badge as a solid SVG shape', () => {
-    const el = createBeaconElement(report({ danger_level: 3 }), beaconView(report({ danger_level: 3 }), 13), true);
+    const el = createBeaconElement(report({ danger_level: 3 }), beaconView(report({ danger_level: 3 }), 13), true, words());
     const sym = el.querySelector('.sym')!;
     expect(sym.querySelector('svg')).not.toBeNull();
     expect(sym.getAttribute('data-level')).toBe('3');
@@ -119,9 +128,9 @@ describe('createBeaconElement', () => {
 
   it('shows the label only when asked, and updates in place', () => {
     const p = report();
-    const el = createBeaconElement(p, beaconView(p, 13), false);
+    const el = createBeaconElement(p, beaconView(p, 13), false, words());
     expect(el.querySelector('.lbl')).toBeNull();
-    updateBeaconElement(el, { ...p, confirm_count: 10 }, beaconView({ ...p, confirm_count: 10 }, 13), true);
+    updateBeaconElement(el, { ...p, confirm_count: 10 }, beaconView({ ...p, confirm_count: 10 }, 13), true, words());
     expect(el.querySelector('.lbl')!.textContent).toBe('หลุมลึก');
     expect(el.style.getPropertyValue('--h')).toBe('185px');
   });
@@ -129,15 +138,22 @@ describe('createBeaconElement', () => {
 
 describe('createClusterElement', () => {
   it('shows the count with the highest level colour', () => {
-    const el = createClusterElement(7, 3);
+    const el = createClusterElement(7, 3, words());
     expect(el.style.getPropertyValue('--c')).toBe(LEVELS[3].color);
     const btn = el.querySelector('button')!;
     expect(btn.textContent).toBe('7');
     expect(btn.getAttribute('aria-label')).toBe('7 เรื่องในพื้นที่นี้ ระดับสูงสุดวิกฤต');
   });
 
+  it('labels in English', () => {
+    words().setLocale('en');
+    expect(createClusterElement(7, 3, words()).querySelector('button')!.getAttribute('aria-label')).toBe(
+      '7 reports here, highest level Critical',
+    );
+  });
+
   it('says the highest level by shape too', () => {
-    const el = createClusterElement(7, 1);
+    const el = createClusterElement(7, 1, words());
     expect(el.querySelector('.sym')!.getAttribute('data-level')).toBe('1');
   });
 });

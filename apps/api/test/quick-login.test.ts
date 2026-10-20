@@ -42,7 +42,11 @@ describe('createQuickLogin', () => {
   test('lists the three demo users on localhost only', () => {
     const q = make();
     expect(q.users('localhost:8000').map((u) => u.who)).toEqual(['reporter', 'neighbor1', 'admin']);
-    expect(q.users('localhost:8000')[0]).toEqual({ who: 'reporter', label_th: DEMO_USERS[0].label_th });
+    expect(q.users('localhost:8000')[0]).toEqual({
+      who: 'reporter',
+      label_th: DEMO_USERS[0].label_th,
+      label_en: 'Reporter (friendly neighbour)',
+    });
     expect(q.users('192.168.1.20:8000')).toEqual([]);
     expect(q.users(null)).toEqual([]);
   });

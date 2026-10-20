@@ -1,3 +1,4 @@
+import { I18nService } from '../../core/i18n.service';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -55,6 +56,9 @@ describe('AccountButtonComponent', () => {
     auth.profile.set({ id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' });
     await fixture.whenStable();
     expect(button.getAttribute('aria-label')).toBe('บัญชี: พี่ปลา');
+    TestBed.inject(I18nService).setLocale('en');
+    await fixture.whenStable();
+    expect(button.getAttribute('aria-label')).toBe('Account: พี่ปลา');
   });
 
   it('shows the name initial when signed in, so the state is not told by colour alone', async () => {

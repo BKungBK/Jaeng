@@ -1,0 +1,108 @@
+<div class="scroller">
+  <main class="card">
+    <header class="head">
+      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
+        <app-icon name="map" [size]="22" />
+      </button>
+      <div class="titles">
+        <h1 tabindex="-1">{{ 'list.title' | t }}</h1>
+        <p class="caption caption-count">{{ (whole() ? 'list.country' : 'list.inView') | t: { n: rows().length } }}</p>
+      </div>
+    </header>
+
+    <app-filter-bar />
+
+    <div class="sorts">
+      <p class="caption" id="list-sort-label">{{ 'list.sortBy' | t }}</p>
+      <div class="seg" role="radiogroup" aria-labelledby="list-sort-label" (keydown)="onSortKey($event)">
+        @for (s of sorts; track s) {
+          <button
+            type="button"
+            role="radio"
+            class="opt"
+            [attr.data-sort]="s"
+            [attr.aria-checked]="sort() === s"
+            [tabIndex]="sort() === s ? 0 : -1"
+            (click)="choose(s)"
+          >
+            @if (sortIcon[s]; as ic) {
+              <app-icon [name]="ic" [size]="16" />
+            }
+            {{ s === 'near' && locating() ? ('locationStep.looking' | t) : (sortKey(s) | t) }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (filters.showResolved()) {
+      <label class="check">
+        <input type="checkbox" class="old" [checked]="includeOld()" (change)="includeOld.set($any($event.target).checked)" />
+        {{ 'list.includeOld' | t }}
+      </label>
+    }
+
+    <p class="status" role="status">{{ i18n.say(notice()) }}</p>
+
+    @switch (state()) {
+      @case ('loading') {
+        <p class="note" role="status">{{ 'list.loading' | t }}</p>
+        <ul class="reports wait" aria-hidden="true">
+          <li class="ghost"></li>
+          <li class="ghost"></li>
+          <li class="ghost"></li>
+        </ul>
+      }
+      @case ('error') {
+        <p class="status">{{ 'list.failed' | t }}</p>
+        <button type="button" class="btn" (click)="retry()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
+      }
+      @case ('ready') {
+        @if (rows().length) {
+          <ul class="reports">
+            @for (r of rows(); track r.id) {
+              <li>
+                <a class="row" [href]="'/r/' + r.id" (click)="open(r, $event)">
+                  <div class="thumb" [style.--c]="level(r).color">
+                    @if (photo(r); as src) {
+                      <img [src]="src" alt="" width="72" height="72" loading="lazy" />
+                    } @else {
+                      <app-icon [name]="icon(r)" [size]="30" />
+                    }
+                  </div>
+                  <div class="text">
+                    <strong class="title">{{ r.title }}</strong>
+                    <span class="state"><app-icon [name]="statusIcon(r)" [size]="16" />{{ statusWord(r) }}</span>
+                    <span class="meta">
+                      <span class="lvl"><app-level-shape [level]="r.danger_level" />{{ i18n.levelName(r.danger_level) }}</span>
+                      @if (r.place_name) {
+                        · <span class="place">{{ r.place_name }}</span>
+                      }
+                      @if (r.status === 'open') {
+                        · <span [class.long]="longWait(r)">{{ 'age.days' | t: { n: r.days_open } }}</span>
+                      }
+                      · {{ 'map.metooCount' | t: { n: r.confirm_count } }}
+                      @if (sort() === 'near' && distance(r); as d) {
+                        · <span class="distance">{{ d }}</span>
+                      }
+                    </span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ul>
+          @if (hasMore()) {
+            <button type="button" class="btn more" (click)="more()">{{ 'list.more' | t }}</button>
+          }
+        } @else {
+          <div class="empty">
+            <span class="disc" aria-hidden="true"><app-icon name="list" [size]="30" /></span>
+            <p>{{ 'list.empty' | t }}</p>
+            @if (!whole()) {
+              <button type="button" class="btn" (click)="wholeCountry()">{{ 'list.wholeCountry' | t }}</button>
+            }
+          </div>
+        }
+      }
+    }
+  </main>
+</div>

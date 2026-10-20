@@ -234,6 +234,10 @@ export const th = {
     signOut: 'ออกจากระบบ',
     about: 'เกี่ยวกับแจ้ง',
   },
+  update: {
+    ready: 'มีเวอร์ชันใหม่',
+    reload: 'โหลดใหม่',
+  },
   display: {
     title: 'การแสดงผล',
     language: 'ภาษา',

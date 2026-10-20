@@ -235,6 +235,10 @@ export const en: Messages = {
     signOut: 'Sign out',
     about: 'About Jaeng',
   },
+  update: {
+    ready: 'A new version is ready',
+    reload: 'Reload',
+  },
   display: {
     title: 'Display',
     language: 'Language',

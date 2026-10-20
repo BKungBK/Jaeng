@@ -11,8 +11,11 @@ services:
     image: caddy:2
     ports:
       - "8000:8000"
+      - "8100:8100"
     volumes:
       - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      # the PWA build (scripts/build-web.sh) served on :8100
+      - ./apps/web/www:/srv/www:ro
     depends_on:
       - api
       - web

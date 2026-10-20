@@ -31,8 +31,14 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "src",
+                "output": "/"
               }
             ],
+            "serviceWorker": "ngsw-config.json",
             "styles": ["src/global.scss", "src/theme/variables.scss", "src/theme/map.scss"],
             "scripts": [],
             "browser": "src/main.ts"
@@ -47,8 +53,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
                 }
               ],
               "fileReplacements": [

@@ -54,6 +54,16 @@ bash scripts/test.sh
 
 หน้าผู้ดูแลอยู่ที่ http://localhost:8000/admin (ล็อกอินเป็นแอดมินแล้วเข้าจากเมนูบัญชี "หน้าผู้ดูแล") ข้อมูลเดโมมีเรื่องรอตรวจ 2 เรื่อง และคำขอแจ้งว่าแก้แล้ว 4 รายการ · โควตาต่อ 24 ชั่วโมงตั้งได้ใน `.env` (`RATE_LIMIT_REPORTS_PER_DAY`, `RATE_LIMIT_COMMENTS_PER_DAY`, `RATE_LIMIT_PHOTOS_PER_DAY`, `RATE_LIMIT_FIX_CLAIMS_PER_DAY`, `RATE_LIMIT_FLAGS_PER_DAY`)
 
+### แอปแบบติดตั้งได้ (PWA)
+
+dev server ที่ 8000 ไม่มี service worker ถ้าจะลองแอปแบบติดตั้งได้หรือเปิดตอนออฟไลน์ ให้ build ก่อน:
+
+```bash
+bash scripts/build-web.sh
+```
+
+แล้วเปิด http://localhost:8100 (Caddy เสิร์ฟ `apps/web/www` และส่ง `/api`, `/sb` ต่อเหมือน 8000) build ใหม่เมื่อไหร่ แอปที่เปิดค้างจะขึ้น "มีเวอร์ชันใหม่" ให้กดโหลดใหม่ · ค้นหาสถานที่ใช้ชื่ออำเภอ/จังหวัดในเครื่องก่อน แล้วถาม OpenStreetMap Nominatim ต่อ (`NOMINATIM_URL`, `NOMINATIM_CONTACT` ใน `.env`)
+
 รายละเอียดเพิ่มเติมดูที่หัวข้อ 8 ของเอกสารออกแบบ
 
 ## โฟลเดอร์อื่น

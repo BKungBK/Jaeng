@@ -16,3 +16,23 @@
 		reverse_proxy web:4200
 	}
 }
+
+# The installable production build (plan 6): apps/web/www from scripts/build-web.sh, with the
+# service worker. Same /api and /sb as the dev site; the worker and index.html are never cached.
+:8100 {
+	handle_path /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle_path /sb/* {
+		reverse_proxy supabase_kong_jaeng:8000
+	}
+
+	handle {
+		root * /srv/www
+		@nocache path /ngsw-worker.js /ngsw.json /index.html /
+		header @nocache Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

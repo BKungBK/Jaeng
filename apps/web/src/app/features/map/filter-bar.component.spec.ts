@@ -62,6 +62,25 @@ describe('FilterBarComponent more filters (plan 6)', () => {
     return { fixture, root, more, settle };
   };
 
+  it('marks itself open (the map lifts it over the dock) and closes on a press anywhere else', async () => {
+    const { fixture, more, root, settle } = setupMore();
+    document.body.appendChild(root);
+    more().click();
+    await settle();
+    expect(root.classList).toContain('open');
+    // a press inside the panel keeps it
+    root.querySelector('app-filters-panel h2')!.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    await settle();
+    expect(root.querySelector('app-filters-panel')).not.toBeNull();
+    // the panel's own backdrop is trapped inside a glass parent on wide screens: the page itself listens
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    await settle();
+    expect(root.querySelector('app-filters-panel')).toBeNull();
+    expect(root.classList).not.toContain('open');
+    root.remove();
+    fixture.destroy();
+  });
+
   it('ends the tray with a 44 px more-filters button that counts what is on', async () => {
     const { more, settle } = setupMore();
     expect(more().getAttribute('aria-label')).toBe('ตัวกรองเพิ่มเติม');

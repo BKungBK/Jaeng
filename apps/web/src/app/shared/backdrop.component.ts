@@ -135,8 +135,17 @@ export class BackdropComponent {
     host.appendChild(canvas);
 
     canvas.addEventListener('webglcontextlost', () => this.lose());
-    const onVisible = () => (document.hidden ? this.stop() : this.loop());
+    // draw only while the tab is shown and the page is on screen: Ionic keeps earlier pages in its
+    // stack with display:none, and their backdrops would otherwise keep drawing
+    let onScreen = true;
+    const sync = () => (document.hidden || !onScreen ? this.stop() : this.loop());
+    const onVisible = () => sync();
     document.addEventListener('visibilitychange', onVisible);
+    const seen = typeof IntersectionObserver === 'function' ? new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1]?.isIntersecting ?? onScreen;
+      sync();
+    }) : null;
+    seen?.observe(host);
     const onResize = () => this.resize();
     addEventListener('resize', onResize);
     // the colours follow the theme live
@@ -148,6 +157,7 @@ export class BackdropComponent {
     destroyRef.onDestroy(() => {
       this.stop();
       document.removeEventListener('visibilitychange', onVisible);
+      seen?.disconnect();
       removeEventListener('resize', onResize);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     });
@@ -168,6 +178,8 @@ export class BackdropComponent {
 
   private loop() {
     this.stop();
+    if (!this.gl) return; // the context is gone: the CSS gradient shows
+
     const frame = (now: number) => {
       this.raf = requestAnimationFrame(frame);
       if (now - this.last < FRAME_MS) return;

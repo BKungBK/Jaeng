@@ -37,6 +37,14 @@ describe('theme', () => {
     expect(read('src/global.scss')).toMatch(/theme\/glass/);
   });
 
+  it('leaves nothing behind after an entrance (a filling transform would trap fixed children)', () => {
+    // the phone's "more filters" card is position: fixed inside the chip row; a rise kept with
+    // fill "both" made the row its containing block and the card opened at the top of the screen
+    for (const file of sourceFiles('src').filter((f) => !f.endsWith('.spec.ts'))) {
+      expect(read(file), file).not.toMatch(/animation:\s*(rise|panel-in)\b[^;]*\b(both|forwards)\b/);
+    }
+  }, 30_000);
+
   it('uses Anuphan everywhere except MapLibre glyph fonts', () => {
     const files = sourceFiles('src').filter((f) => !f.endsWith('map-style.ts') && !f.endsWith('theme.spec.ts'));
     expect(files.length).toBeGreaterThan(50);

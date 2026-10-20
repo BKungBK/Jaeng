@@ -45,7 +45,7 @@ import { safeNext } from './safe-next';
       width: min(420px, 100%);
       padding: 24px 20px 20px;
       border-radius: 24px;
-      animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
     }
     .back {
       display: inline-flex;

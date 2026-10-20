@@ -119,9 +119,7 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--surf) 72%, transparent); // frosted, like the panels
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--surf) 82%, transparent); // glass-toned; no blur: up to 150 markers repaint every frame
     border: 3px solid var(--c);
     box-shadow:
       0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),
@@ -174,9 +172,7 @@
     text-overflow: ellipsis;
     padding: 0 8px;
     border-radius: 10px;
-    background: color-mix(in srgb, var(--surf) 72%, transparent); // frosted, like the panels
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--surf) 82%, transparent); // glass-toned; no blur: up to 150 markers repaint every frame
     color: var(--ink);
     font: 400 12px/22px var(--font);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -260,9 +256,7 @@
     box-sizing: border-box;
     padding: 0;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--surf) 72%, transparent); // frosted, like the panels
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--surf) 82%, transparent); // glass-toned; no blur: up to 150 markers repaint every frame
     border: 3px solid var(--c);
     box-shadow:
       0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),

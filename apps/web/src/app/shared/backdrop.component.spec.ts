@@ -64,6 +64,41 @@ describe('BackdropComponent', () => {
     expect(root.querySelector('div.fallback')).not.toBeNull();
   });
 
+  it('stays idle after the context is lost, even when the tab comes back', () => {
+    const { ctx } = stubGl();
+    const { root, raf } = setup(ctx);
+    root.querySelector('canvas')!.dispatchEvent(new Event('webglcontextlost'));
+    raf.mockClear();
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(raf).not.toHaveBeenCalled();
+  });
+
+  it('pauses while Ionic keeps its page hidden in the stack, and resumes when it shows again', () => {
+    let seen!: (entries: { isIntersecting: boolean }[]) => void;
+    const observe = vi.fn();
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(cb: typeof seen) {
+          seen = cb;
+        }
+        observe = observe;
+        disconnect = vi.fn();
+      },
+    );
+    const { ctx } = stubGl();
+    const { raf, caf } = setup(ctx);
+    expect(observe).toHaveBeenCalled();
+    caf.mockClear();
+    seen([{ isIntersecting: false }]);
+    expect(caf).toHaveBeenCalled();
+    raf.mockClear();
+    seen([{ isIntersecting: true }]);
+    expect(raf).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it('takes its colours from the theme', () => {
     const { fixture } = setup(null);
     TestBed.inject(ThemeService).set('light');

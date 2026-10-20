@@ -798,4 +798,15 @@ describe('MapPage accessibility (plan 6)', () => {
     TestBed.resetTestingModule();
     expectAccessiblePage((await setup(undefined, { wide: false })).root);
   });
+
+  it('keeps the phone summary pill named when the numbers fail', async () => {
+    vi.useFakeTimers();
+    const { map, fixture, root } = await setup(undefined, { wide: false, stats: vi.fn().mockRejectedValue(new Error('x')) });
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    expect(root.querySelector('.summary button.open-list')?.textContent?.trim()).toBe('ดูเป็นรายการ');
+    expectAccessiblePage(root);
+    vi.useRealTimers();
+  });
 });

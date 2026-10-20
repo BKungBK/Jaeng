@@ -70,6 +70,10 @@
   <div class="summary glass" style="--i: 2">
     <!-- the live hint stays outside the button, so the button's name is just the numbers -->
     <button type="button" class="open-list" (click)="openList()">
+      @if (stats() === 'error') {
+        <!-- no numbers to show: the pill says where it goes instead of standing empty -->
+        <span class="list-word">{{ 'map.list' | t }}</span>
+      }
       <app-stats-line [state]="stats()" [compact]="true" />
       <app-icon class="chev" name="chevronRight" [size]="16" />
     </button>

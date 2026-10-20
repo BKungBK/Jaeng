@@ -104,7 +104,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 .menu,
 .dock,
 .fab {
-  animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 60ms) both;
+  animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 60ms) backwards;
 }
 
 // every glass button: lighter on hover, a small press
@@ -181,6 +181,11 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   &.searching {
     visibility: hidden;
   }
+
+  // its "more filters" card covers the screen bottom: lift the row over the summary, locate and dock
+  &.open {
+    z-index: 9;
+  }
 }
 
 .summary:not(.glass) {
@@ -225,6 +230,12 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   app-stats-line {
     flex: 1;
     min-width: 0;
+  }
+
+  .list-word {
+    flex: 1;
+    padding-left: 8px;
+    font: 500 13px/1.4 var(--font);
   }
 
   .chev {
@@ -343,8 +354,9 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   scrollbar-width: thin;
   scrollbar-color: var(--glass-edge) transparent;
 
-  // the side panel is already glass: its chips get a quieter ground
+  // the side panel is already glass: its chips get a quieter ground and no blur of their own
   --chip-bg: color-mix(in srgb, var(--ink) 6%, transparent);
+  --chip-blur: none;
 
   .mark {
     width: 32px;
@@ -359,13 +371,16 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   }
 
   // four chips and the more button in one row of the 324 px panel
+  // (English runs ~17 px wider than Thai: tighter chips, and the row scrolls rather than spill)
   app-filter-bar ::ng-deep .chips {
     flex-wrap: nowrap;
     gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   app-filter-bar ::ng-deep .chip {
-    padding: 0 8px;
+    padding: 0 5px;
   }
 
   .summary {
@@ -383,7 +398,8 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 
 // the search results float out of the panel, so the panel must not clip them
 .side:has(app-search-box.open),
-.side:has(.results:not([hidden])) {
+.side:has(.results:not([hidden])),
+.side:has(app-filter-bar.open) {
   overflow: visible;
 }
 
@@ -642,7 +658,7 @@ $beside: calc(#{$panel} + 40px); // the panel and its two 20 px gutters
   width: $panel;
   border-radius: 22px;
   color: var(--ink);
-  animation: panel-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: panel-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 
 @keyframes panel-in {

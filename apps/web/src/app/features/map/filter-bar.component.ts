@@ -82,8 +82,9 @@ import { LevelShapeComponent } from './level-shape';
       border-radius: 15px;
       /* the map page sets a quieter ground for chips that already sit inside a glass panel */
       background: var(--chip-bg, var(--glass-bg));
-      backdrop-filter: blur(16px) var(--glass-dim);
-      -webkit-backdrop-filter: blur(16px) var(--glass-dim);
+      /* inside a glass panel a second blur sees nothing but the panel: those parents set none */
+      backdrop-filter: var(--chip-blur, blur(16px) var(--glass-dim));
+      -webkit-backdrop-filter: var(--chip-blur, blur(16px) var(--glass-dim));
       transition:
         background-color 160ms ease-out,
         opacity 160ms ease-out;
@@ -167,6 +168,7 @@ import { LevelShapeComponent } from './level-shape';
       }
     }
   `,
+  host: { '[class.open]': 'panelOpen()', '(document:pointerdown)': 'onPressAnywhere($event)' },
 })
 export class FilterBarComponent {
   protected readonly filters = inject(FilterState);
@@ -178,6 +180,12 @@ export class FilterBarComponent {
   protected toggle(level: DangerLevel) {
     const on = this.filters.levels();
     this.filters.levels.set(on.includes(level) ? on.filter((l) => l !== level) : [...on, level].sort((a, b) => a - b));
+  }
+
+  /** A press outside the tray and its panel closes the panel. The panel's own full-screen backdrop
+   *  cannot do it inside a glass parent: backdrop-filter makes that parent the box of fixed children. */
+  protected onPressAnywhere(e: Event) {
+    if (this.panelOpen() && !this.host.nativeElement.contains(e.target as Node)) this.closePanel();
   }
 
   /** Done, Escape or a press outside: focus goes back to the button that opened it. */

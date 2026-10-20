@@ -152,7 +152,7 @@ textarea {
 // rows that rise in once, 30 ms apart, the first twelve only
 @mixin rise-rows($selector) {
   #{$selector} {
-    animation: rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   }
   @for $i from 2 through 12 {
     #{$selector}:nth-child(#{$i}) {

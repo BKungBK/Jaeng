@@ -1,5 +1,5 @@
 <button type="button" class="fold" aria-controls="rn-details" [attr.aria-expanded]="open()" (click)="toggle()">
-  <span>เพิ่มรายละเอียด <span class="opt">ไม่บังคับ</span></span>
+  <span>{{ 'details.fold' | t }} <span class="opt">{{ 'details.optional' | t }}</span></span>
   <app-icon name="chevronDown" [size]="22" [class.up]="open()" />
 </button>
 
@@ -7,7 +7,7 @@
   <div id="rn-details" class="body">
     <div class="field">
       <div class="row">
-        <label for="rn-title">หัวข้อ</label>
+        <label for="rn-title">{{ 'details.title' | t }}</label>
         <span class="count">{{ d().title.length }}/{{ max.title }}</span>
       </div>
       <input
@@ -16,17 +16,17 @@
         type="text"
         autocomplete="off"
         [maxLength]="max.title"
-        placeholder="เช่น หลุมลึกหน้าตลาด"
+        [placeholder]="'details.titlePlaceholder' | t"
         aria-describedby="rn-title-hint"
         [value]="d().title"
         (input)="setText('title', $event)"
       />
-      <p id="rn-title-hint" class="caption">เว้นว่างได้ ระบบตั้งชื่อให้จากหมวดและที่ตั้ง</p>
+      <p id="rn-title-hint" class="caption">{{ 'details.titleHint' | t }}</p>
     </div>
 
     <div class="field">
       <div class="row">
-        <label for="rn-desc">คำอธิบาย</label>
+        <label for="rn-desc">{{ 'details.desc' | t }}</label>
         <span class="count">{{ d().description.length }}/{{ max.description }}</span>
       </div>
       <textarea
@@ -34,20 +34,20 @@
         class="input"
         rows="4"
         [maxLength]="max.description"
-        placeholder="เล่าว่าเจออะไร ตรงไหน ตั้งแต่เมื่อไหร่"
+        [placeholder]="'details.descPlaceholder' | t"
         [value]="d().description"
         (input)="setText('description', $event)"
       ></textarea>
     </div>
 
     <fieldset class="field">
-      <legend>ระดับอันตราย</legend>
+      <legend>{{ 'details.level' | t }}</legend>
       <div class="levels">
         @for (l of levels; track l.level) {
           <label class="lvl" [style.--c]="l.color">
             <input type="radio" name="rn-level" [value]="l.level" [checked]="d().danger === l.level" (change)="setDanger(l.level)" />
             <app-level-shape [level]="l.level" />
-            {{ l.nameTh }}
+            {{ i18n.levelName(l.level) }}
           </label>
         }
       </div>
@@ -55,15 +55,15 @@
 
     <div class="field">
       <div class="row">
-        <label for="rn-tags">แท็ก</label>
+        <label for="rn-tags">{{ 'details.tags' | t }}</label>
         <span class="count">{{ d().tags.length }}/{{ max.tags }}</span>
       </div>
       @if (d().tags.length > 0) {
-        <ul class="tags" aria-label="แท็กที่ใส่แล้ว">
+        <ul class="tags" [attr.aria-label]="'details.tagsChosen' | t">
           @for (t of d().tags; track t) {
             <li class="tag">
               <span>{{ t.startsWith('#') ? t : '#' + t }}</span>
-              <button type="button" class="untag" [attr.aria-label]="'ลบแท็ก ' + t" (click)="removeTag(t)">
+              <button type="button" class="untag" [attr.aria-label]="'details.removeTag' | t: { tag: t }" (click)="removeTag(t)">
                 <app-icon name="x" [size]="16" />
               </button>
             </li>
@@ -79,28 +79,28 @@
         enterkeyhint="done"
         [maxLength]="max.tag + 2"
         [disabled]="full()"
-        [placeholder]="full() ? '' : 'พิมพ์แล้วกด Enter เช่น หน้าโรงเรียน'"
+        [placeholder]="full() ? '' : ('details.tagPlaceholder' | t)"
         aria-describedby="rn-tags-hint"
         (input)="onTagInput($event)"
         (keydown)="onTagKey($event)"
       />
       @if (offered().length > 0 && !full()) {
-        <div class="suggest" aria-label="แท็กที่คนอื่นใช้">
+        <div class="suggest" [attr.aria-label]="'details.tagSuggest' | t">
           @for (s of offered(); track s) {
             <button type="button" class="chip" (click)="addTag(s)">#{{ s }}</button>
           }
         </div>
       }
-      <p id="rn-tags-hint" class="caption">{{ full() ? 'ครบแล้ว ใส่ได้สูงสุด ' + max.tags + ' แท็ก' : 'ใส่ได้สูงสุด ' + max.tags + ' แท็ก ช่วยให้คนอื่นค้นเจอ' }}</p>
+      <p id="rn-tags-hint" class="caption">{{ (full() ? 'details.tagsFull' : 'details.tagsHint') | t: { n: max.tags } }}</p>
     </div>
 
     <div class="field">
       <label class="switch">
         <input type="checkbox" role="switch" aria-describedby="rn-hide-hint" [checked]="d().hideAuthor" (change)="setHide($event)" />
         <span class="track" aria-hidden="true"></span>
-        ไม่แสดงชื่อฉัน
+        {{ 'details.hide' | t }}
       </label>
-      <p id="rn-hide-hint" class="caption">คนอื่นจะเห็นเป็นผู้ใช้นิรนาม ผู้ดูแลยังเห็นว่าใครแจ้ง</p>
+      <p id="rn-hide-hint" class="caption">{{ 'details.hideHint' | t }}</p>
     </div>
   </div>
 }

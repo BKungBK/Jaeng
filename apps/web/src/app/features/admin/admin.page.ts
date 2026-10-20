@@ -3,10 +3,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import type { AdminCounts } from '@jaeng/shared/admin';
 import { map } from 'rxjs';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { MapReturnService } from '../report-new/map-return.service';
 import { AdminService } from './admin.service';
-import { ADMIN_TABS, TAB_ICON, TAB_TH, type AdminTab } from './admin-labels';
+import { ADMIN_TABS, TAB_ICON, tabKey, type AdminTab } from './admin-labels';
 import { ClaimsQueueComponent } from './claims-queue.component';
 import { FlagsQueueComponent } from './flags-queue.component';
 import { LogTabComponent } from './log-tab.component';
@@ -22,7 +23,7 @@ const isTab = (v: string | null): v is AdminTab => (ADMIN_TABS as readonly strin
 @Component({
   selector: 'app-admin',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent, UsersTabComponent, LogTabComponent],
+  imports: [IconComponent, TPipe, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent, UsersTabComponent, LogTabComponent],
   templateUrl: 'admin.page.html',
   styleUrl: 'admin.page.scss',
   host: { class: 'ion-page' },
@@ -35,7 +36,7 @@ export class AdminPage {
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly tabs = ADMIN_TABS;
-  protected readonly words = TAB_TH;
+  protected readonly word = tabKey;
   protected readonly icons = TAB_ICON;
   protected readonly counts = signal<AdminCounts | null>(null);
 

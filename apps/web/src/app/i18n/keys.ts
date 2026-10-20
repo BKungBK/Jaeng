@@ -3,6 +3,9 @@ import type { th } from './th';
 export type Locale = 'th' | 'en';
 export const LOCALES: readonly Locale[] = ['th', 'en'];
 
+/** Each language named in itself, the same in both dictionaries ("ไทย" stays Thai on an English page). */
+export const LOCALE_NAMES: Record<Locale, string> = { th: '\u0E44\u0E17\u0E22', en: 'English' };
+
 export function isLocale(v: unknown): v is Locale {
   return v === 'th' || v === 'en';
 }

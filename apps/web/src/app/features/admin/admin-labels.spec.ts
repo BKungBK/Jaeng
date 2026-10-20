@@ -1,24 +1,31 @@
+import { TestBed } from '@angular/core/testing';
 import { LOCATION_MODES, LOG_ACTIONS } from '@jaeng/shared/admin';
+import { I18nService } from '../../core/i18n.service';
+import type { MessageKey } from '../../i18n/keys';
 import { isIconName } from '../map/icons';
-import { ADMIN_TABS, LOCATION_MODE_TH, LOG_ACTION_TH, TAB_ICON, TAB_TH } from './admin-labels';
+import { ADMIN_TABS, locationKey, logActionText, TAB_ICON, tabKey } from './admin-labels';
 
-const distinct = (r: Record<string, string>) => new Set(Object.values(r)).size === Object.keys(r).length;
+const distinct = (words: string[]) => new Set(words).size === words.length;
+const t = (k: MessageKey) => TestBed.inject(I18nService).t(k);
 
 describe('admin labels', () => {
-  it('names and draws every tab once', () => {
+  it('names and draws every tab once, in both languages', () => {
     expect(ADMIN_TABS).toEqual(['reports', 'claims', 'flags', 'users', 'log']);
-    expect(Object.keys(TAB_TH)).toEqual([...ADMIN_TABS]);
-    expect(TAB_TH.reports).toBe('รอตรวจ');
-    expect(distinct(TAB_TH)).toBe(true);
-    expect(distinct(TAB_ICON)).toBe(true);
+    expect(t(tabKey('reports'))).toBe('รอตรวจ');
+    expect(distinct(ADMIN_TABS.map((x) => t(tabKey(x))))).toBe(true);
+    expect(distinct(Object.values(TAB_ICON))).toBe(true);
     expect(Object.values(TAB_ICON).every(isIconName)).toBe(true);
+    TestBed.inject(I18nService).setLocale('en');
+    expect(t(tabKey('reports'))).toBe('Waiting');
+    expect(distinct(ADMIN_TABS.map((x) => t(tabKey(x))))).toBe(true);
   });
 
   it('names every location mode and log action once', () => {
-    expect(Object.keys(LOCATION_MODE_TH).sort()).toEqual([...LOCATION_MODES].sort());
-    expect(LOCATION_MODE_TH.exact).toBe('ตำแหน่งจริง (ไม่เลื่อน)');
-    expect(distinct(LOCATION_MODE_TH)).toBe(true);
-    expect(Object.keys(LOG_ACTION_TH).sort()).toEqual([...LOG_ACTIONS].sort());
-    expect(distinct(LOG_ACTION_TH)).toBe(true);
+    expect(t(locationKey('exact'))).toBe('ตำแหน่งจริง (ไม่เลื่อน)');
+    expect(distinct(LOCATION_MODES.map((m) => t(locationKey(m))))).toBe(true);
+    expect(distinct(LOG_ACTIONS.map((a) => logActionText(a, t)))).toBe(true);
+    expect(logActionText('mystery', t)).toBe('mystery');
+    TestBed.inject(I18nService).setLocale('en');
+    expect(logActionText('approve_report', t)).toBe('Approved report');
   });
 });

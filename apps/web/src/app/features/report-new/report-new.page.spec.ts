@@ -8,7 +8,8 @@ import { CategoriesService } from '../../core/categories.service';
 import { DeviceService } from '../../core/device.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { MAP_FACTORY } from '../map/map-factory';
-import { CATEGORIES } from './categories.testing';
+import { CATEGORIES, provideCategories } from './categories.testing';
+import { I18nService } from '../../core/i18n.service';
 import { TagSuggestService } from './details-section.component';
 import { fakeMap } from './fake-map.testing';
 import { photoFile } from './gps-jpeg.testing';
@@ -51,7 +52,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
       provideRouter([]),
       { provide: ApiService, useValue: api },
       { provide: DeviceService, useValue: device },
-      { provide: CategoriesService, useValue: { list: vi.fn().mockResolvedValue(CATEGORIES) } },
+      provideCategories(),
       { provide: PHOTO_PIPELINE, useValue: { readGps, compress: async (f: File) => ({ blob: f, width: 1600, height: 1200, type: 'image/webp' }) } },
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: TagSuggestService, useValue: { suggest: vi.fn().mockResolvedValue([]) } },
@@ -105,6 +106,18 @@ describe('ReportNewPage', () => {
     await settle();
     expect(title()).toBe('เป็นเรื่องอะไร');
     expect(root.textContent).toContain('ขั้น 2 จาก 3');
+  });
+
+  it('switches to English at step 2 without leaving it or losing the photo (plan 6)', async () => {
+    const { draft, settle, title, root } = await setup();
+    await draft.addFiles([photoFile('a.jpg')]);
+    await settle();
+    TestBed.inject(I18nService).setLocale('en');
+    await settle();
+    expect(title()).toBe('What is it?');
+    expect(root.textContent).toContain('Step 2 of 3');
+    expect(draft.photos()).toHaveLength(1);
+    expect(root.querySelector('button.cat')?.textContent?.trim()).toBe('Roads & sidewalks');
   });
 
   it('goes straight to the pin when a category is tapped: three taps in all', async () => {

@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { CategoriesService } from '../../core/categories.service';
+import { CategoriesService, type CategoryInfo } from '../../core/categories.service';
 import { CATEGORIES } from './categories.testing';
 import { CategoryStepComponent } from './category-step.component';
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 async function setup(list = vi.fn().mockResolvedValue(CATEGORIES), selected: string | null = null) {
-  TestBed.configureTestingModule({ providers: [{ provide: CategoriesService, useValue: { list } }] });
+  TestBed.configureTestingModule({ providers: [{ provide: CategoriesService, useValue: { list, labelOf: (c: CategoryInfo) => c.name_th } }] });
   const fixture = TestBed.createComponent(CategoryStepComponent);
   fixture.componentRef.setInput('selected', selected);
   await fixture.whenStable();

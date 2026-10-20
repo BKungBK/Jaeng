@@ -6,6 +6,11 @@ import {
   Flag,
   History,
   Inbox,
+  Info,
+  Languages,
+  Moon,
+  Sun,
+  SunMoon,
   Search,
   ShieldCheck,
   Undo2,
@@ -98,6 +103,12 @@ export const ICONS = {
   inbox: Inbox,
   undo2: Undo2,
   search: Search,
+  // plan 6: language, theme and the about page
+  languages: Languages,
+  info: Info,
+  sun: Sun,
+  moon: Moon,
+  sunMoon: SunMoon,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

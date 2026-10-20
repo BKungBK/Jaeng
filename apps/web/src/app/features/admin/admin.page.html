@@ -1,13 +1,13 @@
 <div class="scroller">
   <main class="card">
     <header class="head">
-      <button type="button" class="ctl" aria-label="กลับไปแผนที่" (click)="goBack()">
+      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
         <app-icon name="chevronLeft" [size]="22" />
       </button>
-      <h1 id="admin-title" tabindex="-1">หน้าผู้ดูแล</h1>
+      <h1 id="admin-title" tabindex="-1">{{ 'admin.title' | t }}</h1>
     </header>
 
-    <div class="tabs" role="tablist" aria-label="งานของผู้ดูแล" (keydown)="onKey($event)">
+    <div class="tabs" role="tablist" [attr.aria-label]="'admin.tabs' | t" (keydown)="onKey($event)">
       @for (t of tabs; track t) {
         <button
           type="button"
@@ -20,7 +20,7 @@
           (click)="select(t)"
         >
           <app-icon [name]="icons[t]" [size]="18" />
-          {{ words[t] }}@if (count(t) !== null) { · {{ count(t) }} }
+          {{ word(t) | t }}@if (count(t) !== null) { · {{ count(t) }} }
         </button>
       }
     </div>

@@ -11,7 +11,9 @@ import {
 } from '@angular/core';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { DESCRIPTION_MAX, normalizeTag, TAG_MAX, TAGS_MAX, TITLE_MAX } from '@jaeng/shared/report';
+import { I18nService } from '../../core/i18n.service';
 import { SupabaseService } from '../../core/supabase.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { LevelShapeComponent } from '../map/level-shape';
 import { ReportDraftService, type DraftDetails } from './report-draft.service';
@@ -35,16 +37,17 @@ export class TagSuggestService {
   }
 }
 
-/** The optional part of a report, folded under "เพิ่มรายละเอียด" so the three taps stay three. */
+/** The optional part of a report, folded under "Add details" so the three taps stay three. */
 @Component({
   selector: 'app-details-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent],
+  imports: [IconComponent, LevelShapeComponent, TPipe],
   templateUrl: 'details-section.component.html',
   styleUrl: 'details-section.component.scss',
 })
 export class DetailsSectionComponent {
   private draft = inject(ReportDraftService);
+  protected readonly i18n = inject(I18nService);
   private tagsApi = inject(TagSuggestService);
   private tagInput = viewChild<ElementRef<HTMLInputElement>>('tagInput');
   private timer?: ReturnType<typeof setTimeout>;

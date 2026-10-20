@@ -81,7 +81,7 @@ describe('DuplicateCardComponent', () => {
     buttons('ใช่ กดเจอเหมือนกันแทน')[1].click();
     await flush();
     expect(draft.merge).toHaveBeenCalledWith('d2');
-    expect(back.go).toHaveBeenCalledWith(['/r', 'd2'], 'ขอบคุณนะ นับให้แล้ว');
+    expect(back.go).toHaveBeenCalledWith(['/r', 'd2'], 'duplicate.counted');
   });
 
   it('"ไม่ใช่" creates the report anyway', async () => {

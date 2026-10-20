@@ -1,4 +1,5 @@
 import { I18nService } from '../../core/i18n.service';
+import { MeService } from '../me/me.service';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -184,6 +185,7 @@ describe('AccountMenuComponent', () => {
       providers: [
         { provide: AuthService, useValue: { profile: signal(profile) } },
         { provide: PopoverController, useValue: popovers },
+        { provide: MeService, useValue: { setLocale: vi.fn().mockResolvedValue(undefined) } },
       ],
     });
     const fixture = TestBed.createComponent(AccountMenuComponent);
@@ -191,7 +193,7 @@ describe('AccountMenuComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     const button = (text: string) =>
       [...root.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes(text))!;
-    return { root, popovers, button };
+    return { root, popovers, button, fixture };
   }
 
   it('shows the name, switch and sign out, and no admin tag for a user', () => {
@@ -210,7 +212,7 @@ describe('AccountMenuComponent', () => {
   it('lists "เรื่องของฉัน" first among the actions, signed in', () => {
     const { root, button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user', locale: 'th' });
     const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
-    expect(rows).toEqual(['เรื่องของฉัน', 'สลับผู้ใช้', 'ออกจากระบบ']);
+    expect(rows).toEqual(['เรื่องของฉัน', 'English', 'เกี่ยวกับแจ้ง', 'สลับผู้ใช้', 'ออกจากระบบ']);
     button('เรื่องของฉัน').click();
     expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'mine');
   });
@@ -218,9 +220,21 @@ describe('AccountMenuComponent', () => {
   it('shows "หน้าผู้ดูแล" between my reports and switch user, for an admin only', () => {
     const { root, button, popovers } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin', locale: 'th' });
     const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
-    expect(rows).toEqual(['เรื่องของฉัน', 'หน้าผู้ดูแล', 'สลับผู้ใช้', 'ออกจากระบบ']);
+    expect(rows).toEqual(['เรื่องของฉัน', 'หน้าผู้ดูแล', 'English', 'เกี่ยวกับแจ้ง', 'สลับผู้ใช้', 'ออกจากระบบ']);
     button('หน้าผู้ดูแล').click();
     expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'admin');
+  });
+
+  it('switches the language in place, keeps the menu open and saves it to the account', async () => {
+    const { root, button, popovers, fixture } = menu({ id: 'u1', display_name: 'a', role: 'user', locale: 'th' });
+    button('English').click();
+    await fixture.whenStable();
+    expect(TestBed.inject(I18nService).locale()).toBe('en');
+    expect(TestBed.inject(MeService).setLocale).toHaveBeenCalledWith('en');
+    expect(popovers.dismiss).not.toHaveBeenCalled();
+    expect([...root.querySelectorAll('button')].map((b) => b.textContent?.trim())).toContain('ไทย');
+    button('About Jaeng').click();
+    expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'about');
   });
 
   it('dismisses with the chosen action', () => {

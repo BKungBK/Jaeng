@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthError, AuthService } from './auth.service';
+import { I18nService } from './i18n.service';
 import { SupabaseService } from './supabase.service';
 
 const session = (token = 'at') => ({ access_token: token, refresh_token: 'rt', user: { id: 'u1' } });
@@ -91,6 +92,19 @@ describe('AuthService', () => {
     const { service, select } = setup({ session: session(), profile });
     expect(await service.loadedProfile()).toEqual(profile);
     expect(select).toHaveBeenCalledWith('id, display_name, role, locale');
+  });
+
+  it("takes the account's language on a device that never chose one", async () => {
+    const { service } = setup({ session: session(), profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'en' } });
+    await service.loadedProfile();
+    expect(TestBed.inject(I18nService).locale()).toBe('en');
+  });
+
+  it('keeps the language this device chose over the account', async () => {
+    localStorage.setItem('jaeng.locale', 'th');
+    const { service } = setup({ session: session(), profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'en' } });
+    await service.loadedProfile();
+    expect(TestBed.inject(I18nService).locale()).toBe('th');
   });
 
   it('subscribes later when the API was down at start, so a login still updates the session', async () => {

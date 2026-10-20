@@ -3,7 +3,8 @@ import type { Person, QueueReport } from '@jaeng/shared/admin';
 import { ApiError } from '../../core/api.service';
 import { CategoriesService } from '../../core/categories.service';
 import { MAP_FACTORY } from '../map/map-factory';
-import { CATEGORIES } from '../report-new/categories.testing';
+import { CATEGORIES, provideCategories } from '../report-new/categories.testing';
+import { I18nService } from '../../core/i18n.service';
 import { fakeMap } from '../report-new/fake-map.testing';
 import { AdminService } from './admin.service';
 import { ReviewQueueComponent } from './review-queue.component';
@@ -43,7 +44,7 @@ async function setup(items: QueueReport[] = [item(), item({ id: 'r2', title: '�
   TestBed.configureTestingModule({
     providers: [
       { provide: AdminService, useValue: admin },
-      { provide: CategoriesService, useValue: { list: async () => CATEGORIES } },
+      provideCategories(),
       { provide: MAP_FACTORY, useValue: async () => map },
     ],
   });
@@ -103,6 +104,27 @@ describe('ReviewQueueComponent', () => {
     await settle();
     await click('อนุมัติ ขึ้นแผนที่');
     expect(admin.approve).toHaveBeenCalledWith('r1', { location: 'keep', danger_level: 3, title: 'หลุมใหญ่มาก' });
+  });
+
+  it('switching to English mid-approval keeps the edits and words the four location modes (plan 6)', async () => {
+    const { admin, click, root, settle } = await setup();
+    await click('อนุมัติ…');
+    const title = root.querySelector<HTMLInputElement>('input.title')!;
+    title.value = 'หลุมใหญ่มาก';
+    title.dispatchEvent(new Event('input'));
+    await settle();
+    TestBed.inject(I18nService).setLocale('en');
+    await settle();
+    expect(root.querySelector<HTMLInputElement>('input.title')!.value).toBe('หลุมใหญ่มาก');
+    expect([...root.querySelectorAll('.mode')].map((m) => m.textContent?.trim())).toEqual([
+      'Keep the current spot',
+      'True spot (no shift)',
+      'New random shift (up to 150 m)',
+      'Place the pin myself',
+    ]);
+    await click('Approve and publish');
+    expect(admin.approve).toHaveBeenCalledWith('r1', { location: 'keep', title: 'หลุมใหญ่มาก' });
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Approved. The beam is on the map.');
   });
 
   it('a pinned point sends point with the picked coordinates', async () => {

@@ -1,19 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { LoginPromptService } from '../auth/login-prompt.service';
 
-/** The floating "แจ้ง" button on the map (.impeccable/surfaces/pp-features-report-new-*.md). The map
+/** The floating "Report" button on the map (.impeccable/surfaces/pp-features-report-new-*.md). The map
  *  page places it; this component only decides where a tap goes. */
 @Component({
   selector: 'app-report-fab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
-    <button type="button" class="fab" aria-label="แจ้งเรื่องใหม่" (click)="go()">
+    <button type="button" class="fab" [attr.aria-label]="'newReport.fabLabel' | t" (click)="go()">
       <app-icon name="plus" [size]="24" />
-      <span>แจ้ง</span>
+      <span>{{ 'newReport.fab' | t }}</span>
     </button>
   `,
   styles: `

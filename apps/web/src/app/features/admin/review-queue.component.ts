@@ -1,41 +1,39 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { LOCATION_MODES, REJECT_NOTE_MAX, type ApproveBody, type LocationMode, type QueueReport, type RejectBody, type RejectReason } from '@jaeng/shared/admin';
-import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { REJECT_REASONS, TITLE_MAX } from '@jaeng/shared/report';
 import { ApiError } from '../../core/api.service';
 import { CategoriesService, type CategoryInfo } from '../../core/categories.service';
+import { I18nService, type Said } from '../../core/i18n.service';
+import type { MessageKey } from '../../i18n/keys';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
-import { formatAgo, formatDate } from '../../shared/time';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
-import { REJECT_REASON_TH } from '../me/reject-reason';
 import { AdminService } from './admin.service';
-import { LOCATION_MODE_TH } from './admin-labels';
+import { locationKey } from './admin-labels';
 import { PlaceMapComponent, type LngLat } from './place-map.component';
 
 type Mode = 'view' | 'approve' | 'reject';
 type LoadState = 'loading' | 'ready' | 'error';
 
-const MSG_APPROVED = 'อนุมัติแล้ว ลำแสงขึ้นแผนที่แล้ว';
-const MSG_REJECTED = 'ปฏิเสธแล้ว ผู้แจ้งจะเห็นเหตุผลในหน้าของฉัน';
-
 /**
- * Tab "รอตรวจ" (spec 3.10.1): new reports one at a time, oldest first. Approve opens the edits
+ * Tab "Waiting" (spec 3.10.1): new reports one at a time, oldest first. Approve opens the edits
  * (category, level, title, where to show it), reject asks for a reason. The two sit at opposite
  * ends and each needs a second press, so a slip publishes or rejects nothing.
  */
 @Component({
   selector: 'app-review-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, PlaceMapComponent],
+  imports: [IconComponent, LevelShapeComponent, PlaceMapComponent, TPipe],
   templateUrl: 'review-queue.component.html',
   styleUrl: 'review-queue.component.scss',
 })
 export class ReviewQueueComponent {
   private admin = inject(AdminService);
-  private categoriesSvc = inject(CategoriesService);
+  protected readonly categoriesSvc = inject(CategoriesService);
+  protected readonly i18n = inject(I18nService);
 
   readonly changed = output<void>();
 
@@ -44,7 +42,7 @@ export class ReviewQueueComponent {
   protected readonly index = signal(0);
   protected readonly mode = signal<Mode>('view');
   protected readonly busy = signal(false);
-  protected readonly message = signal('');
+  protected readonly message = signal<Said>(null);
   protected readonly categories = signal<CategoryInfo[]>([]);
 
   // approve edits, starting from the report's own values
@@ -79,9 +77,9 @@ export class ReviewQueueComponent {
   );
 
   protected readonly modes = LOCATION_MODES;
-  protected readonly modeWords = LOCATION_MODE_TH;
+  protected readonly modeKey = locationKey;
   protected readonly reasons = REJECT_REASONS;
-  protected readonly reasonWords = REJECT_REASON_TH;
+  protected readonly reasonKey = (r: RejectReason): MessageKey => `reject.${r}`;
   protected readonly levels = LEVELS;
   protected readonly titleMax = TITLE_MAX;
   protected readonly noteMax = REJECT_NOTE_MAX;
@@ -118,14 +116,14 @@ export class ReviewQueueComponent {
     this.title.set(r.title);
     this.location.set('keep');
     this.point.set(null);
-    this.message.set('');
+    this.message.set(null);
     this.mode.set('approve');
   }
 
   protected openReject() {
     this.reason.set(null);
     this.note.set('');
-    this.message.set('');
+    this.message.set(null);
     this.mode.set('reject');
   }
 
@@ -152,7 +150,7 @@ export class ReviewQueueComponent {
   protected async approve() {
     const r = this.current();
     if (!r || !this.canApprove()) return;
-    await this.act(r, () => this.admin.approve(r.id, this.approveBody(r)), MSG_APPROVED);
+    await this.act(r, () => this.admin.approve(r.id, this.approveBody(r)), 'admin.review.approved');
   }
 
   protected async reject() {
@@ -162,12 +160,12 @@ export class ReviewQueueComponent {
     const body: RejectBody = { reason };
     const note = this.note().trim();
     if (reason === 'other' && note) body.note = note;
-    await this.act(r, () => this.admin.reject(r.id, body), MSG_REJECTED);
+    await this.act(r, () => this.admin.reject(r.id, body), 'admin.review.rejected');
   }
 
-  private async act(r: QueueReport, run: () => Promise<void>, done: string) {
+  private async act(r: QueueReport, run: () => Promise<void>, done: MessageKey) {
     this.busy.set(true); // before any await: a second quick press is ignored
-    this.message.set('');
+    this.message.set(null);
     try {
       await run();
       this.items.update((list) => list.filter((x) => x.id !== r.id));
@@ -176,7 +174,7 @@ export class ReviewQueueComponent {
       this.message.set(done);
       this.changed.emit();
     } catch (e) {
-      this.message.set(e instanceof ApiError ? e.messageTh : MSG_INTERNAL_TH);
+      this.message.set({ error: e });
       if (e instanceof ApiError && e.status === 409) {
         await this.load();
         this.changed.emit();
@@ -189,9 +187,12 @@ export class ReviewQueueComponent {
   // template helpers
   protected level = (n: number) => LEVELS[n as DangerLevel] ?? LEVELS[0];
   protected icon = categoryIcon;
-  protected categoryName = (slug: string) => this.categories().find((c) => c.slug === slug)?.name_th ?? slug;
-  protected ago = formatAgo;
-  protected date = formatDate;
+  protected categoryName = (slug: string) => {
+    const c = this.categories().find((x) => x.slug === slug);
+    return c ? this.categoriesSvc.labelOf(c) : slug;
+  };
+  protected ago = (iso: string) => this.i18n.ago(iso);
+  protected date = (iso: string) => this.i18n.date(iso);
   protected onTitle = (e: Event) => this.title.set((e.target as HTMLInputElement).value);
   protected onNote = (e: Event) => this.note.set((e.target as HTMLTextAreaElement).value);
 }

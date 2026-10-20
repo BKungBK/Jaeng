@@ -3,6 +3,7 @@ import type { DemoWho } from '@jaeng/shared/api';
 import type { Session } from '@supabase/supabase-js';
 import { en } from '../i18n/en';
 import { th } from '../i18n/th';
+import { I18nService } from './i18n.service';
 import { SupabaseService } from './supabase.service';
 
 export type Profile = { id: string; display_name: string; role: 'user' | 'admin'; locale: 'th' | 'en' };
@@ -36,6 +37,7 @@ function toAuthError(e: AuthErr): AuthError {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private supabase = inject(SupabaseService);
+  private i18n = inject(I18nService);
   private sessionSig = signal<Session | null>(null);
   private profileSig = signal<Profile | null>(null);
 
@@ -110,7 +112,11 @@ export class AuthService {
       const { data, error } = await client.from('profiles').select('id, display_name, role, locale').eq('id', id).maybeSingle();
       if (error) throw error;
       // ignore a stale answer if the user changed meanwhile
-      if (this.sessionSig()?.user.id === id) this.profileSig.set((data as Profile | null) ?? null);
+      if (this.sessionSig()?.user.id !== id) return;
+      const profile = (data as Profile | null) ?? null;
+      this.profileSig.set(profile);
+      // a device that never chose a language takes the account's (plan 6 decision 2)
+      if (profile?.locale) this.i18n.adoptProfileLocale(profile.locale);
     } catch {
       // A failed reload for the same user (e.g. on TOKEN_REFRESHED) keeps the profile already shown.
       // apply() has already cleared it when the user changed, so nothing of another user survives.

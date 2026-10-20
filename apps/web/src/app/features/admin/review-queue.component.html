@@ -1,33 +1,33 @@
-<p class="status" role="status">{{ message() }}</p>
+<p class="status" role="status">{{ i18n.say(message()) }}</p>
 
 @switch (state()) {
   @case ('loading') {
-    <p class="caption">กำลังโหลด…</p>
+    <p class="caption">{{ 'load.loading' | t }}</p>
     <div class="ghost"></div>
   }
   @case ('error') {
-    <p class="caption">โหลดคิวไม่สำเร็จ ลองอีกครั้งนะ</p>
-    <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+    <p class="caption">{{ 'admin.queueFailed' | t }}</p>
+    <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
   }
   @case ('ready') {
     @if (current(); as r) {
       <div class="counter">
-        <button type="button" class="ctl" aria-label="เรื่องก่อนหน้า" [disabled]="items().length < 2 || busy()" (click)="step(-1)">
+        <button type="button" class="ctl" [attr.aria-label]="'admin.review.prev' | t" [disabled]="items().length < 2 || busy()" (click)="step(-1)">
           <app-icon name="chevronLeft" [size]="22" />
         </button>
-        <span>เรื่องที่ {{ index() + 1 }} จาก {{ items().length }}</span>
-        <button type="button" class="ctl" aria-label="เรื่องถัดไป" [disabled]="items().length < 2 || busy()" (click)="step(1)">
+        <span>{{ 'admin.review.counter' | t: { i: index() + 1, n: items().length } }}</span>
+        <button type="button" class="ctl" [attr.aria-label]="'admin.review.next' | t" [disabled]="items().length < 2 || busy()" (click)="step(1)">
           <app-icon name="chevronRight" [size]="22" />
         </button>
       </div>
 
       <article class="review" [style.--c]="level(r.danger_level).color">
         @if (r.photos.length) {
-          <ul class="strip" [class.single]="r.photos.length === 1" aria-label="รูปของเรื่องนี้">
+          <ul class="strip" [class.single]="r.photos.length === 1" [attr.aria-label]="'detail.photos' | t">
             @for (p of r.photos; track p.path; let i = $index) {
               <li class="shot">
                 @if (p.url) {
-                  <img [src]="p.url" [attr.alt]="'รูปที่ ' + (i + 1)" [attr.width]="p.width" [attr.height]="p.height" />
+                  <img [src]="p.url" [attr.alt]="'photoStep.photoN' | t: { n: i + 1 }" [attr.width]="p.width" [attr.height]="p.height" />
                 } @else {
                   <span class="tile"><app-icon [name]="icon(r.category)" [size]="40" /></span>
                 }
@@ -40,16 +40,16 @@
 
         <h2>{{ r.title }}</h2>
         <ul class="tags">
-          <li class="tag lvl"><app-level-shape [level]="level(r.danger_level).level" />ระดับ{{ level(r.danger_level).nameTh }}</li>
+          <li class="tag lvl"><app-level-shape [level]="level(r.danger_level).level" />{{ 'detail.level' | t: { level: i18n.levelName(level(r.danger_level).level) } }}</li>
           <li class="tag"><app-icon [name]="icon(r.category)" [size]="16" />{{ categoryName(r.category) }}</li>
           @if (r.hide_author) {
-            <li class="tag"><app-icon name="eyeOff" [size]="16" />ขอปิดชื่อ</li>
+            <li class="tag"><app-icon name="eyeOff" [size]="16" />{{ 'admin.review.hideName' | t }}</li>
           }
           @if (r.profanity_flag) {
-            <li class="tag"><app-icon name="triangleAlert" [size]="16" />มีคำที่อาจไม่เหมาะสม</li>
+            <li class="tag"><app-icon name="triangleAlert" [size]="16" />{{ 'admin.review.profanity' | t }}</li>
           }
           @if (r.author.banned) {
-            <li class="tag"><app-icon name="ban" [size]="16" />ถูกแบน</li>
+            <li class="tag"><app-icon name="ban" [size]="16" />{{ 'admin.banned' | t }}</li>
           }
         </ul>
 
@@ -69,10 +69,10 @@
               @if (r.place_name) {
                 <span class="place"><app-icon name="mapPin" [size]="16" />{{ r.place_name }}</span>
               }
-              <time [attr.datetime]="r.created_at" [title]="date(r.created_at)">แจ้งเมื่อ {{ ago(r.created_at) }}</time>
+              <time [attr.datetime]="r.created_at" [title]="date(r.created_at)">{{ 'admin.review.reportedAgo' | t: { ago: ago(r.created_at) } }}</time>
             </p>
             <p class="who">
-              ผู้แจ้ง <strong>{{ r.author.display_name }}</strong>
+              {{ 'detail.reporter' | t }} <strong>{{ r.author.display_name }}</strong>
               @if (r.author.email) {
                 <span class="email">{{ r.author.email }}</span>
               }
@@ -87,24 +87,24 @@
           @case ('view') {
             <div class="decide">
               <button type="button" class="btn" [disabled]="busy()" (click)="openReject()">
-                <app-icon name="circleX" [size]="18" />ปฏิเสธ…
+                <app-icon name="circleX" [size]="18" />{{ 'admin.review.reject' | t }}
               </button>
               <button type="button" class="btn primary" [disabled]="busy()" (click)="openApprove()">
-                <app-icon name="circleCheck" [size]="18" />อนุมัติ…
+                <app-icon name="circleCheck" [size]="18" />{{ 'admin.review.approve' | t }}
               </button>
             </div>
           }
           @case ('approve') {
             <form class="section" (submit)="$event.preventDefault(); approve()">
-              <h3>อนุมัติเรื่องนี้</h3>
+              <h3>{{ 'admin.review.approveTitle' | t }}</h3>
 
               <fieldset>
-                <legend>หมวด</legend>
+                <legend>{{ 'admin.review.category' | t }}</legend>
                 <div class="cats">
                   @for (c of categories(); track c.slug) {
                     <button type="button" class="pick" [attr.aria-pressed]="category() === c.slug" (click)="category.set(c.slug)">
                       <app-icon [name]="icon(c.slug)" [size]="24" />
-                      <span>{{ c.name_th }}</span>
+                      <span>{{ categoriesSvc.labelOf(c) }}</span>
                       @if (category() === c.slug) {
                         <app-icon class="tick" name="check" [size]="16" />
                       }
@@ -114,7 +114,7 @@
               </fieldset>
 
               <fieldset>
-                <legend>ระดับ</legend>
+                <legend>{{ 'admin.review.level' | t }}</legend>
                 <div class="levels">
                   @for (l of levels; track l.level) {
                     <button
@@ -124,13 +124,13 @@
                       [attr.aria-pressed]="danger() === l.level"
                       (click)="danger.set(l.level)"
                     >
-                      <app-level-shape [level]="l.level" />{{ l.nameTh }}
+                      <app-level-shape [level]="l.level" />{{ i18n.levelName(l.level) }}
                     </button>
                   }
                 </div>
               </fieldset>
 
-              <label class="field" for="review-title">หัวข้อ</label>
+              <label class="field" for="review-title">{{ 'details.title' | t }}</label>
               <input
                 id="review-title"
                 class="title"
@@ -143,34 +143,34 @@
               <span class="caption count" id="review-title-count">{{ titleLength() }}/{{ titleMax }}</span>
 
               <fieldset>
-                <legend>ตำแหน่งที่แสดง</legend>
+                <legend>{{ 'admin.review.location' | t }}</legend>
                 <div class="modes">
                   @for (m of modes; track m) {
                     <label class="mode">
                       <input type="radio" name="review-location" [value]="m" [checked]="location() === m" (change)="location.set(m)" />
-                      {{ modeWords[m] }}
+                      {{ modeKey(m) | t }}
                     </label>
                   }
                 </div>
                 @if (picking()) {
-                  <p class="caption">เลื่อนแผนที่ให้หมุดตรงจุดที่จะแสดง</p>
+                  <p class="caption">{{ 'admin.review.pickHint' | t }}</p>
                 }
                 @if (hazard()) {
-                  <p class="caption">เรื่องจุดเสี่ยงจะถูกเลื่อนให้อัตโนมัติ เว้นแต่เลือกตำแหน่งจริง</p>
+                  <p class="caption">{{ 'admin.review.hazardHint' | t }}</p>
                 }
               </fieldset>
 
               <div class="row">
-                <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">ยกเลิก</button>
+                <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">{{ 'common.cancel' | t }}</button>
                 <button type="submit" class="btn primary big" [disabled]="!canApprove()">
-                  <app-icon name="circleCheck" [size]="20" />อนุมัติ ขึ้นแผนที่
+                  <app-icon name="circleCheck" [size]="20" />{{ 'admin.review.approveSend' | t }}
                 </button>
               </div>
             </form>
           }
           @case ('reject') {
             <form class="section" (submit)="$event.preventDefault(); reject()">
-              <h3 id="review-reject-title">ปฏิเสธเรื่องนี้</h3>
+              <h3 id="review-reject-title">{{ 'admin.review.rejectTitle' | t }}</h3>
               <div class="reasons" role="radiogroup" aria-labelledby="review-reject-title">
                 @for (k of reasons; track k) {
                   <button type="button" role="radio" class="reason" [attr.aria-checked]="reason() === k" (click)="reason.set(k)">
@@ -179,14 +179,14 @@
                         <app-icon name="check" [size]="14" />
                       }
                     </span>
-                    {{ reasonWords[k] }}
+                    {{ reasonKey(k) | t }}
                   </button>
                 }
               </div>
               @if (reason() === 'other') {
                 <textarea
                   rows="2"
-                  aria-label="เหตุผลที่ผู้แจ้งจะเห็น"
+                  [attr.aria-label]="'admin.review.rejectNote' | t"
                   aria-describedby="review-note-count"
                   [attr.maxlength]="noteMax"
                   [value]="note()"
@@ -194,11 +194,11 @@
                 ></textarea>
                 <span class="caption count" id="review-note-count">{{ note().length }}/{{ noteMax }}</span>
               }
-              <p class="caption">ผู้แจ้งจะเห็นเหตุผลนี้ในหน้าเรื่องของฉัน</p>
+              <p class="caption">{{ 'admin.review.rejectHint' | t }}</p>
               <div class="row">
-                <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">ยกเลิก</button>
+                <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">{{ 'common.cancel' | t }}</button>
                 <button type="submit" class="btn" [disabled]="!canReject()">
-                  <app-icon name="circleX" [size]="18" />ยืนยันปฏิเสธ
+                  <app-icon name="circleX" [size]="18" />{{ 'admin.review.rejectSend' | t }}
                 </button>
               </div>
             </form>
@@ -208,7 +208,7 @@
     } @else {
       <div class="empty">
         <span class="disc"><app-icon name="circleCheck" [size]="30" /></span>
-        <p>ไม่มีเรื่องรอตรวจ เยี่ยมเลย</p>
+        <p>{{ 'admin.review.empty' | t }}</p>
       </div>
     }
   }

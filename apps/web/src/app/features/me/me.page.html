@@ -1,21 +1,21 @@
 <div class="scroller">
   <main class="card">
     <header class="head">
-      <button type="button" class="ctl" aria-label="กลับไปแผนที่" (click)="goBack()">
+      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
         <app-icon name="chevronLeft" [size]="22" />
       </button>
-      <h1 id="me-title" tabindex="-1">เรื่องของฉัน</h1>
+      <h1 id="me-title" tabindex="-1">{{ 'me.title' | t }}</h1>
     </header>
 
-    <section class="who" aria-label="ชื่อที่แสดง">
+    <section class="who" [attr.aria-label]="'me.name' | t">
       @if (editing()) {
         <form class="edit" (submit)="$event.preventDefault(); save()">
-          <label class="field" for="me-name-input">ชื่อที่แสดง</label>
+          <label class="field" for="me-name-input">{{ 'me.name' | t }}</label>
           <input
             id="me-name-input"
             type="text"
             autocomplete="nickname"
-            aria-label="ชื่อที่แสดง"
+            [attr.aria-label]="'me.name' | t"
             [attr.aria-describedby]="nameError() ? 'me-name-error' : 'me-name-hint'"
             [attr.aria-invalid]="nameError() ? 'true' : null"
             [attr.maxlength]="max"
@@ -23,39 +23,47 @@
             (input)="onInput($event)"
           />
           <div class="count-row">
-            <span class="caption" id="me-name-hint">{{ min }}–{{ max }} ตัวอักษร</span>
+            <span class="caption" id="me-name-hint">{{ 'me.nameHint' | t: { min, max } }}</span>
             <span class="caption count">{{ nameLength() }}/{{ max }}</span>
           </div>
           @if (nameError()) {
-            <p class="error" id="me-name-error" role="alert">{{ nameError() }}</p>
+            <p class="error" id="me-name-error" role="alert">{{ i18n.say(nameError()) }}</p>
           }
           <div class="pair">
             <button type="submit" class="btn primary" [disabled]="!canSave()" [attr.aria-busy]="saving()">
-              {{ saving() ? 'กำลังบันทึก…' : 'บันทึก' }}
+              {{ (saving() ? 'load.saving' : 'load.save') | t }}
             </button>
-            <button type="button" class="btn" (click)="cancel()">ยกเลิก</button>
+            <button type="button" class="btn" (click)="cancel()">{{ 'common.cancel' | t }}</button>
           </div>
         </form>
       } @else {
         <div class="name-row">
           <div class="name-text">
-            <span class="caption">ชื่อที่แสดง</span>
-            <strong class="name">{{ auth.profile()?.display_name ?? 'บัญชีของฉัน' }}</strong>
+            <span class="caption">{{ 'me.name' | t }}</span>
+            <strong class="name">{{ auth.profile()?.display_name ?? ('account.mine' | t) }}</strong>
           </div>
           <button type="button" class="btn" id="me-edit-btn" (click)="edit()">
-            <app-icon name="pencil" [size]="18" />แก้ชื่อ
+            <app-icon name="pencil" [size]="18" />{{ 'me.edit' | t }}
           </button>
         </div>
-        <p class="caption">คนอื่นเห็นชื่อนี้ในเรื่องที่คุณแจ้งและความคิดเห็น (ถ้าคุณไม่ได้เลือกซ่อนชื่อ)</p>
+        <p class="caption">{{ 'me.nameNote' | t }}</p>
       }
     </section>
 
+    <section class="display" aria-labelledby="me-display-title">
+      <h2 id="me-display-title">{{ 'display.title' | t }}</h2>
+      <p class="caption">{{ 'display.language' | t }}</p>
+      <app-language-choice />
+      <p class="caption">{{ 'display.theme' | t }}</p>
+      <app-theme-choice />
+    </section>
+
     <section class="mine" aria-labelledby="me-list-title">
-      <h2 id="me-list-title">เรื่องที่แจ้ง@if (state() === 'ready' && reports().length) { · {{ reports().length }}}</h2>
+      <h2 id="me-list-title">{{ 'me.listTitle' | t }}@if (state() === 'ready' && reports().length) { · {{ reports().length }}}</h2>
 
       @switch (state()) {
         @case ('loading') {
-          <p class="note" role="status">กำลังเปิดเรื่องของคุณ…</p>
+          <p class="note" role="status">{{ 'me.loading' | t }}</p>
           <ul class="reports wait" aria-hidden="true">
             <li class="ghost"></li>
             <li class="ghost"></li>
@@ -63,8 +71,8 @@
           </ul>
         }
         @case ('error') {
-          <p class="status" role="status">{{ msgLoad }}</p>
-          <button type="button" class="btn" (click)="load()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+          <p class="status" role="status">{{ 'me.loadFailed' | t }}</p>
+          <button type="button" class="btn" (click)="load()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
         }
         @case ('ready') {
           @if (reports().length) {
@@ -86,9 +94,9 @@
           } @else {
             <div class="empty">
               <span class="disc" aria-hidden="true"><app-icon name="fileText" [size]="30" /></span>
-              <p>ยังไม่มีเรื่องที่แจ้ง กดปุ่ม แจ้ง ได้เลยนะ</p>
+              <p>{{ 'me.empty' | t }}</p>
               <button type="button" class="btn primary big" (click)="newReport()">
-                <app-icon name="plus" [size]="20" />แจ้ง
+                <app-icon name="plus" [size]="20" />{{ 'newReport.fab' | t }}
               </button>
             </div>
           }
@@ -97,7 +105,7 @@
     </section>
 
     <button type="button" class="btn out" [disabled]="signingOut()" (click)="signOut()">
-      <app-icon name="logOut" [size]="20" />ออกจากระบบ
+      <app-icon name="logOut" [size]="20" />{{ 'account.signOut' | t }}
     </button>
   </main>
 </div>
@@ -114,16 +122,16 @@
     <strong class="title">{{ r.title }}</strong>
     <span class="state"><app-icon [name]="statusIcon(r)" [size]="16" />{{ statusWord(r) }}</span>
     @if (r.status === 'rejected') {
-      <span class="reason">ไม่ผ่านเพราะ: {{ reason(r) }}</span>
+      <span class="reason">{{ 'me.rejectedBecause' | t: { reason: reason(r) } }}</span>
     }
     <span class="meta">
-      <span class="lvl"><app-level-shape [level]="level(r).level" />{{ level(r).nameTh }}</span>
+      <span class="lvl"><app-level-shape [level]="level(r).level" />{{ i18n.levelName(level(r).level) }}</span>
       @if (r.place_name) {
         · <span class="place">{{ r.place_name }}</span>
       }
       · <time [attr.datetime]="r.created_at" [title]="date(r.created_at)">{{ ago(r.created_at) }}</time>
       @if (isPublic(r)) {
-        · เจอเหมือนกัน {{ r.confirm_count }}
+        · {{ 'map.metooCount' | t: { n: r.confirm_count } }}
       }
     </span>
   </div>

@@ -12,6 +12,9 @@ import {
   viewChild,
 } from '@angular/core';
 import type maplibregl from 'maplibre-gl';
+import { I18nService } from '../../core/i18n.service';
+import type { MessageKey } from '../../i18n/keys';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { MAP_FACTORY } from '../map/map-factory';
 import { tintBaseMap } from '../map/map-style';
@@ -21,12 +24,7 @@ import { ReportDraftService } from './report-draft.service';
 /** A suggested pin opens at street level, close enough to nudge it onto the right spot. */
 export const PIN_ZOOM = 17;
 
-const WHERE: Record<'looking' | 'exif' | 'device' | 'fallback', string> = {
-  looking: 'กำลังหาตำแหน่ง…',
-  exif: 'หมุดอยู่ตามตำแหน่งในรูป เลื่อนแผนที่ให้หมุดตรงจุดได้เลย',
-  device: 'หมุดอยู่ตามตำแหน่งของเครื่อง เลื่อนแผนที่ให้หมุดตรงจุดได้เลย',
-  fallback: 'ไม่เจอตำแหน่งจากรูปหรือเครื่อง เลื่อนและซูมแผนที่ไปยังจุดที่เจอปัญหานะ',
-};
+type Where = 'looking' | 'exif' | 'device' | 'fallback';
 
 /**
  * Step 3's map: a plain street map (the same MAP_FACTORY as home, without the toy, the sea or the
@@ -37,9 +35,9 @@ const WHERE: Record<'looking' | 'exif' | 'device' | 'fallback', string> = {
 @Component({
   selector: 'app-location-step',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
-    <p class="caption where" aria-live="polite">{{ where() }}</p>
+    <p class="caption where" aria-live="polite">{{ whereKey() | t }}</p>
     <div class="frame">
       <div class="map" #map></div>
       <span class="pin" aria-hidden="true">
@@ -47,8 +45,8 @@ const WHERE: Record<'looking' | 'exif' | 'device' | 'fallback', string> = {
         <span class="foot"></span>
       </span>
       <div class="zoom">
-        <button type="button" class="ctl" aria-label="ซูมเข้า" (click)="zoomIn()"><app-icon name="plus" [size]="22" /></button>
-        <button type="button" class="ctl" aria-label="ซูมออก" (click)="zoomOut()"><app-icon name="minus" [size]="22" /></button>
+        <button type="button" class="ctl" [attr.aria-label]="'map.zoomIn' | t" (click)="zoomIn()"><app-icon name="plus" [size]="22" /></button>
+        <button type="button" class="ctl" [attr.aria-label]="'map.zoomOut' | t" (click)="zoomOut()"><app-icon name="minus" [size]="22" /></button>
       </div>
     </div>
   `,
@@ -61,16 +59,20 @@ export class LocationStepComponent {
   private map?: maplibregl.Map;
   private destroyed = false;
   private stopTheme?: () => void;
+  private stopWords?: () => void;
 
   readonly zoomChange = output<number>();
   protected readonly looking = signal(false);
-  protected readonly where = computed(() => (this.looking() ? WHERE.looking : WHERE[this.draft.location()?.source ?? 'fallback']));
+  protected readonly where = computed<Where>(() => (this.looking() ? 'looking' : (this.draft.location()?.source ?? 'fallback')));
+  protected readonly whereKey = computed<MessageKey>(() => `locationStep.${this.where()}`);
+  private i18n = inject(I18nService);
 
   constructor() {
     afterNextRender(() => void this.start());
     inject(DestroyRef).onDestroy(() => {
       this.destroyed = true;
       this.stopTheme?.();
+      this.stopWords?.();
       this.map?.remove();
     });
   }
@@ -83,7 +85,9 @@ export class LocationStepComponent {
       return;
     }
     this.map = map;
-    map.getCanvas().setAttribute('aria-label', 'แผนที่ปักหมุด ใช้ลูกศรเลื่อนแผนที่ และปุ่ม + − ซูม');
+    const label = () => map.getCanvas().setAttribute('aria-label', this.i18n.t('locationStep.mapLabel'));
+    label();
+    this.stopWords = this.i18n.watch(label);
     // dev builds expose the pin map for manual checks (window.__pinMap), like the home map's __map
     if (isDevMode()) (window as unknown as { __pinMap: maplibregl.Map }).__pinMap = map;
     map.on('load', () => {

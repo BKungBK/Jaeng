@@ -3,12 +3,14 @@ import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { I18nService } from '../../core/i18n.service';
+import { LOCALE_NAMES, type Locale } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
+import { MeService } from '../me/me.service';
 import { IconComponent } from '../../shared/icon.component';
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
-type MenuRole = 'mine' | 'admin' | 'switch' | 'signout';
+type MenuRole = 'mine' | 'admin' | 'switch' | 'signout' | 'about';
 
 // Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
 const THAI_LEADING_VOWEL = /^[\u0E40-\u0E44]$/u;
@@ -46,6 +48,15 @@ export function initialOf(name: string): string {
           {{ 'account.adminPage' | t }}
         </button>
       }
+      <!-- switches in place: the menu stays open so the reader sees the change -->
+      <button type="button" class="account-menu-item" [attr.lang]="other()" (click)="switchLanguage()">
+        <app-icon name="languages" [size]="20" />
+        {{ names[other()] }}
+      </button>
+      <button type="button" class="account-menu-item" (click)="choose('about')">
+        <app-icon name="info" [size]="20" />
+        {{ 'account.about' | t }}
+      </button>
       <button type="button" class="account-menu-item" (click)="choose('switch')">
         <app-icon name="circleUser" [size]="20" />
         {{ 'account.switch' | t }}
@@ -119,7 +130,17 @@ export function initialOf(name: string): string {
 })
 export class AccountMenuComponent {
   private popovers = inject(PopoverController);
+  private i18n = inject(I18nService);
+  private me = inject(MeService);
   protected readonly profile = inject(AuthService).profile;
+  protected readonly names = LOCALE_NAMES;
+  protected readonly other = computed<Locale>(() => (this.i18n.locale() === 'th' ? 'en' : 'th'));
+
+  protected switchLanguage() {
+    const l = this.other();
+    this.i18n.setLocale(l);
+    this.me.setLocale(l).catch((e) => console.warn('language not saved to the account', e));
+  }
 
   protected choose(role: MenuRole) {
     void this.popovers.dismiss(undefined, role);
@@ -221,6 +242,7 @@ export class AccountButtonComponent {
     if (role === 'mine') await this.router.navigate(['/me']);
     else if (role === 'admin') await this.router.navigate(['/admin']);
     else if (role === 'switch') await this.prompt.ask();
+    else if (role === 'about') await this.router.navigate(['/about']);
     else if (role === 'signout') {
       // leaving on purpose: an unsent report draft goes too (a lapsed session keeps it, see ReportDraftService)
       this.draft.reset();

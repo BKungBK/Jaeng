@@ -2,7 +2,7 @@
 version: 1
 slug: "apps-web-src-app-features-map-map-page-ts"
 primary_target: "apps/web/src/app/features/map/map.page.ts"
-related_targets: []
+related_targets: ["apps/web/src/app/features/map/map.page.html","apps/web/src/app/features/map/map.page.scss"]
 ---
 
 # Surface: แผนที่หน้าแรก (`/`)
@@ -14,22 +14,20 @@ related_targets: []
 - **Job:** at a glance, see where problems are and how dangerous, with no hover required; zoom from the whole country to a street.
 - **Content:** real public reports from `reports_in_bbox` (38 demo reports nationwide, mixed levels and statuses). Real geometry from OCHA COD-AB.
 - **States:** loading (map shows, beacons fade in), empty filter result (hint says nothing matches and how to reset), network error (toast with a "ลองใหม่" text button, 8 s), all four chips off.
-- **Constraints:** MapLibre GL v5 globe; OpenFreeMap positron; HTML-marker beacons capped at 150; 44 px targets; keyboard reachable beacons; motion never stops for `prefers-reduced-motion` (owner decision).
-- **Out of scope now:** detail panel content (plan 3), report flow (plan 4), globe intro flight.
-- **Plan 6 additions:** a skip link "ข้ามไปที่รายการเรื่อง" as the first focus stop (visible on focus, routes to `/list`); the brand card carries the language toggle ("EN" / "ไทย", `lang` on the word, label in the target language) and an `info` button to `/about` (beside the name from 820 px, in a row under it on phones); the controls column adds `house` ("กลับไปดูทั้งประเทศ", fits the opening view) and `list` ("ดูเป็นรายการ") between locate and the account button; the hint card's first line is the month numbers (`circleCheck` เดือนนี้แก้แล้ว N เรื่อง, `clock` ค้างอยู่ M เรื่อง, Bangkok month, tabular, not live, "—" while loading, hidden on failure, spacing instead of a visible separator so a wrap never strands a dot); a cluster holding critical reports gets a pill at its upper left (critical shape + count, Slate Ink on Critical Rose 55% into white) and its label says how many; street-map names follow the language (`name:th` / `name:en`, falling back to `name`).
-- **Search (plan 6):** an ARIA 1.2 combobox. From 820 px a 300 px Card White field card between the brand card and the chips; below it a `search` icon in the brand card's button row that opens a full-width card over the top group (brand and chips step aside, 160 ms fade + 8 px slide, `x` closes). 2+ characters, 300 ms debounce, places (`/api/places`: local districts first, then OpenStreetMap) and reports (`reports_in_bbox` over Thailand with `q`) in parallel; answers for an older query are dropped. Groups "สถานที่" (`mapPin` + name + muted detail) and "เรื่อง" (40 px tile on the level colour 45% into white + title clamped to 2 lines + level shape, word and status). Arrow keys move (`aria-activedescendant`, Cream Ground fill + a 3 px Trust Blue edge), Enter chooses, Escape closes the results, then clears, then closes the phone card and returns focus to the icon. A place fits its box (padding 48, max zoom 14) or flies to zoom 13; a report opens like a shared link. Online places down: a caption under the places. Both down: "ค้นหาไม่สำเร็จ" + "ลองอีกครั้ง".
-- **More filters (plan 6):** a 44 px `slidersHorizontal` button ends the chip tray, with a Trust Blue count pill when extras are on. Its panel (320 px popover from 820 px, a full-width bottom card with a dimmed backdrop below) holds eight category toggles (2 px Trust Blue edge + 10% tint + tick when on; none = all) and a "แสดงเรื่องที่แก้แล้ว" switch; changes apply at once; "ล้างตัวกรอง" and "เสร็จ"; Escape or a press outside closes it and focus returns to the button. Filters live in `FilterState`, shared with `/list`.
+- **Constraints:** MapLibre GL v5; OpenFreeMap positron; HTML-marker beacons capped at 150; 44 px targets; keyboard reachable beacons; motion never stops for `prefers-reduced-motion` (owner decision).
+- **Kept from plan 6:** skip link first; search combobox behaviour; more-filters panel; month numbers (Bangkok month, "—" while loading, hidden on failure); critical pill on clusters; street names follow the language.
+- **Plan 6b (glass UI, owner-approved 2026-10-20):** layout from `.impeccable/mocks/decision/fused-mobile.html` and `fused-desktop.html`. The owner asked twice for less: smaller controls, fewer tips, nothing that explains itself in prose when a shape can.
 
 ## Direction contract
-THESIS: The map is a toy model of Thailand at first light where the only lights are problems; refuse the category default of red pins on a grey basemap with a sidebar list.
-OWN-WORLD: Toy Sea #4FB3EA ground, stacked soil-brown land with green top and orange Isan, Fluent Emoji 3D landmarks; pastel level beams (mint, butter, peach, rose) with white discs; white floating cards, Prompt + Plex Sans Thai, 14–24 px radii, one warm Float shadow.
-STORY: The visitor sees all of Thailand lit by counted clusters, understands colour + shape = danger from the chips, zooms, watches the toy dissolve into streets, and finds individual beams whose height says how many neighbors agree.
-FIRST VIEWPORT: Full-bleed globe-masked Thailand filling the height; brand card top-left with the level chip group beside it; zoom and locate buttons on the right; zoom-level hint card bottom-left; compass lower right; clusters and compact beams over the land. No bars.
-FORM: Owner-pinned world (prototype v2 + toy-poster style, spec 3.11.1 "decisions marked ตัดสินแล้ว win"); concept-seed was never run because a pinned direction beats the roll. seed: none (owner-pinned, no roll)
+THESIS: Frosted, grain-textured glass floats over the toy Thailand at night-into-dawn; refuse both the plan-6 pile of white cards and the stock map app's white sheets.
+OWN-WORLD: Navy sea gradient (#0E1D40 → #13264D) with a lavender glow top-left and a peach dawn glow bottom-right; glass panels = 12%→3% white sheen over rgba(16,26,54,.45), 24 px blur, 1 px rgba(255,255,255,.13) edge, SVG fractal-noise overlay at 15%; ink #F3EFF7, muted 60%; one accent, the dawn gradient #FFE3C4 → #F4B49A → #C9A0DC, only on the brand mark, the report button and the progress ring; pastel level dots with their shapes; Anuphan throughout.
+STORY: The visitor sees the toy map almost uncovered, reads "34 ค้างอยู่ · แก้แล้ว 4" in one line, taps a level to filter, zooms into beams, and reports with the one warm-coloured button.
+FIRST VIEWPORT: Phone: 46 px search pill (mark, search, account) top; one row of 32 px level chips; map; a 40 px summary pill bottom-left with the locate button beside it; a 300 px dock (แผนที่, รายการ, round +, ของฉัน). Desktop: a 340 px content-height panel top-left (search row, chips, summary, top 3 reports in view, "ดูทั้งหมด"); a nav capsule top-right (แผนที่, รายการ, ของฉัน, EN, ⓘ); a 40 px control column bottom-right (+, −, ◎, ⌂) above a 46 px "+ แจ้ง" pill.
+FORM: Assigned direction (lacquer-glass) fused by the owner with the canon map-app arrangement and the frosted-gradient material of the pick; position 4 of the grounded list. seed:db6fbc3e34224ad5
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Signature interaction
-Zooming from 6 to 8 cross-fades the toy layers into the street map while beacons stay put; clusters burst into beams at density, beams rise to their `beamHeight` at zoom 12.
+The intro: a point of light rises into a beam, writes "แจ้ง", the dawn gradient blooms and the view falls into the map. On the map, glass panels rise in once with a stagger, beacons scale up from their base, and every camera move uses one easing.
 
 ## Open decisions
-- None for this plan. Exact landmark positions and vehicle paths are the builder's call (spec 14).
+- None. Light theme keeps the same layout with white frosted glass; dark is the default when nothing is stored.

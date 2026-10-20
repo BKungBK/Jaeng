@@ -990,10 +990,38 @@ async function plan5() {
   }
 }
 
+// Plan 6: the place finder and the profile language.
+async function plan6() {
+  const started = Date.now();
+  const found = await api(`/places?q=${encodeURIComponent('เชียงใหม่')}`);
+  const took = Date.now() - started;
+  check(
+    'plan 6: GET /places finds a local district or province within 6 s',
+    found.status === 200 && found.json?.places?.some((p) => p.source === 'local') && took < 6000,
+    `${found.status} ${took} ms ${JSON.stringify(found.json)?.slice(0, 200)}`,
+  );
+  check('plan 6: GET /places?q=x -> 400', (await api('/places?q=x')).status === 400);
+
+  const reporter = (await api('/dev/quick-login', { method: 'POST', body: { who: 'reporter' } })).json;
+  if (!reporter?.access_token) {
+    check('plan 6: quick login as reporter', false);
+    return;
+  }
+  const me = `(select id from auth.users where email='reporter@jaeng.local')`;
+  try {
+    const res = await api('/me', { method: 'PATCH', token: reporter.access_token, body: { locale: 'en' } });
+    check('plan 6: PATCH /me {locale:en} -> 200', res.status === 200 && res.json?.locale === 'en', JSON.stringify(res));
+    check('plan 6: profiles.locale is en', psql(`select locale from public.profiles where id = ${me}`) === 'en');
+  } finally {
+    psql(`update public.profiles set locale = 'th' where id = ${me}`);
+  }
+}
+
 try {
   await main();
   await plan4();
   await plan5();
+  await plan6();
 } catch (e) {
   console.error(e);
   failed++;

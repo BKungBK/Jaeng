@@ -37,7 +37,7 @@ function setup(opts: { session?: unknown; profile?: unknown; failClientTimes?: n
       },
     ],
   });
-  return { auth, from, eq, maybeSingle, emit: (e: string, s: unknown) => authCb(e, s), service: TestBed.inject(AuthService) };
+  return { auth, from, select, eq, maybeSingle, emit: (e: string, s: unknown) => authCb(e, s), service: TestBed.inject(AuthService) };
 }
 
 describe('AuthService', () => {
@@ -45,7 +45,7 @@ describe('AuthService', () => {
 
   describe('loadedProfile', () => {
     it('waits for the profile that is still loading', async () => {
-      const profile = { id: 'u1', display_name: 'แอดมิน', role: 'admin' };
+      const profile = { id: 'u1', display_name: 'แอดมิน', role: 'admin', locale: 'th' };
       const { service, maybeSingle } = setup({ session: session(), profile });
       let release!: (v: unknown) => void;
       maybeSingle.mockReturnValueOnce(new Promise((r) => (release = r)));
@@ -70,7 +70,7 @@ describe('AuthService', () => {
   });
 
   it('loads the own profile when a session appears and clears it on sign out', async () => {
-    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user' };
+    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' };
     const { service, emit, from, eq } = setup({ profile });
     await service.ready;
     expect(service.signedIn()).toBe(false);
@@ -86,6 +86,13 @@ describe('AuthService', () => {
     expect(service.signedIn()).toBe(false);
   });
 
+  it('reads the profile language too', async () => {
+    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'en' };
+    const { service, select } = setup({ session: session(), profile });
+    expect(await service.loadedProfile()).toEqual(profile);
+    expect(select).toHaveBeenCalledWith('id, display_name, role, locale');
+  });
+
   it('subscribes later when the API was down at start, so a login still updates the session', async () => {
     const { service, auth, emit } = setup({ failClientTimes: 1 });
     await service.ready; // first start failed
@@ -99,7 +106,7 @@ describe('AuthService', () => {
   });
 
   it('drops the previous profile when another user signs in, even if the new load fails', async () => {
-    const a = { id: 'u1', display_name: 'A', role: 'admin' };
+    const a = { id: 'u1', display_name: 'A', role: 'admin', locale: 'th' };
     const { service, emit, maybeSingle } = setup({ profile: a });
     await service.ready;
     emit('SIGNED_IN', session());
@@ -113,7 +120,7 @@ describe('AuthService', () => {
   });
 
   it('keeps the profile when a reload for the same user fails (token refresh)', async () => {
-    const a = { id: 'u1', display_name: 'A', role: 'admin' };
+    const a = { id: 'u1', display_name: 'A', role: 'admin', locale: 'th' };
     const { service, emit, maybeSingle } = setup({ profile: a });
     await service.ready;
     emit('SIGNED_IN', session());
@@ -130,7 +137,7 @@ describe('AuthService', () => {
   });
 
   it('picks up an existing session on start', async () => {
-    const profile = { id: 'u1', display_name: 'a', role: 'admin' };
+    const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' };
     const { service } = setup({ session: session(), profile });
     await service.ready;
     await flush();
@@ -226,7 +233,7 @@ describe('AuthService', () => {
   });
 
   it('setDisplayName changes the name on the profile that is shown', async () => {
-    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user' };
+    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' };
     const { service, emit } = setup({ profile });
     await service.ready;
     emit('SIGNED_IN', session());

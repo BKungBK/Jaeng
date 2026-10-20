@@ -20,7 +20,7 @@ const base: Omit<Row, 'id' | 'status' | 'cover_path'> = {
 function setup(over: { store?: Partial<Store>; storage?: Partial<PhotoStorage>; member?: Member | null; rows?: Row[] } = {}) {
   const calls = {
     myReports: [] as string[],
-    rename: [] as [string, string][],
+    rename: [] as [string, { display_name?: string; locale?: 'th' | 'en' }][],
     signed: [] as [string, number][],
   };
   const store = {
@@ -29,9 +29,9 @@ function setup(over: { store?: Partial<Store>; storage?: Partial<PhotoStorage>; 
       calls.myReports.push(uid);
       return over.rows ?? [];
     },
-    renameMember: async (uid: string, name: string) => {
-      calls.rename.push([uid, name]);
-      return name;
+    updateMe: async (uid: string, patch: { display_name?: string; locale?: 'th' | 'en' }) => {
+      calls.rename.push([uid, patch]);
+      return { display_name: patch.display_name ?? 'เดิม', locale: patch.locale ?? 'th' };
     },
     ...over.store,
   } as Store;
@@ -144,8 +144,41 @@ describe('PATCH /me', () => {
     const { app, calls } = setup();
     const res = await patch(app, { display_name: '  สมชาย  ' });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ display_name: 'สมชาย' });
-    expect(calls.rename).toEqual([['user-1', 'สมชาย']]);
+    expect(await res.json()).toEqual({ display_name: 'สมชาย', locale: 'th' });
+    expect(calls.rename).toEqual([['user-1', { display_name: 'สมชาย' }]]);
+  });
+
+  test('locale alone is stored', async () => {
+    const { app, calls } = setup();
+    const res = await patch(app, { locale: 'en' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ display_name: 'เดิม', locale: 'en' });
+    expect(calls.rename).toEqual([['user-1', { locale: 'en' }]]);
+  });
+
+  test('name and locale together', async () => {
+    const { app, calls } = setup();
+    expect((await patch(app, { display_name: 'สมชาย', locale: 'th' })).status).toBe(200);
+    expect(calls.rename).toEqual([['user-1', { display_name: 'สมชาย', locale: 'th' }]]);
+  });
+
+  test.each([
+    ['an unknown locale', { locale: 'fr' }],
+    ['a non-string locale', { locale: 1 }],
+    ['an empty body', {}],
+    ['a null body', null],
+  ])('%s -> 400 invalid_request', async (_n, body) => {
+    const { app, calls } = setup();
+    const res = await patch(app, body);
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe('invalid_request');
+    expect(calls.rename).toEqual([]);
+  });
+
+  test('a banned member -> 403', async () => {
+    const { app, calls } = setup({ member: { id: 'user-1', role: 'user', banned: true } });
+    expect((await patch(app, { locale: 'en' })).status).toBe(403);
+    expect(calls.rename).toEqual([]);
   });
 
   test.each([

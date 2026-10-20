@@ -108,7 +108,7 @@ async function setup(opts: Opts = {}) {
     providers: [
       { provide: RealtimeService, useValue: { listen } },
       { provide: ReportDetailService, useValue: svc },
-      { provide: AuthService, useValue: { session, signedIn, profile: signal(opts.admin ? { id: 'u1', display_name: 'a', role: 'admin' } : null) } },
+      { provide: AuthService, useValue: { session, signedIn, profile: signal(opts.admin ? { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' } : null) } },
       { provide: LoginPromptService, useValue: { ask } },
       { provide: PopoverController, useValue: popovers },
       { provide: AdminService, useValue: admin },

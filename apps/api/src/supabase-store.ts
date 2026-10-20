@@ -4,6 +4,7 @@ import type { LiveSignal, PublicComment } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
 import { ApiError, type ErrorCode } from './errors';
+import { areaToPlace, type AreaRow } from './places/areas';
 import type { Store } from './store';
 
 // Short codes raised by the SQL functions (`raise exception '<code>'`).
@@ -235,15 +236,21 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       });
     },
 
-    async renameMember(userId, name) {
+    async updateMe(userId, patch) {
       const { data, error } = await client
         .from('profiles')
-        .update({ display_name: name })
+        .update(patch)
         .eq('id', userId)
-        .select('display_name')
+        .select('display_name, locale')
         .single();
-      if (error) throw new Error(`rename failed: ${error.message}`);
-      return data.display_name as string;
+      if (error) throw new Error(`profile update failed: ${error.message}`);
+      return { display_name: data.display_name as string, locale: data.locale === 'en' ? 'en' : 'th' };
+    },
+
+    async searchAreas(q, limit, lang) {
+      const { data, error } = await client.rpc('search_areas', { q, p_limit: limit });
+      if (error) throw new Error(`search_areas failed: ${error.message}`);
+      return ((data ?? []) as AreaRow[]).map((a) => areaToPlace(a, lang));
     },
 
     async deleteOrphanPhotos(olderThanHours) {

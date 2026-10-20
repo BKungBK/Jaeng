@@ -6,6 +6,8 @@ import { devRoutes } from './routes/dev';
 import { meRoutes } from './routes/me';
 import { moderationRoutes } from './routes/moderation';
 import { photoRoutes } from './routes/photos';
+import { placeRoutes } from './routes/places';
+import type { Geocoder } from './places/nominatim';
 import { reportRoutes } from './routes/reports';
 import type { PhotoStorage } from './photos/storage';
 import type { QuickLogin } from './quick-login';
@@ -22,6 +24,7 @@ export type AppDeps = {
   quickLogin: QuickLogin;
   photos: PhotoStorage;
   rateLimits: Env['rateLimits'];
+  places: Geocoder;
 };
 
 function reply(set: { status?: number | string }, code: ErrorCode) {
@@ -53,6 +56,7 @@ export function createApp(deps: AppDeps) {
     .use(reportRoutes(deps))
     .use(meRoutes(deps))
     .use(photoRoutes(deps))
+    .use(placeRoutes(deps))
     .use(moderationRoutes(deps))
     .use(adminRoutes(deps));
 }

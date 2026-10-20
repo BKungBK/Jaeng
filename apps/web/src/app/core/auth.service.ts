@@ -3,7 +3,7 @@ import type { DemoWho } from '@jaeng/shared/api';
 import type { Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 
-export type Profile = { id: string; display_name: string; role: 'user' | 'admin' };
+export type Profile = { id: string; display_name: string; role: 'user' | 'admin'; locale: 'th' | 'en' };
 
 const MSG_BAD_CODE = 'รหัสไม่ถูก หรือหมดอายุแล้ว ลองขอรหัสใหม่นะ';
 const MSG_TOO_OFTEN = 'ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ';
@@ -101,7 +101,7 @@ export class AuthService {
   private async loadProfile(id: string): Promise<void> {
     try {
       const client = await this.supabase.client();
-      const { data, error } = await client.from('profiles').select('id, display_name, role').eq('id', id).maybeSingle();
+      const { data, error } = await client.from('profiles').select('id, display_name, role, locale').eq('id', id).maybeSingle();
       if (error) throw error;
       // ignore a stale answer if the user changed meanwhile
       if (this.sessionSig()?.user.id === id) this.profileSig.set((data as Profile | null) ?? null);

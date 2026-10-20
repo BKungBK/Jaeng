@@ -10,6 +10,17 @@ export { toSameOrigin };
 
 const PUBLIC_STATUSES = new Set(['open', 'fix_claimed', 'resolved']);
 
+function checkName(raw: unknown): string {
+  if (typeof raw !== 'string') throw new ApiError('invalid_display_name');
+  const name = raw.trim();
+  const len = [...name].length;
+  if (len < DISPLAY_NAME_MIN || len > DISPLAY_NAME_MAX) throw new ApiError('invalid_display_name');
+  // control and invisible format characters (newlines, zero-width spaces) make a blank-looking name
+  if (/[\p{Cc}\p{Cf}]/u.test(name)) throw new ApiError('invalid_display_name');
+  if (containsBadWord(name)) throw new ApiError('profanity');
+  return name;
+}
+
 export function meRoutes(deps: AppDeps) {
   return new Elysia()
     .get('/me/reports', async ({ headers }) => {
@@ -45,14 +56,14 @@ export function meRoutes(deps: AppDeps) {
     })
     .patch('/me', async ({ headers, body }) => {
       const member = await requireMember(headers.authorization, deps.verify, deps.store);
-      const raw = typeof body === 'object' && body !== null ? (body as { display_name?: unknown }).display_name : undefined;
-      if (typeof raw !== 'string') throw new ApiError('invalid_display_name');
-      const name = raw.trim();
-      const len = [...name].length;
-      if (len < DISPLAY_NAME_MIN || len > DISPLAY_NAME_MAX) throw new ApiError('invalid_display_name');
-      // control and invisible format characters (newlines, zero-width spaces) make a blank-looking name
-      if (/[\p{Cc}\p{Cf}]/u.test(name)) throw new ApiError('invalid_display_name');
-      if (containsBadWord(name)) throw new ApiError('profanity');
-      return { display_name: await deps.store.renameMember(member.id, name) };
+      const b = typeof body === 'object' && body !== null ? (body as { display_name?: unknown; locale?: unknown }) : {};
+      if (b.display_name === undefined && b.locale === undefined) throw new ApiError('invalid_request');
+      const patch: { display_name?: string; locale?: 'th' | 'en' } = {};
+      if (b.locale !== undefined) {
+        if (b.locale !== 'th' && b.locale !== 'en') throw new ApiError('invalid_request');
+        patch.locale = b.locale;
+      }
+      if (b.display_name !== undefined) patch.display_name = checkName(b.display_name);
+      return deps.store.updateMe(member.id, patch);
     });
 }

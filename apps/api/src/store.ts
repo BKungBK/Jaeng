@@ -16,6 +16,7 @@ import type {
 } from '@jaeng/shared/admin';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
+import type { Place } from '@jaeng/shared/places';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
 
 export type Member = { id: string; role: 'user' | 'admin'; banned: boolean };
@@ -59,8 +60,13 @@ export type Store = {
   ): Promise<{ confirmed: boolean; comment: PublicComment; report: ReportSignal; moved: { from: string; to: string }[] }>;
   /** Own reports, newest first, at most 100. No coordinates. */
   myReports(userId: string): Promise<(Omit<MyReport, 'thumb_url'> & { cover_path: string | null })[]>;
-  /** Returns the stored display_name. */
-  renameMember(userId: string, name: string): Promise<string>;
+  /** Updates only the fields given; returns both as stored. */
+  updateMe(
+    userId: string,
+    patch: { display_name?: string; locale?: 'th' | 'en' },
+  ): Promise<{ display_name: string; locale: 'th' | 'en' }>;
+  /** Districts and provinces whose name contains q, named in `lang` (source 'local'). */
+  searchAreas(q: string, limit: number, lang: 'th' | 'en'): Promise<Place[]>;
   /** Deletes unattached photo rows older than the age and returns them (deleting is the claim). */
   deleteOrphanPhotos(olderThanHours: number): Promise<{ id: string; path: string }[]>;
   /** "It's fixed": the report waits for an admin; the photo stays private until approved. */

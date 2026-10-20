@@ -52,7 +52,7 @@ describe('AccountButtonComponent', () => {
   it('names the account when signed in and follows sign-in changes', async () => {
     const { fixture, button, auth } = await setup();
     auth.signedIn.set(true);
-    auth.profile.set({ id: 'u1', display_name: 'พี่ปลา', role: 'user' });
+    auth.profile.set({ id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' });
     await fixture.whenStable();
     expect(button.getAttribute('aria-label')).toBe('บัญชี: พี่ปลา');
   });
@@ -62,7 +62,7 @@ describe('AccountButtonComponent', () => {
     const signedOut = root.querySelector('button')!.innerHTML;
     expect(root.querySelector('.initial')).toBeNull();
     auth.signedIn.set(true);
-    auth.profile.set({ id: 'u1', display_name: 'พี่ปลา', role: 'user' });
+    auth.profile.set({ id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' });
     await fixture.whenStable();
     expect(root.querySelector('.initial')?.textContent?.trim()).toBe('พี่');
     expect(root.querySelector('button app-icon')).toBeNull();
@@ -83,7 +83,7 @@ describe('AccountButtonComponent', () => {
   it('opens the account popover when signed in', async () => {
     const { button, popovers, popover, prompt } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'พี่ปลา', role: 'user' },
+      profile: { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' },
     });
     button.click();
     await flush();
@@ -95,7 +95,7 @@ describe('AccountButtonComponent', () => {
   it('opens the login sheet when the menu asks to switch user', async () => {
     const { button, prompt } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'th' },
       dismissRole: 'switch',
     });
     button.click();
@@ -106,7 +106,7 @@ describe('AccountButtonComponent', () => {
   it('opens /me when the menu asks for "เรื่องของฉัน"', async () => {
     const { button, router, prompt } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'th' },
       dismissRole: 'mine',
     });
     button.click();
@@ -118,7 +118,7 @@ describe('AccountButtonComponent', () => {
   it('opens /admin when the menu asks for "หน้าผู้ดูแล"', async () => {
     const { button, router } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'a', role: 'admin' },
+      profile: { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' },
       dismissRole: 'admin',
     });
     button.click();
@@ -129,7 +129,7 @@ describe('AccountButtonComponent', () => {
   it('signs out when the menu asks to', async () => {
     const { button, auth } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'th' },
       dismissRole: 'signout',
     });
     button.click();
@@ -140,7 +140,7 @@ describe('AccountButtonComponent', () => {
   it('throws away an unsent report draft on a deliberate sign-out', async () => {
     const { button, auth, draft } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'th' },
       dismissRole: 'signout',
     });
     button.click();
@@ -152,7 +152,7 @@ describe('AccountButtonComponent', () => {
   it('keeps the draft when the menu only switches user (the draft drops itself if the user changes)', async () => {
     const { button, draft } = await setup({
       signedIn: true,
-      profile: { id: 'u1', display_name: 'a', role: 'user' },
+      profile: { id: 'u1', display_name: 'a', role: 'user', locale: 'th' },
       dismissRole: 'switch',
     });
     button.click();
@@ -191,7 +191,7 @@ describe('AccountMenuComponent', () => {
   }
 
   it('shows the name, switch and sign out, and no admin tag for a user', () => {
-    const { root, button } = menu({ id: 'u1', display_name: 'พี่ปลา', role: 'user' });
+    const { root, button } = menu({ id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' });
     expect(root.textContent).toContain('พี่ปลา');
     expect(root.textContent).not.toContain('ผู้ดูแล');
     expect(button('สลับผู้ใช้')).toBeDefined();
@@ -199,12 +199,12 @@ describe('AccountMenuComponent', () => {
   });
 
   it('tags an admin with "ผู้ดูแล"', () => {
-    const { root } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin' });
+    const { root } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin', locale: 'th' });
     expect(root.querySelector('.tag')?.textContent?.trim()).toBe('ผู้ดูแล');
   });
 
   it('lists "เรื่องของฉัน" first among the actions, signed in', () => {
-    const { root, button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user' });
+    const { root, button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user', locale: 'th' });
     const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
     expect(rows).toEqual(['เรื่องของฉัน', 'สลับผู้ใช้', 'ออกจากระบบ']);
     button('เรื่องของฉัน').click();
@@ -212,7 +212,7 @@ describe('AccountMenuComponent', () => {
   });
 
   it('shows "หน้าผู้ดูแล" between my reports and switch user, for an admin only', () => {
-    const { root, button, popovers } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin' });
+    const { root, button, popovers } = menu({ id: 'u1', display_name: 'แอดมิน', role: 'admin', locale: 'th' });
     const rows = [...root.querySelectorAll('button')].map((b) => b.textContent?.trim());
     expect(rows).toEqual(['เรื่องของฉัน', 'หน้าผู้ดูแล', 'สลับผู้ใช้', 'ออกจากระบบ']);
     button('หน้าผู้ดูแล').click();
@@ -220,7 +220,7 @@ describe('AccountMenuComponent', () => {
   });
 
   it('dismisses with the chosen action', () => {
-    const { button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user' });
+    const { button, popovers } = menu({ id: 'u1', display_name: 'a', role: 'user', locale: 'th' });
     button('สลับผู้ใช้').click();
     expect(popovers.dismiss).toHaveBeenCalledWith(undefined, 'switch');
     button('ออกจากระบบ').click();

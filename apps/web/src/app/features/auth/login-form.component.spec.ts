@@ -1,13 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import type { DemoUser } from '@jaeng/shared/api';
 import { AuthError, AuthService } from '../../core/auth.service';
+import { I18nService } from '../../core/i18n.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { LoginFormComponent } from './login-form.component';
 
 const DEMO: DemoUser[] = [
-  { who: 'reporter', label_th: 'คนแจ้ง' },
-  { who: 'neighbor1', label_th: 'เพื่อนบ้าน' },
-  { who: 'admin', label_th: 'ผู้ดูแล' },
+  { who: 'reporter', label_th: 'คนแจ้ง', label_en: 'Reporter' },
+  { who: 'neighbor1', label_th: 'เพื่อนบ้าน', label_en: 'Neighbour' },
+  { who: 'admin', label_th: 'ผู้ดูแล', label_en: 'Moderator' },
 ];
 
 async function setup(opts: { quickLogin?: DemoUser[]; configFails?: boolean } = {}) {
@@ -62,6 +63,25 @@ async function toCodeStep(t: Awaited<ReturnType<typeof setup>>) {
 describe('LoginFormComponent', () => {
   afterEach(() => vi.useRealTimers());
 
+  it('switches to English in place, keeping the typed email and the demo labels', async () => {
+    const t = await setup({ quickLogin: DEMO });
+    await t.type('input[type="email"]', 'pla@example.com');
+    TestBed.inject(I18nService).setLocale('en');
+    await t.stable();
+    expect(t.root.querySelector('h2')!.textContent).toContain('Sign in');
+    expect(t.button('Send code')).toBeDefined();
+    expect(t.button('Moderator')).toBeDefined();
+    expect(t.root.querySelector<HTMLInputElement>('input[type="email"]')!.value).toBe('pla@example.com');
+  });
+
+  it('words an auth error in English', async () => {
+    const t = await setup();
+    t.auth.sendCode.mockRejectedValue(new AuthError('tooOften'));
+    TestBed.inject(I18nService).setLocale('en');
+    await toCodeStep(t);
+    expect(t.root.querySelector('.error')!.textContent).toContain('That was a lot of codes');
+  });
+
   it('keeps "ส่งรหัส" disabled until the email looks right', async () => {
     const t = await setup();
     expect(t.button('ส่งรหัส')!.disabled).toBe(true);
@@ -110,7 +130,7 @@ describe('LoginFormComponent', () => {
 
   it('shows a wrong code in Thai in role="alert" and does not finish', async () => {
     const t = await setup();
-    t.auth.verifyCode.mockRejectedValue(new AuthError('รหัสไม่ถูก หรือหมดอายุแล้ว ลองขอรหัสใหม่นะ'));
+    t.auth.verifyCode.mockRejectedValue(new AuthError('badCode'));
     await toCodeStep(t);
     await t.type('input[autocomplete="one-time-code"]', '000000');
     await t.submit();
@@ -120,7 +140,7 @@ describe('LoginFormComponent', () => {
 
   it('shows a send failure in role="alert" and stays on the email step', async () => {
     const t = await setup();
-    t.auth.sendCode.mockRejectedValue(new AuthError('ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ'));
+    t.auth.sendCode.mockRejectedValue(new AuthError('tooOften'));
     await toCodeStep(t);
     expect(t.root.querySelector('[role="alert"]')?.textContent).toContain('ขอรหัสถี่ไปหน่อย');
     const email = t.root.querySelector('input[type="email"]')!;
@@ -181,7 +201,7 @@ describe('LoginFormComponent', () => {
 
   it('shows a failed quick login in role="alert"', async () => {
     const t = await setup({ quickLogin: DEMO });
-    t.auth.quickLogin.mockRejectedValue(new AuthError('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้งนะ'));
+    t.auth.quickLogin.mockRejectedValue(new AuthError('failed'));
     await t.stable();
     t.button('คนแจ้ง')!.click();
     await t.stable();

@@ -13,28 +13,28 @@ import {
   viewChild,
 } from '@angular/core';
 import type { FlagTarget } from '@jaeng/shared/admin';
-import { COMMENT_MAX, LiveSignal, MSG_INTERNAL_TH, PublicComment, ReportSignal } from '@jaeng/shared/api';
+import { COMMENT_MAX, LiveSignal, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import { LEVELS } from '@jaeng/shared/levels';
 import { thumbPath } from '@jaeng/shared/report';
 import { PopoverController } from '@ionic/angular';
-import { ApiError } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { CategoriesService } from '../../core/categories.service';
+import { I18nService, type Said } from '../../core/i18n.service';
 import { RealtimeService } from '../../core/realtime.service';
+import { TPipe } from '../../i18n/t.pipe';
+import { EmergencyBoxComponent } from '../../shared/emergency-box.component';
 import { IconComponent } from '../../shared/icon.component';
-import { formatAgo, formatDate } from '../../shared/time';
 import { AdminService } from '../admin/admin.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
-import { coverPhotoUrl, STATUS_TH } from '../map/report';
-import { CATEGORY_TH, PHOTO_KIND_TH, ReportDetail } from './report-detail';
+import { coverPhotoUrl } from '../map/report';
+import type { ReportDetail } from './report-detail';
 import { FixClaimFormComponent } from './fix-claim-form.component';
 import { FlagFormComponent } from './flag-form.component';
 import { ReportDetailService } from './report-detail.service';
 import { ReportMenuComponent, type ReportMenuRole } from './report-menu.component';
 
-const MSG_LOAD = 'โหลดเรื่องนี้ไม่สำเร็จ ลองอีกครั้งนะ';
-const MSG_GENERIC = MSG_INTERNAL_TH;
 /** Live signals for the open report are coalesced over this window into one refetch. */
 export const SIGNAL_DEBOUNCE_MS = 250;
 const LONG_WAIT_DAYS = 30;
@@ -42,8 +42,6 @@ const LONG_WAIT_DAYS = 30;
 type State = 'loading' | 'ready' | 'error';
 /** The inline form that replaces the action row (or sits under one comment). */
 type OpenForm = { kind: 'fix' } | { kind: 'flag'; type: FlagTarget; id: string };
-const MSG_FIX_SENT = 'ขอบคุณนะ ส่งให้ผู้ดูแลตรวจแล้ว';
-const MSG_FLAG_SENT = 'ขอบคุณที่ช่วยดูแลนะ ผู้ดูแลจะตรวจให้';
 
 /**
  * The report detail (spec 3.4): one component for the 380 px right panel and the phone's bottom sheet.
@@ -54,7 +52,7 @@ const MSG_FLAG_SENT = 'ขอบคุณที่ช่วยดูแลนะ
   templateUrl: 'report-detail.component.html',
   styleUrls: ['report-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent],
+  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe, EmergencyBoxComponent],
 })
 export class ReportDetailComponent {
   private svc = inject(ReportDetailService);
@@ -64,12 +62,14 @@ export class ReportDetailComponent {
   private moreBtn = viewChild<ElementRef<HTMLButtonElement>>('moreBtn');
   private popovers = inject(PopoverController);
   private admin = inject(AdminService);
+  protected readonly i18n = inject(I18nService);
+  private categories = inject(CategoriesService);
 
   readonly reportId = input.required<string>();
   readonly closed = output<void>();
   readonly loaded = output<ReportDetail>();
   /** The report is not public (any more); a message when the panel knows why. */
-  readonly missing = output<string | void>();
+  readonly missing = output<Said | void>();
   readonly changed = output<ReportSignal>();
 
   protected readonly state = signal<State>('loading');
@@ -79,7 +79,7 @@ export class ReportDetailComponent {
   protected readonly confirming = signal(false);
   protected readonly sending = signal(false);
   protected readonly draft = signal('');
-  protected readonly message = signal('');
+  protected readonly message = signal<Said>(null);
   protected readonly form = signal<OpenForm | null>(null);
   /** The control that opened the form: focus goes back to it when the form closes. */
   private opener: HTMLElement | null = null;
@@ -127,7 +127,7 @@ export class ReportDetailComponent {
     this.detail.set(null);
     this.comments.set([]);
     this.confirmed.set(false);
-    this.message.set('');
+    this.message.set(null);
     this.draft.set('');
     this.form.set(null);
     this.confirming.set(false); // flags belong to the report on screen, not to the panel
@@ -138,7 +138,7 @@ export class ReportDetailComponent {
     } catch {
       if (seq !== this.seq) return;
       this.state.set('error');
-      this.message.set(MSG_LOAD);
+      this.message.set('detail.loadFailed');
       return;
     }
     if (seq !== this.seq) return;
@@ -232,7 +232,7 @@ export class ReportDetailComponent {
       this.confirmed.set(res.confirmed);
       this.apply(res.report);
     } catch (e) {
-      if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);
+      if (seq === this.seq) this.message.set({ error: e });
     } finally {
       if (seq === this.seq) this.confirming.set(false);
     }
@@ -252,7 +252,7 @@ export class ReportDetailComponent {
       this.draft.set('');
       this.apply(res.report);
     } catch (e) {
-      if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);
+      if (seq === this.seq) this.message.set({ error: e });
     } finally {
       if (seq === this.seq) this.sending.set(false);
     }
@@ -266,9 +266,9 @@ export class ReportDetailComponent {
     const url = `${location.origin}/r/${this.reportId()}`;
     try {
       await navigator.clipboard.writeText(url);
-      this.message.set('คัดลอกลิงก์แล้ว ส่งต่อให้เพื่อนบ้านได้เลย');
+      this.message.set('detail.copied');
     } catch {
-      this.message.set('คัดลอกไม่สำเร็จ ลองคัดลอกจากแถบที่อยู่แทนนะ');
+      this.message.set('detail.copyFailed');
     }
   }
 
@@ -318,9 +318,9 @@ export class ReportDetailComponent {
     const seq = this.seq;
     try {
       await this.admin.hide('report', id);
-      if (seq === this.seq) this.missing.emit('ซ่อนเรื่องนี้แล้ว'); // the map takes the beam away and closes the panel
+      if (seq === this.seq) this.missing.emit('detail.hidden'); // the map takes the beam away and closes the panel
     } catch (e) {
-      if (seq === this.seq) this.message.set(e instanceof ApiError ? e.messageTh : MSG_GENERIC);
+      if (seq === this.seq) this.message.set({ error: e });
     }
   }
 
@@ -332,20 +332,20 @@ export class ReportDetailComponent {
 
   protected fixDone(report: ReportSignal) {
     this.apply(report);
-    this.message.set(MSG_FIX_SENT);
+    this.message.set('detail.fixSent');
     this.closeForm();
   }
 
   /** Someone else claimed or it was resolved meanwhile: show why and read the report again. */
-  protected fixStale(messageTh: string) {
+  protected fixStale(error: unknown) {
     const d = this.detail();
-    this.message.set(messageTh);
+    this.message.set({ error });
     this.closeForm();
     if (d) void this.refetch(d.id, this.seq);
   }
 
   protected flagDone() {
-    this.message.set(MSG_FLAG_SENT);
+    this.message.set('detail.flagSent');
     this.closeForm();
   }
 
@@ -368,13 +368,14 @@ export class ReportDetailComponent {
 
   // template helpers
   protected level = (d: ReportDetail) => LEVELS[d.danger_level];
-  protected status = (d: ReportDetail) => STATUS_TH[d.status];
-  protected category = (d: ReportDetail) => CATEGORY_TH[d.category] ?? CATEGORY_TH.other;
+  protected status = (d: ReportDetail) => this.i18n.t(`status.${d.status}`);
+  /** null until the categories table has loaded: no tag rather than a slug */
+  protected category = (d: ReportDetail) => this.categories.names()[d.category] ?? null;
   protected icon = (d: ReportDetail) => categoryIcon(d.category);
   protected longWait = (d: ReportDetail) => d.days_open > LONG_WAIT_DAYS;
   protected photoUrl = coverPhotoUrl;
   protected thumbUrl = (path: string) => coverPhotoUrl(thumbPath(path));
-  protected kind = PHOTO_KIND_TH;
-  protected ago = formatAgo;
-  protected date = formatDate;
+  protected kind = (k: 'before' | 'after') => this.i18n.t(`detail.photoKind.${k}`);
+  protected ago = (iso: string) => this.i18n.ago(iso);
+  protected date = (iso: string) => this.i18n.date(iso);
 }

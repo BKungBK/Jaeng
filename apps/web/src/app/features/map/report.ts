@@ -26,12 +26,6 @@ export type Bbox = [number, number, number, number];
 
 export const PUBLIC_STATUSES: readonly PublicStatus[] = ['open', 'fix_claimed', 'resolved'];
 
-export const STATUS_TH: Record<PublicStatus, string> = {
-  open: 'ยังไม่ได้แก้',
-  fix_claimed: 'รอตรวจว่าแก้แล้ว',
-  resolved: 'แก้แล้ว',
-};
-
 export const EMPTY_COLLECTION: ReportCollection = { type: 'FeatureCollection', features: [] };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

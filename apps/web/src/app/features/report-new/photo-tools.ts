@@ -2,11 +2,12 @@ import { InjectionToken } from '@angular/core';
 import { inThailand, PHOTO_MAX_BYTES, PHOTO_MAX_SIDE } from '@jaeng/shared/report';
 import { gps } from 'exifr/dist/lite.esm.mjs';
 import type { LngLat } from '../../core/device.service';
-
-export const MSG_PHOTO_TOO_LARGE = 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)';
+import { en } from '../../i18n/en';
+import { th } from '../../i18n/th';
 
 export class PhotoTooLargeError extends Error {
-  readonly messageTh = MSG_PHOTO_TOO_LARGE;
+  readonly messageTh = th.errors.photoTooLarge;
+  readonly messageEn = en.errors.photoTooLarge;
   constructor() {
     super('photo too large');
   }

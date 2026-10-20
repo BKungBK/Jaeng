@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
 import { PHOTOS_PER_REPORT_MAX } from '@jaeng/shared/report';
+import { I18nService } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { ReportDraftService, type DraftPhoto } from './report-draft.service';
 
@@ -7,22 +9,23 @@ import { ReportDraftService, type DraftPhoto } from './report-draft.service';
 @Component({
   selector: 'app-photo-step',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   templateUrl: 'photo-step.component.html',
   styleUrl: 'photo-step.component.scss',
 })
 export class PhotoStepComponent {
   protected readonly draft = inject(ReportDraftService);
+  protected readonly i18n = inject(I18nService);
   readonly next = output<void>();
 
   protected readonly max = PHOTOS_PER_REPORT_MAX;
   protected readonly photos = this.draft.photos;
   protected readonly full = computed(() => this.photos().length >= this.max);
-  /** why "ไปต่อ" is still off, in words */
+  /** why "Next" is still off, in words */
   protected readonly why = computed(() => {
     const photos = this.photos();
-    if (photos.some((p) => p.state === 'error')) return 'มีรูปที่อัปโหลดไม่สำเร็จ ลองใหม่หรือลบออกก่อนนะ';
-    if (photos.some((p) => p.state !== 'ready')) return 'รอรูปอัปโหลดให้เสร็จก่อนนะ';
+    if (photos.some((p) => p.state === 'error')) return this.i18n.t('photoStep.whyFailed');
+    if (photos.some((p) => p.state !== 'ready')) return this.i18n.t('photoStep.whyUploading');
     return '';
   });
 

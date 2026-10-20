@@ -6,6 +6,7 @@ import { createBroadcaster } from './broadcast';
 import { loadEnv } from './env';
 import { createQuickLogin } from './quick-login';
 import { createSupabasePhotoStorage } from './photos/storage';
+import { createNominatim } from './places/nominatim';
 import { startSweeper } from './photos/sweeper';
 import { createSupabaseStore } from './supabase-store';
 
@@ -37,6 +38,7 @@ createApp({
   store,
   photos,
   rateLimits: env.rateLimits,
+  places: createNominatim({ baseUrl: env.nominatimUrl, contact: env.nominatimContact }),
   broadcast: createBroadcaster(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY),
   quickLogin: createQuickLogin({
     enabled: env.quickLogin,

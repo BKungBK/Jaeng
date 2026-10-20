@@ -17,10 +17,17 @@ import {
 } from '@angular/core';
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { IonModal } from '@ionic/angular';
-import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
+import { LEVELS } from '@jaeng/shared/levels';
+import type { Place } from '@jaeng/shared/places';
+import { FilterState, type ReportFilter } from '../../core/filter-state.service';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
+import { I18nService, type Said } from '../../core/i18n.service';
+import { MapViewService } from '../../core/map-view.service';
+import type { MessageKey } from '../../i18n/keys';
+import { LanguageToggleComponent } from '../../shared/language-toggle.component';
 import { RealtimeService } from '../../core/realtime.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { AccountButtonComponent } from '../auth/account-button.component';
 import type { ReportDetail } from '../report-detail/report-detail';
@@ -30,12 +37,15 @@ import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
 import { FilterBarComponent } from './filter-bar.component';
 import { LevelShapeComponent } from './level-shape';
-import { MAP_FACTORY } from './map-factory';
-import { holdBaseLabels, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { fitPadding, MAP_FACTORY, THAILAND_BOUNDS } from './map-factory';
+import { holdBaseLabels, labelBaseMap, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
 import { currentSeaTheme, SEA_HEX, SeaTheme, watchSeaTheme } from './sea/sea-palette';
-import { coverPhotoUrl, ReportProps, STATUS_TH, toBbox } from './report';
+import { Bbox, coverPhotoUrl, ReportProps, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
+import { StatsLineComponent, type StatsState } from './stats-line.component';
+import { StatsService } from './stats.service';
+import { SearchBoxComponent } from './search-box.component';
 import { toyOpacity, zoomHint } from './toy';
 
 const LOAD_DEBOUNCE_MS = 300;
@@ -47,6 +57,11 @@ const WIDE = '(min-width: 820px)';
 /** Ionic's dismiss roles for the reader closing the sheet: a drag ('gesture'), the backdrop or Escape.
  *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
 const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
+const TOAST_MS = 3200;
+/** A toast with a button stays long enough to reach the button. */
+const ACTION_TOAST_MS = 8000;
+
+export type Toast = { said: Said; action?: { label: MessageKey; run: () => void } };
 
 /** The map centre that shows `target` at `offset` px from the middle of the view at `zoom` (Web Mercator,
  *  512 px tiles; close enough to the globe at street zoom). */
@@ -75,24 +90,34 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     ReportDetailComponent,
     ReportFabComponent,
     IonModal,
+    TPipe,
+    StatsLineComponent,
+    LanguageToggleComponent,
+    SearchBoxComponent,
   ],
   host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
   private reports = inject(ReportsService);
-  private loader = new ReportsLoader((bbox, levels) => this.reports.inBbox(bbox, levels));
+  private statsSvc = inject(StatsService);
+  private view = inject(MapViewService);
+  private statsSeq = 0;
+  private loader = new ReportsLoader<ReportFilter>((bbox, f) => this.reports.inBbox(bbox, f));
+  protected readonly filters = inject(FilterState);
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
 
   private map?: maplibregl.Map;
   private beacons?: BeaconLayer;
   private stopSea?: () => void;
   private stopTheme?: () => void;
+  private stopWords?: () => void;
   private loadTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
 
   private router = inject(Router);
+  protected readonly i18n = inject(I18nService);
   /** The beacon last clicked here, so its own navigation is not treated as a link. */
   private clicked: ReportProps | null = null;
   private fromClick = false;
@@ -102,11 +127,14 @@ export class MapPage {
 
   /** Bound from the route (`/r/:id`); undefined on `/`. */
   readonly id = input<string>();
-  readonly levels = signal<readonly DangerLevel[]>([0, 1, 2, 3]);
+  /** the phone search card is open: the brand and chips step aside */
+  readonly searching = signal(false);
   readonly zoom = signal(5);
   readonly shown = signal<number | null>(null);
   readonly hover = signal<{ p: ReportProps; x: number; y: number } | null>(null);
-  readonly toast = signal<string | null>(null);
+  readonly toast = signal<Toast | null>(null);
+  /** the month numbers of the loaded view (hint card) */
+  readonly stats = signal<StatsState>('loading');
   /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
   readonly wide = signal(false);
   readonly panelOpen = computed(() => this.wide() && !!this.id());
@@ -116,7 +144,7 @@ export class MapPage {
     computation: (id, prev) => id ?? prev?.value,
   });
 
-  readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.levels().length));
+  readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.filters.levels().length, (k) => this.i18n.t(k)));
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -129,6 +157,13 @@ export class MapPage {
       const id = this.id();
       untracked(() => this.follow(id));
     });
+    // a filter change (here or on /list) reloads the view through the usual debounce; not on the first run
+    let seenFilter: string | undefined;
+    effect(() => {
+      const key = JSON.stringify(this.filters.filter());
+      if (seenFilter !== undefined && key !== seenFilter) untracked(() => this.scheduleLoad());
+      seenFilter = key;
+    });
     // every live signal re-runs the debounced bbox load, so a burst becomes one request
     destroyRef.onDestroy(inject(RealtimeService).listen(() => this.scheduleLoad()));
     // a page that sends the reader here can leave a word for them ("ขอบคุณนะ นับให้แล้ว" after a merge);
@@ -138,7 +173,7 @@ export class MapPage {
       if (e instanceof NavigationStart) trigger = e.navigationTrigger;
       else if (e instanceof NavigationEnd && trigger === 'imperative') {
         const toast = (history.state as { toast?: unknown } | null)?.toast;
-        if (typeof toast === 'string') this.showToast(toast);
+        if (typeof toast === 'string') this.showToast(toast); // a dictionary key
       }
     });
     destroyRef.onDestroy(() => nav.unsubscribe());
@@ -150,6 +185,7 @@ export class MapPage {
       this.beacons?.destroy();
       this.stopSea?.();
       this.stopTheme?.();
+      this.stopWords?.();
       this.map?.remove();
     });
   }
@@ -183,11 +219,11 @@ export class MapPage {
   }
 
   /** The linked report is not public (or never existed): say so and go home. The panel may name why (an admin hid it). */
-  protected onMissing(message?: string | void) {
+  protected onMissing(message?: Said | void) {
     this.closing = this.id();
     this.clicked = null;
     this.beacons?.setSelected(null);
-    this.showToast(message || 'ไม่พบเรื่องนี้ หรือเรื่องนี้ยังไม่เปิดให้เห็นนะ');
+    this.showToast(message || 'map.toast.missing');
     void this.router.navigate(['/'], { replaceUrl: true });
   }
 
@@ -221,6 +257,8 @@ export class MapPage {
     tint(currentSeaTheme());
     this.stopTheme = watchSeaTheme(tint);
     holdBaseLabels(map);
+    labelBaseMap(map, this.i18n.locale());
+    this.stopWords = this.i18n.watch((l) => labelBaseMap(map, l));
     setupReportLayers(map);
     // phones: start with the attribution folded to its info button so it does not sit under the hint card
     if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
@@ -241,10 +279,10 @@ export class MapPage {
         },
         leave: () => this.hover.set(null),
         select: (p) => this.select(p),
-      });
+      }, this.i18n);
       this.beacons.setSelected(this.id() ?? null);
     } catch {
-      if (!this.destroyed) this.showToast('แผนที่โหลดไม่ครบ ลองรีเฟรชหน้านี้อีกครั้งนะ');
+      if (!this.destroyed) this.showToast('map.toast.beaconsFailed', { label: 'common.retry', run: () => location.reload() });
     }
   }
 
@@ -341,20 +379,77 @@ export class MapPage {
     if (!map || this.destroyed) return;
     const b = map.getBounds();
     const bbox = toBbox({ west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() });
-    const result = await this.loader.load(bbox, this.levels());
+    const c = map.getCenter();
+    this.view.set(bbox, [c.lng, c.lat]);
+    void this.loadStats(bbox);
+    const result = await this.loader.load(bbox, this.filters.filter());
     if (!result || this.destroyed) return;
     if ('error' in result) {
-      this.showToast('โหลดข้อมูลไม่สำเร็จ ลองเลื่อนแผนที่อีกครั้งนะ');
+      this.showToast('map.toast.loadFailed', { label: 'common.retry', run: () => this.scheduleLoad(0) });
       return;
     }
     this.shown.set(result.data.features.length);
     map.getSource<maplibregl.GeoJSONSource>(REPORT_SOURCE)?.setData(result.data);
   }
 
-  private showToast(message: string) {
-    this.toast.set(message);
+  /** Encouragement, not data: a failure hides the line, the old numbers stay until new ones come. */
+  private async loadStats(bbox: Bbox) {
+    const seq = ++this.statsSeq;
+    try {
+      const s = await this.statsSvc.inBbox(bbox);
+      if (seq === this.statsSeq && !this.destroyed) this.stats.set(s);
+    } catch {
+      if (seq === this.statsSeq && !this.destroyed) this.stats.set('error');
+    }
+  }
+
+  private showToast(said: Said, action?: Toast['action']) {
+    this.toast.set({ said, action });
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
+    this.toastTimer = setTimeout(() => this.toast.set(null), action ? ACTION_TOAST_MS : TOAST_MS);
+  }
+
+  protected runToast(t: Toast) {
+    clearTimeout(this.toastTimer);
+    this.toast.set(null);
+    t.action?.run();
+  }
+
+  /** Back to the whole country: the same view the app opens with. */
+  home() {
+    const map = this.map;
+    if (!map) return;
+    map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth) });
+  }
+
+  /** A place from the search: its own box when it has one (not closer than street level), else its point. */
+  flyToPlace(p: Place) {
+    const map = this.map;
+    if (!map) return;
+    if (p.bbox) map.fitBounds(p.bbox, { padding: 48, maxZoom: 14 });
+    else map.flyTo({ center: [p.lng, p.lat], zoom: 13 });
+  }
+
+  /** A report from the search opens like a shared link: the panel loads it and the map flies there. */
+  openReport(p: ReportProps) {
+    this.hover.set(null);
+    this.clicked = null;
+    void this.router.navigate(['/r', p.id]);
+  }
+
+  openList() {
+    void this.router.navigate(['/list']);
+  }
+
+  openAbout() {
+    void this.router.navigate(['/about']);
+  }
+
+  /** The skip link: a real link for screen readers and new tabs, routed in place on a plain click. */
+  protected skipToList(e: MouseEvent) {
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
+    this.openList();
   }
 
   zoomIn() {
@@ -367,19 +462,19 @@ export class MapPage {
 
   locate() {
     if (!('geolocation' in navigator)) {
-      this.showToast('เครื่องนี้ยังหาตำแหน่งไม่ได้ ลองซูมไปเองก่อนนะ');
+      this.showToast('map.toast.noGeo');
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }),
-      () => this.showToast('เปิดสิทธิ์ตำแหน่งก่อนนะ แล้วลองใหม่อีกครั้ง'),
+      () => this.showToast('map.toast.geoDenied'),
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }
 
   // template helpers
   protected level = (p: ReportProps) => LEVELS[p.danger_level];
-  protected status = (p: ReportProps) => STATUS_TH[p.status];
+  protected status = (p: ReportProps) => this.i18n.t(`status.${p.status}`);
   protected icon = (p: ReportProps) => categoryIcon(p.category);
   protected photo = (p: ReportProps) => (p.cover_photo_path ? coverPhotoUrl(p.cover_photo_path) : null);
 }

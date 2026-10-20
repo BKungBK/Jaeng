@@ -1,30 +1,29 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import type { AdminUser } from '@jaeng/shared/admin';
-import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
-import { ApiError } from '../../core/api.service';
+import { I18nService, type Said } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
-import { formatDate } from '../../shared/time';
 import { AdminService } from './admin.service';
 
 export const SEARCH_DEBOUNCE_MS = 300;
 
-/** Tab "ผู้ใช้" (spec 3.10.4): find a member by name or e-mail, ban or unban. Admins cannot be banned. */
+/** Tab "Users" (spec 3.10.4): find a member by name or e-mail, ban or unban. Admins cannot be banned. */
 @Component({
   selector: 'app-users-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
     <label class="search">
       <app-icon name="search" [size]="20" />
-      <input type="search" placeholder="ค้นชื่อหรืออีเมล" aria-label="ค้นชื่อหรืออีเมล" [value]="q()" (input)="onInput($event)" />
+      <input type="search" [placeholder]="'admin.users.search' | t" [attr.aria-label]="'admin.users.search' | t" [value]="q()" (input)="onInput($event)" />
     </label>
-    <p class="status" role="status">{{ message() }}</p>
+    <p class="status" role="status">{{ i18n.say(message()) }}</p>
 
     @if (loading()) {
-      <p class="caption">กำลังโหลด…</p>
+      <p class="caption">{{ 'load.loading' | t }}</p>
     } @else if (failed()) {
-      <p class="caption">โหลดรายชื่อไม่สำเร็จ ลองอีกครั้งนะ</p>
-      <button type="button" class="btn retry" (click)="search()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+      <p class="caption">{{ 'admin.usersFailed' | t }}</p>
+      <button type="button" class="btn retry" (click)="search()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
     } @else {
       <ul class="list">
         @for (u of users(); track u.id) {
@@ -32,45 +31,45 @@ export const SEARCH_DEBOUNCE_MS = 300;
             <div class="who">
               <strong>{{ u.display_name }}</strong>
               @if (u.role === 'admin') {
-                <span class="tag"><app-icon name="shieldCheck" [size]="16" />ผู้ดูแล</span>
+                <span class="tag"><app-icon name="shieldCheck" [size]="16" />{{ 'account.admin' | t }}</span>
               }
               <span class="state">
                 @if (u.banned_at) {
-                  <app-icon name="ban" [size]="16" />ถูกแบน
+                  <app-icon name="ban" [size]="16" />{{ 'admin.banned' | t }}
                 } @else {
-                  <app-icon name="circleCheck" [size]="16" />ใช้งานได้
+                  <app-icon name="circleCheck" [size]="16" />{{ 'admin.users.active' | t }}
                 }
               </span>
             </div>
             @if (u.email) {
               <span class="email">{{ u.email }}</span>
             }
-            <p class="meta">แจ้ง {{ u.report_count }} เรื่อง · ความคิดเห็น {{ u.comment_count }} · สมัครเมื่อ {{ date(u.created_at) }}</p>
+            <p class="meta">{{ 'admin.users.meta' | t: { r: u.report_count, c: u.comment_count, date: date(u.created_at) } }}</p>
             @if (u.role !== 'admin') {
               @if (u.banned_at) {
                 <div class="decide">
                   <button type="button" class="btn" [disabled]="busy()" (click)="setBan(u, false)">
-                    <app-icon name="undo2" [size]="18" />ยกเลิกแบน
+                    <app-icon name="undo2" [size]="18" />{{ 'admin.users.unban' | t }}
                   </button>
                 </div>
               } @else if (confirming() === u.id) {
                 <div class="decide">
-                  <button type="button" class="btn" [disabled]="busy()" (click)="confirming.set(null)">ยกเลิก</button>
+                  <button type="button" class="btn" [disabled]="busy()" (click)="confirming.set(null)">{{ 'common.cancel' | t }}</button>
                   <button type="button" class="btn" [disabled]="busy()" (click)="setBan(u, true)">
-                    <app-icon name="ban" [size]="18" />แน่ใจ แบนเลย
+                    <app-icon name="ban" [size]="18" />{{ 'admin.sureBan' | t }}
                   </button>
                 </div>
               } @else {
                 <div class="decide">
                   <button type="button" class="btn" [disabled]="busy()" (click)="confirming.set(u.id)">
-                    <app-icon name="ban" [size]="18" />แบน
+                    <app-icon name="ban" [size]="18" />{{ 'admin.users.ban' | t }}
                   </button>
                 </div>
               }
             }
           </li>
         } @empty {
-          <li class="empty-line">ไม่เจอผู้ใช้ที่ตรงกับคำค้น</li>
+          <li class="empty-line">{{ 'admin.users.none' | t }}</li>
         }
       </ul>
     }
@@ -79,13 +78,14 @@ export const SEARCH_DEBOUNCE_MS = 300;
 })
 export class UsersTabComponent {
   private admin = inject(AdminService);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly q = signal('');
   protected readonly users = signal<AdminUser[]>([]);
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
   protected readonly busy = signal(false);
-  protected readonly message = signal('');
+  protected readonly message = signal<Said>(null);
   protected readonly confirming = signal<string | null>(null);
 
   private timer?: ReturnType<typeof setTimeout>;
@@ -121,19 +121,19 @@ export class UsersTabComponent {
   protected async setBan(u: AdminUser, banned: boolean) {
     if (this.busy()) return;
     this.busy.set(true);
-    this.message.set('');
+    this.message.set(null);
     try {
       await this.admin.setBan(u.id, banned);
       const at = banned ? new Date().toISOString() : null;
       this.users.update((list) => list.map((x) => (x.id === u.id ? { ...x, banned_at: at } : x)));
       this.confirming.set(null);
-      this.message.set(banned ? `แบน ${u.display_name} แล้ว` : `ยกเลิกแบน ${u.display_name} แล้ว`);
+      this.message.set({ key: banned ? 'admin.users.bannedDone' : 'admin.users.unbannedDone', params: { name: u.display_name } });
     } catch (e) {
-      this.message.set(e instanceof ApiError ? e.messageTh : MSG_INTERNAL_TH);
+      this.message.set({ error: e });
     } finally {
       this.busy.set(false);
     }
   }
 
-  protected date = formatDate;
+  protected date = (iso: string) => this.i18n.date(iso);
 }

@@ -1,8 +1,10 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { Component, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { NavController } from '@ionic/angular';
+import { I18nService } from '../../core/i18n.service';
 import { MapReturnService } from '../report-new/map-return.service';
 import { AdminPage } from './admin.page';
 import { AdminService } from './admin.service';
@@ -59,6 +61,14 @@ describe('AdminPage', () => {
     expect(tabs()[4].textContent?.trim()).toBe('บันทึก');
   });
 
+  it('names the tabs in English after a switch (plan 6)', async () => {
+    const { tabs, settle } = await open('/admin');
+    TestBed.inject(I18nService).setLocale('en');
+    await settle();
+    expect(tabs()[0].textContent?.replace(/\s+/g, ' ').trim()).toBe('Waiting · 3');
+    expect(tabs()[4].textContent?.trim()).toBe('Log');
+  });
+
   it('changing tab writes ?tab= and selects it', async () => {
     const { tabs, settle, router } = await open('/admin');
     tabs()[2].click();
@@ -76,5 +86,11 @@ describe('AdminPage', () => {
     await settle();
     expect(admin.counts).toHaveBeenCalledTimes(2);
     expect(root).toBeTruthy();
+  });
+});
+
+describe('AdminPage accessibility (plan 6)', () => {
+  it('has one h1 and no unnamed button', async () => {
+    expectAccessiblePage((await open('/admin')).root);
   });
 });

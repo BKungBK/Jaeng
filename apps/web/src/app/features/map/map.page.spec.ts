@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RouteReuseStrategy, Router, provideRouter, withComponentInputBinding } from '@angular/router';
@@ -18,6 +19,11 @@ import { MAP_FACTORY } from './map-factory';
 import { centerFor, MapPage } from './map.page';
 import { EMPTY_COLLECTION } from './report';
 import { ReportsService } from './reports.service';
+import { StatsService } from './stats.service';
+import { MapViewService } from '../../core/map-view.service';
+import { I18nService } from '../../core/i18n.service';
+import { THAILAND_BOUNDS } from './map-factory';
+import { FilterState } from '../../core/filter-state.service';
 
 // Stand-in for maplibregl.Map: records handlers and lets a test fire events.
 function fakeMap() {
@@ -42,6 +48,8 @@ function fakeMap() {
     zoomIn: vi.fn(),
     zoomOut: vi.fn(),
     flyTo: vi.fn(),
+    fitBounds: vi.fn(),
+    getCenter: () => ({ lng: 101.5, lat: 13 }),
     remove: vi.fn(),
   };
 }
@@ -113,8 +121,9 @@ function mockWide(wide: boolean) {
 
 async function setup(
   inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION),
-  opts: { wide?: boolean; detail?: unknown } = {},
+  opts: { wide?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn> } = {},
 ) {
+  const stats = opts.stats ?? vi.fn().mockResolvedValue({ resolved_this_month: 3, open_count: 12 });
   mockWide(opts.wide ?? true);
   const map = fakeMap();
   const navigate = vi.fn().mockResolvedValue(true);
@@ -125,6 +134,7 @@ async function setup(
       { provide: Router, useValue: { navigate, events } },
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: ReportsService, useValue: { inBbox } },
+      { provide: StatsService, useValue: { inBbox: stats } },
       { provide: ReportDetailService, useValue: detailSvc },
       ...authStubs,
     ],
@@ -134,7 +144,7 @@ async function setup(
   await Promise.resolve(); // the factory result is awaited
   await Promise.resolve();
   const root = fixture.nativeElement as HTMLElement;
-  return { map, fixture, root, inBbox, navigate, detailSvc, events };
+  return { map, fixture, root, inBbox, navigate, detailSvc, events, stats };
 }
 
 describe('MapPage', () => {
@@ -170,7 +180,7 @@ describe('MapPage', () => {
   it('shows the brand, the level chips and the map controls', async () => {
     const { root } = await setup();
     expect(root.querySelector('h1')?.textContent?.trim()).toBe('แจ้ง');
-    expect(root.querySelectorAll('app-filter-bar button')).toHaveLength(4);
+    expect(root.querySelectorAll('app-filter-bar button.chip')).toHaveLength(4);
     for (const label of ['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน']) {
       expect(root.querySelector(`button[aria-label="${label}"]`)).not.toBeNull();
     }
@@ -179,7 +189,7 @@ describe('MapPage', () => {
   it('puts the account button after the locate button', async () => {
     const { root } = await setup();
     const labels = [...root.querySelectorAll('.controls button')].map((b) => b.getAttribute('aria-label'));
-    expect(labels).toEqual(['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน', 'เข้าสู่ระบบ']);
+    expect(labels).toEqual(['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน', 'กลับไปดูทั้งประเทศ', 'ดูเป็นรายการ', 'เข้าสู่ระบบ']);
   });
 
   it('loads reports for the view 300 ms after the map stops moving', async () => {
@@ -190,13 +200,13 @@ describe('MapPage', () => {
     expect(inBbox).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(300);
     expect(inBbox).toHaveBeenCalledTimes(1);
-    expect(inBbox).toHaveBeenCalledWith([97, 5, 106, 21], [0, 1, 2, 3]);
+    expect(inBbox).toHaveBeenCalledWith([97, 5, 106, 21], { levels: [0, 1, 2, 3], categories: [], statuses: ['open', 'fix_claimed', 'resolved'] });
   });
 
   it('says so when every level chip is off', async () => {
     vi.useFakeTimers();
     const { fixture, root } = await setup();
-    for (const b of [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button')]) b.click();
+    for (const b of [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button.chip')]) b.click();
     await vi.advanceTimersByTimeAsync(300);
     fixture.detectChanges();
     expect(root.querySelector('.hint')?.textContent).toContain('ปิดตัวกรองครบทุกระดับแล้ว');
@@ -506,5 +516,175 @@ describe('MapPage', () => {
     root.querySelector<HTMLButtonElement>('button[aria-label="ซูมออก"]')!.click();
     expect(map.zoomIn).toHaveBeenCalled();
     expect(map.zoomOut).toHaveBeenCalled();
+  });
+});
+
+describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const loaded = async () => {
+    vi.useFakeTimers();
+    const t = await setup();
+    t.map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    t.fixture.detectChanges();
+    return t;
+  };
+
+  it('shows the month numbers for the view next to the hint, from the same load', async () => {
+    const { root, stats } = await loaded();
+    expect(stats).toHaveBeenCalledWith([97, 5, 106, 21]);
+    expect(root.querySelector('.hint app-stats-line')?.textContent?.replace(/\s+/g, ' ')).toContain('เดือนนี้แก้แล้ว 3 เรื่อง');
+    expect(root.querySelector('.hint .hint-line')?.textContent).toContain('ยังไม่มีเรื่อง');
+    expect(root.querySelector('.hint .hint-line')?.getAttribute('aria-live')).toBe('polite');
+    expect(root.querySelector('app-stats-line')?.hasAttribute('aria-live')).toBe(false);
+  });
+
+  it('drops the numbers line when the numbers fail, keeping the hint', async () => {
+    vi.useFakeTimers();
+    const { map, fixture, root } = await setup(undefined, { stats: vi.fn().mockRejectedValue(new Error('x')) });
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    expect(root.querySelector('app-stats-line')?.textContent?.trim()).toBe('');
+    expect(root.querySelector('.hint .hint-line')?.textContent).toContain('ยังไม่มีเรื่อง');
+  });
+
+  it('keeps newer numbers when an older answer arrives late', async () => {
+    vi.useFakeTimers();
+    let first!: (v: unknown) => void;
+    const stats = vi
+      .fn()
+      .mockImplementationOnce(() => new Promise((r) => (first = r)))
+      .mockResolvedValueOnce({ resolved_this_month: 9, open_count: 9 });
+    const { map, fixture, root } = await setup(undefined, { stats });
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    first({ resolved_this_month: 1, open_count: 1 });
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+    expect(root.querySelector('app-stats-line')?.textContent).toContain('9');
+  });
+
+  it('remembers the loaded view for /list', async () => {
+    await loaded();
+    expect(TestBed.inject(MapViewService).bbox()).toEqual([97, 5, 106, 21]);
+    expect(TestBed.inject(MapViewService).center()).toEqual([101.5, 13]);
+  });
+
+  it('flies back to the whole country and opens the list', async () => {
+    const { root, map, navigate } = await setup();
+    root.querySelector<HTMLButtonElement>('button[aria-label="กลับไปดูทั้งประเทศ"]')!.click();
+    expect(map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything() }));
+    root.querySelector<HTMLButtonElement>('button[aria-label="ดูเป็นรายการ"]')!.click();
+    expect(navigate).toHaveBeenCalledWith(['/list']);
+  });
+
+  it('starts with a skip link to the list, and the brand card carries language and about', async () => {
+    const { root } = await setup();
+    const first = root.querySelector('a, button')!;
+    expect(first.textContent?.trim()).toBe('ข้ามไปที่รายการเรื่อง');
+    expect(first.getAttribute('href')).toBe('/list');
+    expect(root.querySelector('.brand app-language-toggle button')).not.toBeNull();
+    expect(root.querySelector('.brand button[aria-label="เกี่ยวกับแจ้ง"]')).not.toBeNull();
+  });
+
+  it('a failed load offers "ลองใหม่", which loads again and hides the toast', async () => {
+    vi.useFakeTimers();
+    const inBbox = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(EMPTY_COLLECTION);
+    const { map, fixture, root } = await setup(inBbox);
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    const retry = root.querySelector<HTMLButtonElement>('.toast button')!;
+    expect(retry.textContent?.trim()).toBe('ลองใหม่');
+    retry.click();
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+    expect(inBbox).toHaveBeenCalledTimes(2);
+    expect(root.querySelector('.toast')).toBeNull();
+  });
+
+  it('keeps an action toast 8 s and a plain one 3.2 s', async () => {
+    vi.useFakeTimers();
+    const { map, fixture, root } = await setup(vi.fn().mockRejectedValue(new Error('offline')));
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(7900);
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')).not.toBeNull();
+    await vi.advanceTimersByTimeAsync(200);
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')).toBeNull();
+    root.querySelector<HTMLButtonElement>('button[aria-label="ไปที่ตำแหน่งของฉัน"]')!.click();
+    fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(3300);
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')).toBeNull();
+  });
+
+  it('labels the new controls in English too', async () => {
+    const { root, fixture } = await setup();
+    TestBed.inject(I18nService).setLocale('en');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    for (const label of ['Back to the whole country', 'Show as a list', 'About Jaeng']) {
+      expect(root.querySelector(`button[aria-label="${label}"]`)).not.toBeNull();
+    }
+  });
+});
+describe('MapPage plan 6: filters and search', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('reloads with the chosen categories and without fixed reports, after the debounce', async () => {
+    vi.useFakeTimers();
+    const { inBbox } = await setup();
+    const f = TestBed.inject(FilterState);
+    f.toggleCategory('flood');
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(inBbox).toHaveBeenLastCalledWith([97, 5, 106, 21], expect.objectContaining({ categories: ['flood'] }));
+    f.showResolved.set(false);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(inBbox).toHaveBeenLastCalledWith([97, 5, 106, 21], expect.objectContaining({ statuses: ['open', 'fix_claimed'] }));
+  });
+
+  it('fits a place with a box, flies to one without, and opens a report like a link', async () => {
+    const { fixture, map, navigate } = await setup();
+    const page = fixture.componentInstance;
+    page.flyToPlace({ name: 'อ.เมือง', detail: null, lng: 99, lat: 18.8, bbox: [98.9, 18.7, 99.1, 18.9], source: 'local' });
+    expect(map.fitBounds).toHaveBeenCalledWith([98.9, 18.7, 99.1, 18.9], { padding: 48, maxZoom: 14 });
+    page.flyToPlace({ name: 'ท่าแพ', detail: null, lng: 98.99, lat: 18.79, bbox: null, source: 'osm' });
+    expect(map.flyTo).toHaveBeenCalledWith({ center: [98.99, 18.79], zoom: 13 });
+    page.openReport({ id: 'r9' } as never);
+    expect(navigate).toHaveBeenCalledWith(['/r', 'r9']);
+  });
+
+  it('puts a search field between the brand and the chips on a wide screen, an icon in the brand card on a phone', async () => {
+    const wide = await setup();
+    const order = [...wide.root.querySelectorAll('.top > *')].map((e) => e.tagName.toLowerCase());
+    expect(order).toEqual(['header', 'app-search-box', 'app-filter-bar']);
+    TestBed.resetTestingModule();
+    const phone = await setup(undefined, { wide: false });
+    expect(phone.root.querySelector('.brand app-search-box button[aria-label="ค้นหา"]')).not.toBeNull();
+  });
+});
+
+describe('MapPage accessibility (plan 6)', () => {
+  afterEach(() => vi.restoreAllMocks());
+  it('has one h1 and no unnamed button, wide and narrow', async () => {
+    expectAccessiblePage((await setup()).root);
+    TestBed.resetTestingModule();
+    expectAccessiblePage((await setup(undefined, { wide: false })).root);
   });
 });

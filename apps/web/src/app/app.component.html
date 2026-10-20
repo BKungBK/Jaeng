@@ -1,3 +1,11 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>
+
+<!-- the installed app found a newer build: reloading is the reader's call -->
+@if (update.ready()) {
+  <div class="update" role="status">
+    <span>{{ 'update.ready' | t }}</span>
+    <button type="button" (click)="update.reload()">{{ 'update.reload' | t }}</button>
+  </div>
+}

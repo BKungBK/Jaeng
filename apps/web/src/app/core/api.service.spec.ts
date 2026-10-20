@@ -75,7 +75,22 @@ describe('ApiService', () => {
     );
     const err = await service.post('/x').catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
-    expect(err).toMatchObject({ status: 404, code: 'report_not_found', messageTh: 'ไม่พบเรื่องนี้' });
+    expect(err).toMatchObject({ status: 404, code: 'report_not_found', messageTh: 'ไม่พบเรื่องนี้', messageEn: 'nf' });
+  });
+
+  it('words its own errors in both languages', async () => {
+    const none = await setup({ access: null }).service.post('/x').catch((e) => e);
+    expect(none).toMatchObject({ messageTh: 'เข้าสู่ระบบก่อนนะ', messageEn: 'Please sign in first.' });
+    TestBed.resetTestingModule();
+    const big = await setup({ access: 't' }, new Response('x', { status: 413 }))
+      .service.upload('/photos', new FormData())
+      .catch((e) => e);
+    expect(big).toMatchObject({ code: 'photo_too_large', messageEn: 'The photo is too large (3 MB max).' });
+    TestBed.resetTestingModule();
+    const s = setup({ access: 't' });
+    s.fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const net = await s.service.post('/x').catch((e) => e);
+    expect(net).toMatchObject({ code: 'network', messageEn: "Can't connect right now. Please try again." });
   });
 
   it('wraps a failed fetch as a network ApiError', async () => {

@@ -1,4 +1,4 @@
-import { holdBaseLabels, MapLike, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { holdBaseLabels, labelBaseMap, MapLike, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
 import { validateStyleMin } from '@maplibre/maplibre-gl-style-spec';
 import type { FeatureCollection } from 'geojson';
 import { TOY_FADE } from './toy';
@@ -99,7 +99,10 @@ describe('setupToyLayers', () => {
       type: 'geojson',
       cluster: true,
       clusterMaxZoom: 11,
-      clusterProperties: { maxLevel: ['max', ['get', 'danger_level']] },
+      clusterProperties: {
+        maxLevel: ['max', ['get', 'danger_level']],
+        critical: ['+', ['case', ['==', ['get', 'danger_level'], 3], 1, 0]],
+      },
     });
   });
 });
@@ -130,5 +133,25 @@ describe('holdBaseLabels', () => {
     (r.map as any).setLayerZoomRange = (id: string, min: number, max: number) => ranges.push([id, min, max]);
     holdBaseLabels(r.map);
     expect(ranges).toEqual([['label_city', 7.5, 24]]);
+  });
+});
+
+describe('labelBaseMap', () => {
+  it("names every street-map symbol layer that has a text field in the reader's language", () => {
+    const set: [string, string, unknown][] = [];
+    const r = recorder([
+      { id: 'label_city', type: 'symbol' },
+      { id: 'highway-shield', type: 'symbol' },
+      { id: 'water', type: 'fill' },
+    ]);
+    const fields: Record<string, unknown> = { label_city: ['get', 'name:latin'], 'highway-shield': undefined };
+    (r.map as any).getLayoutProperty = (id: string) => fields[id];
+    (r.map as any).setLayoutProperty = (id: string, prop: string, value: unknown) => set.push([id, prop, value]);
+    labelBaseMap(r.map as never, 'th');
+    labelBaseMap(r.map as never, 'en');
+    expect(set).toEqual([
+      ['label_city', 'text-field', ['coalesce', ['get', 'name:th'], ['get', 'name']]],
+      ['label_city', 'text-field', ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']]],
+    ]);
   });
 });

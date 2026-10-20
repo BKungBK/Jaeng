@@ -4,6 +4,9 @@ export type Env = Record<(typeof REQUIRED)[number], string> & {
   quickLogin: boolean;
   demoPassword: string | null;
   rateLimits: { reports: number; comments: number; photos: number; fixClaims: number; flags: number };
+  nominatimUrl: string;
+  /** goes in the User-Agent, as the Nominatim usage policy asks; a URL, so nobody's email is published */
+  nominatimContact: string;
 };
 
 function positiveInt(source: Record<string, string | undefined>, key: string, fallback: number): number {
@@ -34,5 +37,7 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
     fixClaims: positiveInt(source, 'RATE_LIMIT_FIX_CLAIMS_PER_DAY', 10),
     flags: positiveInt(source, 'RATE_LIMIT_FLAGS_PER_DAY', 20),
   };
-  return { ...required, quickLogin, demoPassword, rateLimits };
+  const nominatimUrl = (source.NOMINATIM_URL || 'https://nominatim.openstreetmap.org').replace(/\/+$/, '');
+  const nominatimContact = source.NOMINATIM_CONTACT || 'https://github.com/BKungBK/Jaeng';
+  return { ...required, quickLogin, demoPassword, rateLimits, nominatimUrl, nominatimContact };
 }

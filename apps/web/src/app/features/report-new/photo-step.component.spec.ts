@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { PhotoStepComponent } from './photo-step.component';
 import { ReportDraftService, type DraftPhoto } from './report-draft.service';
 
-const photo = (n: number, state: DraftPhoto['state'], errorTh: string | null = null): DraftPhoto => ({
+const photo = (n: number, state: DraftPhoto['state'], error: string | null = null): DraftPhoto => ({
   localId: `l${n}`,
   previewUrl: `blob:p${n}`,
   width: 1600,
@@ -11,7 +11,7 @@ const photo = (n: number, state: DraftPhoto['state'], errorTh: string | null = n
   gps: null,
   state,
   photoId: state === 'ready' ? `p${n}` : null,
-  errorTh,
+  error,
   blob: null,
 });
 

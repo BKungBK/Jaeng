@@ -21,8 +21,8 @@ function setup(signedIn: boolean, loadedProfile: () => Promise<Profile | null>) 
   return TestBed.inject(Router);
 }
 
-const admin: Profile = { id: 'a', display_name: 'แอดมิน', role: 'admin' };
-const user: Profile = { id: 'u', display_name: 'พี่ปลา', role: 'user' };
+const admin: Profile = { id: 'a', display_name: 'แอดมิน', role: 'admin', locale: 'th' };
+const user: Profile = { id: 'u', display_name: 'พี่ปลา', role: 'user', locale: 'th' };
 const run = () => TestBed.runInInjectionContext(() => adminGuard({} as never, { url: '/admin' } as never));
 
 describe('adminGuard', () => {

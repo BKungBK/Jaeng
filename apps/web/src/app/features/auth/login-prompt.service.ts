@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { LoginFormComponent } from './login-form.component';
 
@@ -22,10 +23,10 @@ import { LoginFormComponent } from './login-form.component';
   selector: 'app-login-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [LoginFormComponent, IconComponent],
+  imports: [LoginFormComponent, IconComponent, TPipe],
   template: `
     <div class="login-sheet-body">
-      <button type="button" class="login-sheet-close" aria-label="ปิด" (click)="close()">
+      <button type="button" class="login-sheet-close" [attr.aria-label]="'common.close' | t" (click)="close()">
         <app-icon name="x" [size]="22" />
       </button>
       <app-login-form (done)="finish()" />

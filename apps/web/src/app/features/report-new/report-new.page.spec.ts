@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -8,7 +9,8 @@ import { CategoriesService } from '../../core/categories.service';
 import { DeviceService } from '../../core/device.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { MAP_FACTORY } from '../map/map-factory';
-import { CATEGORIES } from './categories.testing';
+import { CATEGORIES, provideCategories } from './categories.testing';
+import { I18nService } from '../../core/i18n.service';
 import { TagSuggestService } from './details-section.component';
 import { fakeMap } from './fake-map.testing';
 import { photoFile } from './gps-jpeg.testing';
@@ -51,7 +53,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
       provideRouter([]),
       { provide: ApiService, useValue: api },
       { provide: DeviceService, useValue: device },
-      { provide: CategoriesService, useValue: { list: vi.fn().mockResolvedValue(CATEGORIES) } },
+      provideCategories(),
       { provide: PHOTO_PIPELINE, useValue: { readGps, compress: async (f: File) => ({ blob: f, width: 1600, height: 1200, type: 'image/webp' }) } },
       { provide: MAP_FACTORY, useValue: () => map },
       { provide: TagSuggestService, useValue: { suggest: vi.fn().mockResolvedValue([]) } },
@@ -105,6 +107,18 @@ describe('ReportNewPage', () => {
     await settle();
     expect(title()).toBe('เป็นเรื่องอะไร');
     expect(root.textContent).toContain('ขั้น 2 จาก 3');
+  });
+
+  it('switches to English at step 2 without leaving it or losing the photo (plan 6)', async () => {
+    const { draft, settle, title, root } = await setup();
+    await draft.addFiles([photoFile('a.jpg')]);
+    await settle();
+    TestBed.inject(I18nService).setLocale('en');
+    await settle();
+    expect(title()).toBe('What is it?');
+    expect(root.textContent).toContain('Step 2 of 3');
+    expect(draft.photos()).toHaveLength(1);
+    expect(root.querySelector('button.cat')?.textContent?.trim()).toBe('Roads & sidewalks');
   });
 
   it('goes straight to the pin when a category is tapped: three taps in all', async () => {
@@ -218,7 +232,7 @@ describe('ReportNewPage', () => {
     await toStep3();
     api.post.mockImplementation(async (path: string) => {
       if (path === '/reports/check-duplicate') return { duplicates: [] };
-      throw new ApiError(429, 'rate_limited', 'วันนี้แจ้งครบ 5 เรื่องแล้ว พรุ่งนี้มาแจ้งต่อนะ');
+      throw new ApiError(429, 'rate_limited', 'วันนี้แจ้งครบ 5 เรื่องแล้ว พรุ่งนี้มาแจ้งต่อนะ', 'en');
     });
     button('ส่งเรื่อง')!.click();
     await settle();
@@ -234,7 +248,7 @@ describe('ReportNewPage', () => {
     api.post.mockImplementation(async (path: string) => {
       if (first) {
         first = false;
-        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ', 'en');
       }
       if (path === '/reports/check-duplicate') return { duplicates: [] };
       return { report: { id: 'new1' } };
@@ -255,7 +269,7 @@ describe('ReportNewPage', () => {
         first = false;
         session.set(null); // Supabase: SIGNED_OUT after the refresh failed
         TestBed.tick();
-        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ', 'en');
       }
       if (path === '/reports/check-duplicate') return { duplicates: [] };
       return { report: { id: 'new1' } };
@@ -280,5 +294,15 @@ describe('ReportNewPage', () => {
     expect(title()).toBe('ถ่ายรูปปัญหา');
     root.querySelector<HTMLButtonElement>('button[aria-label="ปิด"]')!.click();
     expect(back.go).toHaveBeenCalledWith();
+  });
+});
+
+describe('ReportNewPage accessibility (plan 6)', () => {
+  afterEach(() => TestBed.inject(ReportDraftService).reset());
+  it('has one h1 and no unnamed button on every step', async () => {
+    const { root, toStep3 } = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    expectAccessiblePage(root);
+    await toStep3('road');
+    expectAccessiblePage(root);
   });
 });

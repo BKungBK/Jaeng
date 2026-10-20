@@ -1,0 +1,59 @@
+<div class="scroller">
+  <main class="card">
+    <header class="head">
+      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
+        <app-icon name="chevronLeft" [size]="22" />
+      </button>
+      <h1 tabindex="-1">{{ 'about.title' | t }}</h1>
+    </header>
+
+    <section aria-labelledby="about-what">
+      <h2 id="about-what">{{ 'about.whatTitle' | t }}</h2>
+      <p>{{ 'about.what1' | t }}</p>
+      <p>{{ 'about.what2' | t }}</p>
+    </section>
+
+    <section aria-labelledby="about-rules">
+      <h2 id="about-rules">{{ 'about.rulesTitle' | t }}</h2>
+      <ul class="bullets">
+        @for (k of rules; track k) {
+          <li>{{ k | t }}</li>
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="about-emergency">
+      <h2 id="about-emergency">{{ 'about.emergencyTitle' | t }}</h2>
+      <app-emergency-box />
+    </section>
+
+    <section aria-labelledby="about-privacy">
+      <h2 id="about-privacy">{{ 'about.privacyTitle' | t }}</h2>
+      <ul class="bullets">
+        @for (k of privacy; track k) {
+          <li>{{ k | t }}</li>
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="about-display">
+      <h2 id="about-display">{{ 'display.title' | t }}</h2>
+      <p class="caption">{{ 'display.language' | t }}</p>
+      <app-language-choice />
+      <p class="caption">{{ 'display.theme' | t }}</p>
+      <app-theme-choice />
+    </section>
+
+    <section aria-labelledby="about-credits">
+      <h2 id="about-credits">{{ 'about.creditsTitle' | t }}</h2>
+      <dl class="credits">
+        @for (c of credits; track c.who) {
+          <div>
+            <dt>{{ c.what | t }}</dt>
+            <dd><a [href]="c.href" target="_blank" rel="noopener">{{ c.who }}</a></dd>
+          </div>
+        }
+      </dl>
+    </section>
+  </main>
+</div>

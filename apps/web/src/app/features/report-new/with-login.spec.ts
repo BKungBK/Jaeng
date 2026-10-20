@@ -1,7 +1,7 @@
 import { ApiError } from '../../core/api.service';
 import { withLogin } from './with-login';
 
-const expired = () => new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+const expired = () => new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ', 'en');
 
 describe('withLogin', () => {
   it('passes a success straight through without asking', async () => {
@@ -26,7 +26,7 @@ describe('withLogin', () => {
 
   it('does not ask for other errors', async () => {
     const prompt = { ask: vi.fn() };
-    const run = vi.fn().mockRejectedValue(new ApiError(429, 'rate_limited', 'x'));
+    const run = vi.fn().mockRejectedValue(new ApiError(429, 'rate_limited', 'x', 'en'));
     await expect(withLogin(prompt, run)).rejects.toMatchObject({ code: 'rate_limited' });
     expect(prompt.ask).not.toHaveBeenCalled();
   });

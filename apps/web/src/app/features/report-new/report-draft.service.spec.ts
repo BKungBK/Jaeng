@@ -7,6 +7,9 @@ import { DeviceService } from '../../core/device.service';
 import { photoFile } from './gps-jpeg.testing';
 import { PHOTO_PIPELINE, readGps, type CompressedPhoto } from './photo-tools';
 import { ReportDraftService } from './report-draft.service';
+import { I18nService, type Said } from '../../core/i18n.service';
+
+const say = (x: Said) => TestBed.inject(I18nService).say(x);
 
 const BANGKOK = { lat: 13.75, latRef: 'N', lng: 100.5, lngRef: 'E' } as const;
 const SYDNEY = { lat: 33.8, latRef: 'S', lng: 151.2, lngRef: 'E' } as const;
@@ -36,7 +39,7 @@ function setup(opts: Opts = {}) {
   const api = {
     upload: vi.fn(async () => {
       const n = ++uploads;
-      if (opts.failUpload?.(n)) throw new ApiError(500, 'internal', 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ');
+      if (opts.failUpload?.(n)) throw new ApiError(500, 'internal', 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ', 'en');
       return { photo_id: `p${n}`, width: 1600, height: 1200 };
     }),
     post: vi.fn(async (path: string, _body?: unknown): Promise<unknown> => {
@@ -92,7 +95,7 @@ describe('ReportDraftService', () => {
     const form = s.api.upload.mock.calls[0] as unknown as [string, FormData];
     expect(form[0]).toBe('/photos');
     expect(form[1].get('file')).toBeInstanceOf(Blob);
-    expect(s.draft.photos()[0]).toMatchObject({ state: 'ready', photoId: 'p1', width: 1600, height: 1200, errorTh: null });
+    expect(s.draft.photos()[0]).toMatchObject({ state: 'ready', photoId: 'p1', width: 1600, height: 1200, error: null });
     expect(s.draft.canContinueFromPhotos()).toBe(true);
   });
 
@@ -103,7 +106,7 @@ describe('ReportDraftService', () => {
     expect(states.filter((st) => st === 'error')).toHaveLength(1);
     expect(states.filter((st) => st === 'ready')).toHaveLength(3);
     const failed = s.draft.photos().find((p) => p.state === 'error')!;
-    expect(failed.errorTh).toBe('ระบบขัดข้อง ลองใหม่อีกครั้งนะ');
+    expect(say(failed.error)).toBe('ระบบขัดข้อง ลองใหม่อีกครั้งนะ');
     expect(s.draft.canContinueFromPhotos()).toBe(false);
     await s.draft.retry(failed.localId);
     expect(s.draft.photos().every((p) => p.state === 'ready')).toBe(true);
@@ -128,9 +131,12 @@ describe('ReportDraftService', () => {
 
   it('shows the 413 message on the photo that was too large', async () => {
     const s = setup();
-    s.api.upload.mockRejectedValueOnce(new ApiError(413, 'photo_too_large', 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)'));
+    s.api.upload.mockRejectedValueOnce(new ApiError(413, 'photo_too_large', 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)', 'The photo is too large (3 MB max).'));
     await s.draft.addFiles([photoFile('a.jpg')]);
-    expect(s.draft.photos()[0]).toMatchObject({ state: 'error', errorTh: 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)' });
+    expect(s.draft.photos()[0].state).toBe('error');
+    expect(say(s.draft.photos()[0].error)).toBe('รูปใหญ่เกินไป (ไม่เกิน 3 MB)');
+    TestBed.inject(I18nService).setLocale('en');
+    expect(say(s.draft.photos()[0].error)).toBe('The photo is too large (3 MB max).');
   });
 
   it('suggests the first photo with GPS without asking the device', async () => {
@@ -240,7 +246,7 @@ describe('ReportDraftService', () => {
     await ready(s);
     s.api.post.mockImplementation(async (path: string) => {
       if (path === '/reports/check-duplicate') return { duplicates: [] };
-      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ');
+      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ', 'en');
     });
     const err = await s.draft.submit().catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
@@ -258,11 +264,11 @@ describe('ReportDraftService', () => {
     await ready(s, [photoFile('a.jpg'), photoFile('b.jpg')]);
     s.api.post.mockImplementation(async (path: string) => {
       if (path === '/reports/check-duplicate') return { duplicates: [] };
-      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ');
+      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ', 'en');
     });
     await s.draft.submit().catch(() => undefined);
     expect(s.draft.photos().map((p) => p.state)).toEqual(['error', 'error']);
-    expect(s.draft.photos()[0].errorTh).toContain('เพิ่มรูป');
+    expect(say(s.draft.photos()[0].error)).toContain('เพิ่มรูป');
     expect(s.draft.canContinueFromPhotos()).toBe(false);
     // retry uploads the kept copy again and the photo is usable
     await s.draft.retry(s.draft.photos()[0].localId);
@@ -272,7 +278,7 @@ describe('ReportDraftService', () => {
   it('does the same when a merge answers invalid_photos', async () => {
     const s = setup();
     await ready(s);
-    s.api.post.mockRejectedValueOnce(new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ'));
+    s.api.post.mockRejectedValueOnce(new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ', 'en'));
     await s.draft.merge('d1').catch(() => undefined);
     expect(s.draft.photos()[0].state).toBe('error');
   });

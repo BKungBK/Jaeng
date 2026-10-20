@@ -51,7 +51,7 @@ describe('FlagFormComponent', () => {
   });
 
   it('shows the API message on error', async () => {
-    const err = new ApiError(429, 'rate_limited', 'วันนี้ทำรายการนี้ครบโควตาแล้ว พรุ่งนี้ลองใหม่นะ');
+    const err = new ApiError(429, 'rate_limited', 'วันนี้ทำรายการนี้ครบโควตาแล้ว พรุ่งนี้ลองใหม่นะ', 'en');
     const { submit, choose, settle, root, out } = await setup({ type: 'report', id: 'r1' }, vi.fn().mockRejectedValue(err));
     await choose('อื่นๆ');
     submit().click();

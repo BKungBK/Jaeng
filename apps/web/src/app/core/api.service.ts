@@ -1,5 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { MSG_INTERNAL_TH, type ApiErrorBody, type ErrorCode } from '@jaeng/shared/api';
+import type { ApiErrorBody, ErrorCode } from '@jaeng/shared/api';
+import { en } from '../i18n/en';
+import { th } from '../i18n/th';
 import { AuthService } from './auth.service';
 
 export class ApiError extends Error {
@@ -7,13 +9,18 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code: ErrorCode,
     readonly messageTh: string,
+    readonly messageEn: string,
   ) {
     super(`${status} ${code}`);
   }
 }
 
-const MSG_INTERNAL = MSG_INTERNAL_TH;
-const MSG_PHOTO_TOO_LARGE = 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)';
+type OwnError = keyof typeof th.errors;
+
+/** An error the web app words itself, from the dictionaries (no I18nService: this runs outside views). */
+function own(status: number, code: ErrorCode, key: OwnError): ApiError {
+  return new ApiError(status, code, th.errors[key], en.errors[key]);
+}
 
 type Method = 'GET' | 'POST' | 'PATCH';
 type Payload = { json: unknown } | { form: FormData } | undefined;
@@ -41,7 +48,7 @@ export class ApiService {
 
   private async request<T>(method: Method, path: string, payload: Payload): Promise<T> {
     const token = await this.auth.accessToken();
-    if (!token) throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+    if (!token) throw own(401, 'unauthorized', 'unauthorized');
     let res = await this.send(method, path, payload, token);
     if (res.status === 401) {
       // token may have expired mid-session: refresh once, retry once
@@ -52,7 +59,7 @@ export class ApiService {
     try {
       return (await res.json()) as T;
     } catch {
-      throw new ApiError(res.status, 'internal', MSG_INTERNAL);
+      throw own(res.status, 'internal', 'internal');
     }
   }
 
@@ -68,19 +75,20 @@ export class ApiService {
     try {
       return await fetch(`/api${path}`, { method, headers, body });
     } catch {
-      throw new ApiError(0, 'network', 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ');
+      throw own(0, 'network', 'network');
     }
   }
 
   private async toError(res: Response): Promise<ApiError> {
     // the body size limit answers with a bare, non-JSON 413
-    if (res.status === 413) return new ApiError(413, 'photo_too_large', MSG_PHOTO_TOO_LARGE);
+    if (res.status === 413) return own(413, 'photo_too_large', 'photoTooLarge');
     try {
       const { error } = (await res.json()) as ApiErrorBody;
-      if (error && typeof error.code === 'string') return new ApiError(res.status, error.code, error.message_th);
+      if (error && typeof error.code === 'string')
+        return new ApiError(res.status, error.code, error.message_th, error.message_en ?? error.message_th);
     } catch {
       // not JSON
     }
-    return new ApiError(res.status, 'internal', MSG_INTERNAL);
+    return own(res.status, 'internal', 'internal');
   }
 }

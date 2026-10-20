@@ -218,55 +218,6 @@ h2 {
   }
 }
 
-// ---- emergency (level 3): rose means danger here, which is the only thing it may mean ----
-.emergency {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--s3) 24%, #fff);
-  color: $slate;
-  font-size: 14px;
-  line-height: 1.6;
-
-  app-icon {
-    flex: none;
-    margin-top: 2px;
-  }
-
-  a {
-    display: inline-grid;
-    place-items: center;
-    min-width: 56px;
-    min-height: 44px;
-    padding: 0 10px;
-    border-radius: 14px;
-    background: #fff;
-    color: $slate;
-    font: 600 16px/1 $prompt;
-    font-variant-numeric: tabular-nums;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-
-    &:hover {
-      background: color-mix(in srgb, var(--s3) 10%, #fff);
-    }
-  }
-}
-
-.numbers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  margin-top: 6px;
-}
-
-.sep {
-  color: color-mix(in srgb, $slate 60%, transparent);
-}
-
 // ---- actions ----
 .actions {
   display: flex;

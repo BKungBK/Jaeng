@@ -5,7 +5,8 @@ import { beamHeight } from '@jaeng/shared/beam';
 import { CATEGORY_ICONS, CategorySlug } from '@jaeng/shared/categories';
 import { DangerLevel, LEVELS, LevelInfo } from '@jaeng/shared/levels';
 import { iconElement, IconName } from './icons';
-import { ReportProps, STATUS_TH } from './report';
+import type { Words } from '../../core/i18n.service';
+import { ReportProps } from './report';
 import { levelShapeSvg } from './level-shape';
 import { BEAM_ZOOM } from './toy';
 
@@ -22,8 +23,13 @@ export function beaconView(p: ReportProps, zoom: number): BeaconView {
   return { compact, height, state, level: LEVELS[p.danger_level] };
 }
 
-export function beaconAriaLabel(p: ReportProps): string {
-  return `${p.title} ระดับ${LEVELS[p.danger_level].nameTh} ${STATUS_TH[p.status]}`;
+export function beaconAriaLabel(p: ReportProps, w: Words): string {
+  return w.t('map.beacon', { title: p.title, level: w.levelName(p.danger_level), status: w.t(`status.${p.status}`) });
+}
+
+export function clusterAriaLabel(count: number, maxLevel: DangerLevel, critical: number, w: Words): string {
+  const params = { n: count, level: w.levelName(maxLevel), c: critical };
+  return w.t(critical > 0 ? 'map.clusterCritical' : 'map.cluster', params);
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, parent?: HTMLElement) {
@@ -70,7 +76,7 @@ function levelBadge(level: DangerLevel | null): HTMLElement {
 // Rebuild only when the look changes; label and height update in place so a focused disc survives.
 const structureKey = (p: ReportProps, view: BeaconView) => `${p.category}|${p.danger_level}|${view.state}`;
 
-export function updateBeaconElement(root: HTMLElement, p: ReportProps, view: BeaconView, showLabel: boolean): void {
+export function updateBeaconElement(root: HTMLElement, p: ReportProps, view: BeaconView, showLabel: boolean, w: Words): void {
   const key = structureKey(p, view);
   if (root.dataset['key'] !== key) {
     build(root, p, view);
@@ -86,25 +92,32 @@ export function updateBeaconElement(root: HTMLElement, p: ReportProps, view: Bea
   root.className = `beacon st-${view.state}${view.compact ? ' compact' : ''}`;
   setLevelVars(root, view.level);
   root.style.setProperty('--h', `${view.height}px`);
-  disc.setAttribute('aria-label', beaconAriaLabel(p));
+  disc.setAttribute('aria-label', beaconAriaLabel(p, w));
   if (lbl) lbl.textContent = p.title;
 }
 
-export function createBeaconElement(p: ReportProps, view: BeaconView, showLabel: boolean): HTMLElement {
+export function createBeaconElement(p: ReportProps, view: BeaconView, showLabel: boolean, w: Words): HTMLElement {
   const root = document.createElement('div');
-  updateBeaconElement(root, p, view, showLabel);
+  updateBeaconElement(root, p, view, showLabel, w);
   return root;
 }
 
-export function createClusterElement(count: number, maxLevel: DangerLevel): HTMLElement {
+export function createClusterElement(count: number, maxLevel: DangerLevel, critical: number, w: Words): HTMLElement {
   const root = el('div', 'cluster');
   setLevelVars(root, LEVELS[maxLevel]);
   el('i', 'ring', root);
   const btn = el('button', 'count', root);
   btn.type = 'button';
   btn.textContent = String(count);
-  btn.setAttribute('aria-label', `${count} เรื่องในพื้นที่นี้ ระดับสูงสุด${LEVELS[maxLevel].nameTh}`);
+  btn.setAttribute('aria-label', clusterAriaLabel(count, maxLevel, critical, w));
   btn.appendChild(levelBadge(maxLevel));
+  if (critical > 0) {
+    // the critical shape + how many, at the disc's upper left; the button's label says it in words
+    const pill = el('span', 'crit', root);
+    pill.setAttribute('aria-hidden', 'true');
+    pill.appendChild(levelShapeSvg(3));
+    pill.appendChild(document.createTextNode(String(critical)));
+  }
   return root;
 }
 

@@ -12,9 +12,10 @@ import {
   viewChild,
 } from '@angular/core';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
-import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
-import { ApiError } from '../../core/api.service';
 import type { CategoryInfo } from '../../core/categories.service';
+import { I18nService, type Said } from '../../core/i18n.service';
+import type { MessageKey } from '../../i18n/keys';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { CategoryStepComponent } from './category-step.component';
@@ -30,7 +31,7 @@ import { withLogin } from './with-login';
 type Step = 1 | 2 | 3;
 type View = 'flow' | 'duplicates' | 'sent';
 
-const TITLES: Record<Step, string> = { 1: 'ถ่ายรูปปัญหา', 2: 'เป็นเรื่องอะไร', 3: 'ปักหมุดตรงไหน' };
+const TITLES: Record<Step, MessageKey> = { 1: 'newReport.titlePhoto', 2: 'newReport.titleCategory', 3: 'newReport.titlePin' };
 /** Without EXIF or a device position the pin must be placed by hand, close enough to be useful. */
 export const PIN_MIN_ZOOM = 14;
 
@@ -50,6 +51,7 @@ export const PIN_MIN_ZOOM = 14;
     DetailsSectionComponent,
     DuplicateCardComponent,
     SentCardComponent,
+    TPipe,
   ],
   templateUrl: 'report-new.page.html',
   styleUrl: 'report-new.page.scss',
@@ -61,14 +63,15 @@ export class ReportNewPage {
   private prompt = inject(LoginPromptService);
   private injector = inject(Injector);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly step = signal<Step>(1);
   protected readonly view = signal<View>('flow');
   protected readonly candidates = signal<DuplicateCandidate[]>([]);
   protected readonly zoom = signal(0);
   protected readonly sending = signal(false);
-  protected readonly message = signal('');
-  protected readonly title = computed(() => TITLES[this.step()]);
+  protected readonly message = signal<Said>(null);
+  protected readonly title = computed(() => this.i18n.t(TITLES[this.step()]));
   protected readonly steps: Step[] = [1, 2, 3];
   private scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 
@@ -77,9 +80,9 @@ export class ReportNewPage {
   protected readonly needsZoom = computed(() => this.zoom() < PIN_MIN_ZOOM);
   protected readonly photosWhy = computed(() => {
     const photos = this.draft.photos();
-    if (photos.length === 0) return 'ยังไม่มีรูป กลับไปขั้นที่ 1 เพื่อใส่รูปก่อนนะ';
-    if (photos.some((p) => p.state === 'error')) return 'มีรูปที่อัปโหลดไม่สำเร็จ กลับไปขั้นที่ 1 เพื่อลองใหม่หรือลบออกนะ';
-    if (photos.some((p) => p.state !== 'ready')) return 'รอรูปอัปโหลดอีกนิดนะ';
+    if (photos.length === 0) return this.i18n.t('newReport.noPhotos');
+    if (photos.some((p) => p.state === 'error')) return this.i18n.t('newReport.photoFailed');
+    if (photos.some((p) => p.state !== 'ready')) return this.i18n.t('newReport.uploading');
     return '';
   });
   protected readonly canSend = computed(
@@ -113,7 +116,7 @@ export class ReportNewPage {
   }
 
   protected go(step: Step) {
-    this.message.set('');
+    this.message.set(null);
     this.step.set(step);
     this.focusHeading('#rn-step-title');
   }
@@ -139,7 +142,7 @@ export class ReportNewPage {
   protected async send() {
     if (!this.canSend()) return; // a second press while the first is out does nothing
     this.sending.set(true);
-    this.message.set('');
+    this.message.set(null);
     try {
       const result = await withLogin(this.prompt, () => this.draft.submit());
       if (result.kind === 'created') this.finish();
@@ -149,7 +152,7 @@ export class ReportNewPage {
         this.focusHeading('#rn-dup-title');
       }
     } catch (e) {
-      this.message.set(e instanceof ApiError ? e.messageTh : MSG_INTERNAL_TH);
+      this.message.set({ error: e });
     } finally {
       this.sending.set(false);
     }

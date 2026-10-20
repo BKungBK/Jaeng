@@ -1,0 +1,35 @@
+// The new-version notice: the map toast's look, at the bottom centre above everything.
+.update {
+  position: fixed;
+  z-index: 30000;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px 12px;
+  max-width: calc(100% - 32px);
+  padding: 0 4px 0 16px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 400 14px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+  box-shadow: var(--sh);
+
+  button {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    background: none;
+    color: var(--bg);
+    font: 600 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 3px solid var(--pri);
+      outline-offset: 2px;
+    }
+  }
+}

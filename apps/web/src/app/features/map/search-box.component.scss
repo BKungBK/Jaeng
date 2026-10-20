@@ -1,0 +1,180 @@
+// The search field card (≥ 820 px) or the phone's icon + full-width card (handoff "Search").
+:host {
+  display: block;
+  position: relative;
+}
+
+.card {
+  background: var(--surf);
+  color: var(--ink);
+  border-radius: 18px;
+  box-shadow: var(--sh);
+}
+
+.box {
+  width: 300px;
+}
+
+// phones: a full-width card over the top group, sliding down a little as it opens
+.box.phone {
+  position: fixed;
+  z-index: 8;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 12px;
+  right: 12px;
+  width: auto;
+  animation: search-in 160ms ease-out;
+}
+
+@keyframes search-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 4px 0 14px;
+  color: var(--ink2);
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif; // 16 px: iOS never zooms
+    caret-color: var(--pri);
+    outline: none;
+
+    &::placeholder {
+      color: var(--ink2);
+    }
+  }
+
+  &:focus-within {
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 3px var(--pri);
+  }
+}
+
+.ctl {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--pri);
+    outline-offset: 2px;
+  }
+}
+
+.ctl.close {
+  border-color: transparent;
+}
+
+.results {
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 6px 8px;
+  border-top: 1px solid var(--line);
+}
+
+.group,
+.note {
+  margin: 8px 8px 4px;
+  color: var(--ink2);
+  font: 400 13px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+.note.small {
+  margin-top: 2px;
+}
+
+.retry {
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--pri);
+  font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover,
+  &[aria-selected='true'] {
+    background: var(--bg);
+  }
+
+  &[aria-selected='true'] {
+    box-shadow: inset 3px 0 0 var(--pri);
+  }
+
+  // "search more places": an action row, in Trust Blue so it does not read as a place
+  &.more {
+    color: var(--pri);
+  }
+}
+
+.text {
+  display: grid;
+  min-width: 0;
+}
+
+.name {
+  font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink2);
+  font: 400 13px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c) 45%, #fff);
+  color: #2b2a33;
+}

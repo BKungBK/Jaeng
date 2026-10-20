@@ -1,4 +1,5 @@
 // Zoom rules for the toy map (spec 3.2, 4.4).
+import type { MessageKey } from '../../i18n/keys';
 
 /** Toy layers are fully shown up to zoom 6 and gone at zoom 8. Never quite 1: a fully opaque fill
  *  goes into MapLibre's opaque pass, which runs before the custom sea layer, so the sea would paint
@@ -16,11 +17,11 @@ export function toyOpacity(zoom: number): number {
 }
 
 /** The status line in the corner card: what the visitor is looking at and what to do next. */
-export function zoomHint(zoom: number, shown: number, levelsOn: number): string {
-  if (levelsOn === 0) return 'ปิดตัวกรองครบทุกระดับแล้ว แตะชิปด้านบนเพื่อดูเรื่องอีกครั้ง';
-  if (shown === 0) return 'ยังไม่มีเรื่องตรงกับตัวกรองในบริเวณนี้';
-  if (zoom < 6) return 'ภาพรวมประเทศ: วงตัวเลข = จำนวนเรื่องในพื้นที่ ซูมเข้าเพื่อดูแต่ละเรื่อง';
-  if (zoom < 8) return 'ซูมต่อไป ภาพประกอบจะค่อยๆ กลายเป็นแผนที่ปกติ';
-  if (zoom < BEAM_ZOOM) return 'แผนที่ปกติ: เรื่องที่อยู่ใกล้กันรวมเป็นวงตัวเลข';
-  return 'ระดับย่าน: ลำแสงยิ่งสูง ยิ่งมีคนเจอเหมือนกันมาก';
+export function zoomHint(zoom: number, shown: number, levelsOn: number, t: (key: MessageKey) => string): string {
+  if (levelsOn === 0) return t('map.hint.allOff');
+  if (shown === 0) return t('map.hint.none');
+  if (zoom < 6) return t('map.hint.country');
+  if (zoom < 8) return t('map.hint.zooming');
+  if (zoom < BEAM_ZOOM) return t('map.hint.street');
+  return t('map.hint.neighbourhood');
 }

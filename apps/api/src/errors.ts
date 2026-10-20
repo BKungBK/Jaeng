@@ -1,4 +1,4 @@
-import { MSG_INTERNAL_TH, type ApiErrorBody, type ServerErrorCode } from '@jaeng/shared/api';
+import { MSG_INTERNAL_EN, MSG_INTERNAL_TH, type ApiErrorBody, type ServerErrorCode } from '@jaeng/shared/api';
 
 type Entry = { status: number; th: string; en: string };
 
@@ -25,7 +25,7 @@ export const ERRORS = {
   already_resolved: { status: 409, th: 'เรื่องนี้แก้แล้ว ขอบคุณที่ช่วยดูนะ', en: 'This report is already resolved. Thanks for checking.' },
   cannot_ban_admin: { status: 409, th: 'แบนบัญชีผู้ดูแลไม่ได้', en: 'Moderator accounts cannot be banned.' },
   invalid_note: { status: 400, th: 'ข้อความยาวได้ไม่เกิน 500 ตัวอักษร', en: 'The note can be at most 500 characters.' },
-  internal: { status: 500, th: MSG_INTERNAL_TH, en: 'Something went wrong. Please try again.' },
+  internal: { status: 500, th: MSG_INTERNAL_TH, en: MSG_INTERNAL_EN },
 } as const satisfies Record<ServerErrorCode, Entry>;
 
 export type ErrorCode = ServerErrorCode;

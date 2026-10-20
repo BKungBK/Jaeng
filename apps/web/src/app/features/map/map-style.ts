@@ -2,6 +2,7 @@
 import type { FeatureCollection } from 'geojson';
 import type { ExpressionSpecification, Map as MlMap } from 'maplibre-gl';
 import { baseTint, INK, paintProvinces } from './cel-land';
+import type { Locale } from '../../i18n/keys';
 import type { SeaTheme } from './sea/sea-palette';
 import { CLUSTER_MAX_ZOOM, TOY_FADE } from './toy';
 
@@ -28,7 +29,11 @@ export function setupReportLayers(map: MapLike): void {
     cluster: true,
     clusterMaxZoom: CLUSTER_MAX_ZOOM,
     clusterRadius: 60,
-    clusterProperties: { maxLevel: ['max', ['get', 'danger_level']] },
+    clusterProperties: {
+      maxLevel: ['max', ['get', 'danger_level']],
+      // how many critical reports a cluster holds: its pill (plan 6)
+      critical: ['+', ['case', ['==', ['get', 'danger_level'], 3], 1, 0]],
+    },
   });
   // MapLibre only loads tiles for a source some layer uses; beacons themselves are HTML markers.
   map.addLayer({
@@ -125,4 +130,19 @@ export function tintBaseMap(map: MapLike, theme: SeaTheme, shallow: string): voi
 export function holdBaseLabels(map: MapLike): void {
   for (const layer of map.getStyle().layers ?? [])
     if (layer.type === 'symbol' && layer.id.startsWith('label_')) map.setLayerZoomRange(layer.id, 7.5, 24);
+}
+
+/** Street-map names in the reader's language where OpenStreetMap has them, else the local name.
+ *  Only symbol layers that already show a name change (road shields keep their numbers). */
+export function labelBaseMap(map: Pick<MlMap, 'getStyle' | 'getLayoutProperty' | 'setLayoutProperty'>, locale: Locale): void {
+  const field: ExpressionSpecification =
+    locale === 'th'
+      ? ['coalesce', ['get', 'name:th'], ['get', 'name']]
+      : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
+  for (const layer of map.getStyle().layers ?? []) {
+    if (layer.type !== 'symbol') continue;
+    const current = map.getLayoutProperty(layer.id, 'text-field');
+    if (current === undefined || !JSON.stringify(current).includes('name')) continue;
+    map.setLayoutProperty(layer.id, 'text-field', field);
+  }
 }

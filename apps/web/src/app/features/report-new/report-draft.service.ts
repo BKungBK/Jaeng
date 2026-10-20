@@ -7,10 +7,12 @@ import {
   type NewReportBody,
   type PhotoUploaded,
 } from '@jaeng/shared/report';
-import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
 import { ApiError, ApiService } from '../../core/api.service';
+import { en } from '../../i18n/en';
+import { th } from '../../i18n/th';
 import { AuthService } from '../../core/auth.service';
 import { DeviceService, type LngLat } from '../../core/device.service';
+import type { Said } from '../../core/i18n.service';
 import { PHOTO_PIPELINE, PhotoTooLargeError } from './photo-tools';
 
 export type DraftPhoto = {
@@ -21,7 +23,8 @@ export type DraftPhoto = {
   gps: LngLat | null;
   state: 'compressing' | 'uploading' | 'ready' | 'error';
   photoId: string | null;
-  errorTh: string | null;
+  /** why it failed, worded at render in the reader's language */
+  error: Said;
   blob: Blob | null;
 };
 
@@ -39,11 +42,10 @@ export type SubmitResult = { kind: 'created'; id: string } | { kind: 'duplicates
 
 const emptyDetails = (): DraftDetails => ({ title: '', description: '', danger: null, tags: [], hideAuthor: false });
 
-const MSG_DRAFT_CLEARED = 'ร่างถูกล้างเพราะเปลี่ยนผู้ใช้ เริ่มใหม่ได้เลยนะ';
-const MSG_PHOTOS_STALE = 'รูปนี้หมดอายุแล้ว กดลองใหม่หรือเอาออกแล้วเพิ่มรูปอีกครั้งนะ';
+const draftCleared = () => new ApiError(400, 'invalid_report', th.errors.draftCleared, en.errors.draftCleared);
 
-const messageOf =(e: unknown): string =>
-  e instanceof ApiError || e instanceof PhotoTooLargeError ? e.messageTh : 'เตรียมรูปนี้ไม่สำเร็จ ลองใหม่หรือเลือกรูปอื่นนะ';
+const messageOf = (e: unknown): Said =>
+  e instanceof ApiError || e instanceof PhotoTooLargeError ? { error: e } : 'photoStep.prepFailed';
 
 /**
  * The report being written, kept in memory so the reporter can go back and forth between the three
@@ -113,7 +115,7 @@ export class ReportDraftService {
         gps: null,
         state: 'compressing',
         photoId: null,
-        errorTh: null,
+        error: null,
         blob: null,
       };
       return photo;
@@ -181,7 +183,7 @@ export class ReportDraftService {
   /** "ใช่ กดเจอเหมือนกันแทน": count me in on that report; the API attaches the first photo as a comment. */
   merge(targetId: string): Promise<{ id: string }> {
     return this.once(async () => {
-      if (this._photos().length === 0) throw new ApiError(400, 'invalid_report', MSG_DRAFT_CLEARED);
+      if (this._photos().length === 0) throw draftCleared();
       await this.api.post(`/reports/${encodeURIComponent(targetId)}/merge`, { photo_ids: this.readyIds() });
       return { id: targetId };
     });
@@ -224,7 +226,7 @@ export class ReportDraftService {
   }
 
   private markPhotosStale(): void {
-    this._photos.update((list) => list.map((p): DraftPhoto => ({ ...p, state: 'error', photoId: null, errorTh: MSG_PHOTOS_STALE })));
+    this._photos.update((list) => list.map((p): DraftPhoto => ({ ...p, state: 'error', photoId: null, error: 'photoStep.stale' })));
   }
 
   private readyIds(): string[] {
@@ -235,8 +237,9 @@ export class ReportDraftService {
     const category = this._category();
     const location = this._location();
     const photoIds = this.readyIds();
-    if (this._photos().length === 0) throw new ApiError(400, 'invalid_report', MSG_DRAFT_CLEARED);
-    if (!category || !location || photoIds.length === 0) throw new ApiError(400, 'invalid_report', MSG_INTERNAL_TH);
+    if (this._photos().length === 0) throw draftCleared();
+    if (!category || !location || photoIds.length === 0)
+      throw new ApiError(400, 'invalid_report', th.errors.internal, en.errors.internal);
     const d = this.details();
     const body: NewReportBody = { category, lng: location.lng, lat: location.lat, photo_ids: photoIds };
     const title = d.title.trim();
@@ -271,7 +274,7 @@ export class ReportDraftService {
         if (!this.patch(localId, { gps })) return;
       }
       if (!blob) {
-        this.patch(localId, { state: 'compressing', errorTh: null });
+        this.patch(localId, { state: 'compressing', error: null });
         const out = await this.pipeline.compress(file);
         blob = out.blob;
         const old = this.find(localId);
@@ -281,13 +284,13 @@ export class ReportDraftService {
         URL.revokeObjectURL(old.previewUrl);
         this.patch(localId, { blob, previewUrl, width: out.width, height: out.height });
       }
-      if (!this.patch(localId, { state: 'uploading', errorTh: null })) return;
+      if (!this.patch(localId, { state: 'uploading', error: null })) return;
       const form = new FormData();
       form.append('file', blob, blob.type === 'image/jpeg' ? 'photo.jpg' : 'photo.webp');
       const res = await this.api.upload<PhotoUploaded>('/photos', form);
       this.patch(localId, { state: 'ready', photoId: res.photo_id, width: res.width, height: res.height });
     } catch (e) {
-      this.patch(localId, { state: 'error', errorTh: messageOf(e) });
+      this.patch(localId, { state: 'error', error: messageOf(e) });
     }
   }
 }

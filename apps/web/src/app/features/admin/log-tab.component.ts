@@ -1,26 +1,26 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { LocationMode, LogEntry } from '@jaeng/shared/admin';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
-import { formatAgo, formatDate } from '../../shared/time';
 import { rejectReasonText } from '../me/reject-reason';
 import { AdminService } from './admin.service';
-import { LOCATION_MODE_TH, LOG_ACTION_TH } from './admin-labels';
+import { locationKey, logActionText } from './admin-labels';
+import { I18nService } from '../../core/i18n.service';
+import { LOCATION_MODES } from '@jaeng/shared/admin';
 
 /** The API answers 50 entries a page; a shorter page is the last one. */
 export const LOG_PAGE = 50;
 
-const KIND_TH: Record<string, string> = { report: 'เรื่อง', comment: 'ความคิดเห็น', user: 'ผู้ใช้' };
-
-/** Tab "บันทึก" (spec 3.10.5): every moderation action, newest first. */
+/** Tab "Log" (spec 3.10.5): every moderation action, newest first. */
 @Component({
   selector: 'app-log-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, RouterLink],
+  imports: [IconComponent, RouterLink, TPipe],
   template: `
     @if (failed()) {
-      <p class="caption">โหลดบันทึกไม่สำเร็จ ลองอีกครั้งนะ</p>
-      <button type="button" class="btn retry" (click)="loadMore()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+      <p class="caption">{{ 'admin.logFailed' | t }}</p>
+      <button type="button" class="btn retry" (click)="loadMore()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
     }
     <ol class="list">
       @for (e of entries(); track e.id) {
@@ -32,34 +32,35 @@ const KIND_TH: Record<string, string> = { report: 'เรื่อง', comment:
               <span class="name">{{ e.target_name }}</span>
             }
             @if (e.target_type === 'report' && e.target_id) {
-              <a [routerLink]="['/r', e.target_id]">เปิดเรื่องนี้</a>
+              <a [routerLink]="['/r', e.target_id]">{{ 'admin.logTab.open' | t }}</a>
             }
           </p>
           @for (d of details(e); track d) {
             <p class="detail">{{ d }}</p>
           }
           <p class="meta">
-            {{ e.admin_name ?? 'ระบบ' }} ·
+            {{ e.admin_name ?? ('admin.logTab.system' | t) }} ·
             <time [attr.datetime]="e.created_at" [title]="date(e.created_at)">{{ ago(e.created_at) }}</time>
           </p>
         </li>
       } @empty {
         @if (!loading()) {
-          <li class="empty-line">ยังไม่มีบันทึก</li>
+          <li class="empty-line">{{ 'admin.logTab.empty' | t }}</li>
         }
       }
     </ol>
     @if (loading()) {
-      <p class="caption">กำลังโหลด…</p>
+      <p class="caption">{{ 'load.loading' | t }}</p>
     }
     @if (hasMore() && !loading()) {
-      <button type="button" class="btn more" (click)="loadMore()"><app-icon name="history" [size]="18" />ดูเก่ากว่านี้</button>
+      <button type="button" class="btn more" (click)="loadMore()"><app-icon name="history" [size]="18" />{{ 'admin.logTab.older' | t }}</button>
     }
   `,
   styleUrl: 'log-tab.component.scss',
 })
 export class LogTabComponent {
   private admin = inject(AdminService);
+  private i18n = inject(I18nService);
 
   protected readonly entries = signal<LogEntry[]>([]);
   protected readonly loading = signal(false);
@@ -86,22 +87,28 @@ export class LogTabComponent {
     }
   }
 
-  protected action = (e: LogEntry) => (LOG_ACTION_TH as Record<string, string>)[e.action] ?? e.action;
-  protected kind = (e: LogEntry) => KIND_TH[e.target_type] ?? e.target_type;
+  protected action = (e: LogEntry) => logActionText(e.action, (k) => this.i18n.t(k));
+  protected kind = (e: LogEntry) =>
+    e.target_type === 'report' || e.target_type === 'comment' || e.target_type === 'user'
+      ? this.i18n.t(`admin.logTab.kind.${e.target_type}`)
+      : e.target_type;
 
   /** Only the keys we know, as plain text. */
   protected details(e: LogEntry): string[] {
     const d = e.detail ?? {};
     const out: string[] = [];
     // only reject_report logs a reason (a REJECT_REASONS key)
-    if (typeof d['reason'] === 'string') out.push(`เหตุผล: ${rejectReasonText(d['reason'])}`);
-    if (typeof d['note'] === 'string') out.push(`หมายเหตุ: ${d['note']}`);
-    if (typeof d['location_mode'] === 'string') {
-      out.push(`ตำแหน่ง: ${LOCATION_MODE_TH[d['location_mode'] as LocationMode] ?? d['location_mode']}`);
+    const t = this.i18n.t.bind(this.i18n);
+    if (typeof d['reason'] === 'string') out.push(t('admin.logTab.reason', { v: rejectReasonText(d['reason'], t) }));
+    if (typeof d['note'] === 'string') out.push(t('admin.logTab.note', { v: d['note'] }));
+    const mode = d['location_mode'];
+    if (typeof mode === 'string') {
+      const known = (LOCATION_MODES as readonly string[]).includes(mode);
+      out.push(t('admin.logTab.location', { v: known ? t(locationKey(mode as LocationMode)) : mode }));
     }
     return out;
   }
 
-  protected ago = formatAgo;
-  protected date = formatDate;
+  protected ago = (iso: string) => this.i18n.ago(iso);
+  protected date = (iso: string) => this.i18n.date(iso);
 }

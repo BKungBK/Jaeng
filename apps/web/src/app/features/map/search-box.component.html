@@ -1,0 +1,121 @@
+@if (!showField()) {
+  <button type="button" class="ctl flat search-icon" [attr.aria-label]="'search.open' | t" (click)="openCard()">
+    <app-icon name="search" />
+  </button>
+} @else {
+  <div class="card box" [class.phone]="collapsed()">
+    <div class="field">
+      <app-icon name="search" [size]="20" />
+      <input
+        type="search"
+        role="combobox"
+        autocomplete="off"
+        spellcheck="false"
+        enterkeyhint="search"
+        aria-autocomplete="list"
+        [attr.aria-label]="'search.label' | t"
+        [attr.placeholder]="'search.label' | t"
+        [attr.aria-expanded]="expanded()"
+        [attr.aria-controls]="id + '-list'"
+        [attr.aria-activedescendant]="activeId()"
+        [value]="q()"
+        (input)="onInput($event)"
+        (keydown)="onKey($event)"
+        (focus)="resultsOpen.set(true)"
+      />
+      @if (collapsed()) {
+        <button type="button" class="ctl flat close" [attr.aria-label]="'search.close' | t" (click)="closeCard()">
+          <app-icon name="x" />
+        </button>
+      }
+    </div>
+
+    <div class="results" [id]="id + '-list'" role="listbox" [attr.aria-label]="'search.label' | t" [hidden]="!expanded()">
+      @switch (state()) {
+        @case ('loading') {
+          <p class="note" role="presentation">{{ 'search.loading' | t }}</p>
+        }
+        @case ('failed') {
+          <p class="note" role="presentation">
+            {{ 'search.failed' | t }}
+            <button type="button" class="retry" (click)="run()">{{ 'common.tryAgain' | t }}</button>
+          </p>
+        }
+        @case ('ready') {
+          @if (!placeOptions().length && !reportOptions().length && more() !== 'loading') {
+            <p class="note" role="presentation">{{ 'search.none' | t: { q: q().trim() } }}</p>
+          }
+          @if (placeOptions().length || moreOption() || more() === 'loading') {
+            <div role="group" [attr.aria-label]="'search.places' | t">
+              <p class="group" role="presentation">{{ 'search.places' | t }}</p>
+              @for (o of placeOptions(); track $index) {
+                @let p = asPlace(o)!;
+                @let i = indexOf(o);
+                <div
+                  class="opt"
+                  role="option"
+                  [id]="optionId(i)"
+                  [attr.aria-selected]="active() === i"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="choose(o)"
+                >
+                  <app-icon name="mapPin" [size]="20" />
+                  <span class="text">
+                    <span class="name">{{ p.name }}</span>
+                    @if (p.detail) {
+                      <span class="detail">{{ p.detail }}</span>
+                    }
+                  </span>
+                </div>
+              }
+              @if (moreOption(); as m) {
+                @let i = indexOf(m);
+                <div
+                  class="opt more"
+                  role="option"
+                  [id]="optionId(i)"
+                  [attr.aria-selected]="active() === i"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="choose(m)"
+                >
+                  <app-icon name="search" [size]="20" />
+                  <span class="text"><span class="name">{{ 'search.more' | t }}</span></span>
+                </div>
+              } @else if (more() === 'loading') {
+                <p class="note small" role="presentation">{{ 'search.loading' | t }}</p>
+              }
+            </div>
+          }
+          @if (!online()) {
+            <p class="note small" role="presentation">{{ 'search.offline' | t }}</p>
+          }
+          @if (reportOptions().length) {
+            <div role="group" [attr.aria-label]="'search.reports' | t">
+              <p class="group" role="presentation">{{ 'search.reports' | t }}</p>
+              @for (o of reportOptions(); track $index) {
+                @let r = asReport(o)!;
+                @let i = indexOf(o);
+                <div
+                  class="opt report"
+                  role="option"
+                  [id]="optionId(i)"
+                  [attr.aria-selected]="active() === i"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="choose(o)"
+                >
+                  <span class="tile" [style.--c]="level(r).color"><app-icon [name]="icon(r)" [size]="20" /></span>
+                  <span class="text">
+                    <span class="name">{{ r.title }}</span>
+                    <span class="detail">
+                      <app-level-shape [level]="r.danger_level" />{{ i18n.levelName(r.danger_level) }} · {{ statusWord(r) }}
+                    </span>
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+}

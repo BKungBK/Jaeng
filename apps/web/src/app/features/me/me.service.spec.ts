@@ -23,6 +23,13 @@ describe('MeService', () => {
     expect(api.patch).toHaveBeenCalledWith('/me', { display_name: 'พี่ปลา' });
   });
 
+  it('stores the language through PATCH /me', async () => {
+    const { api, svc } = setup();
+    api.patch.mockResolvedValue({ display_name: 'x', locale: 'en' });
+    await svc.setLocale('en');
+    expect(api.patch).toHaveBeenCalledWith('/me', { locale: 'en' });
+  });
+
   it('lets an API error through for the page to show', async () => {
     const { api, svc } = setup();
     api.patch.mockRejectedValue(new Error('422'));

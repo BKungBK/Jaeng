@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, ViewEncapsulation } from '@angular/core';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 
 export type ReportMenuRole = 'copy' | 'flag' | 'hide';
@@ -10,21 +11,21 @@ export type ReportMenuRole = 'copy' | 'flag' | 'hide';
   selector: 'app-report-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
-    <div class="report-menu-body" role="menu" aria-label="ตัวเลือกเพิ่มเติม">
+    <div class="report-menu-body" role="menu" [attr.aria-label]="'detail.more' | t">
       <button type="button" role="menuitem" class="report-menu-item" (click)="choose('copy')">
         <app-icon name="link" [size]="20" />
-        คัดลอกลิงก์
+        {{ 'menu.copy' | t }}
       </button>
       <button type="button" role="menuitem" class="report-menu-item" (click)="choose('flag')">
         <app-icon name="flag" [size]="20" />
-        รายงานเนื้อหาไม่เหมาะสม
+        {{ 'menu.flag' | t }}
       </button>
       @if (profile()?.role === 'admin') {
         <button type="button" role="menuitem" class="report-menu-item" (click)="choose('hide')">
           <app-icon name="eyeOff" [size]="20" />
-          ซ่อนเรื่องนี้
+          {{ 'menu.hide' | t }}
         </button>
       }
     </div>

@@ -13,7 +13,9 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import type { DemoUser, DemoWho } from '@jaeng/shared/api';
-import { AuthError, AuthService, MSG_LOGIN_FAILED } from '../../core/auth.service';
+import { AuthError, AuthService } from '../../core/auth.service';
+import { I18nService, type Said } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { SupabaseService } from '../../core/supabase.service';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -21,7 +23,6 @@ import { IconComponent } from '../../shared/icon.component';
 export const RESEND_AFTER_MS = 60_000;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const MSG_GENERIC = MSG_LOGIN_FAILED;
 
 type Busy = 'send' | 'verify' | 'resend' | DemoWho;
 
@@ -33,13 +34,14 @@ let nextId = 0;
   templateUrl: 'login-form.component.html',
   styleUrls: ['login-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, NgTemplateOutlet],
+  imports: [IconComponent, NgTemplateOutlet, TPipe],
 })
 export class LoginFormComponent {
   private auth = inject(AuthService);
   private supabase = inject(SupabaseService);
   private emailInput = viewChild<ElementRef<HTMLInputElement>>('emailInput');
   private codeInput = viewChild<ElementRef<HTMLInputElement>>('codeInput');
+  protected readonly i18n = inject(I18nService);
 
   /** Emits once the user is signed in. */
   readonly done = output<void>();
@@ -50,9 +52,9 @@ export class LoginFormComponent {
   protected readonly code = signal('');
   protected readonly sentTo = signal('');
   protected readonly busy = signal<Busy | null>(null);
-  protected readonly error = signal<string | null>(null);
-  protected readonly demoError = signal<string | null>(null);
-  protected readonly status = signal('');
+  protected readonly error = signal<Said>(null);
+  protected readonly demoError = signal<Said>(null);
+  protected readonly status = signal<Said>(null);
   protected readonly demo = signal<DemoUser[]>([]);
 
   private readonly until = signal(0);
@@ -116,11 +118,11 @@ export class LoginFormComponent {
 
   protected async resend() {
     if (this.wait() > 0 || this.busy()) return;
-    this.status.set('');
+    this.status.set(null);
     await this.run('resend', async () => {
       await this.auth.sendCode(this.sentTo());
       this.startCountdown();
-      this.status.set('ส่งรหัสใหม่ไปแล้วนะ');
+      this.status.set('auth.resent');
       this.focus(this.codeInput);
     });
   }
@@ -140,12 +142,12 @@ export class LoginFormComponent {
   protected back() {
     this.step.set('email');
     this.error.set(null);
-    this.status.set('');
+    this.status.set(null);
     this.focus(this.emailInput);
   }
 
-  /** Runs one request at a time, showing its Thai error. Resolves true on success. */
-  private async run(what: Busy, job: () => Promise<void>, errorSig: WritableSignal<string | null> = this.error) {
+  /** Runs one request at a time, showing its error. Resolves true on success. */
+  private async run(what: Busy, job: () => Promise<void>, errorSig: WritableSignal<Said> = this.error) {
     this.busy.set(what);
     this.error.set(null);
     this.demoError.set(null);
@@ -153,8 +155,8 @@ export class LoginFormComponent {
       await job();
       return true;
     } catch (e) {
-      // only AuthService's own Thai text is shown; "config 503" or "Failed to fetch" never reach the visitor
-      errorSig.set(e instanceof AuthError && e.message ? e.message : MSG_GENERIC);
+      // only AuthService's own words are shown; "config 503" or "Failed to fetch" never reach the visitor
+      errorSig.set(e instanceof AuthError ? { error: e } : 'auth.error.failed');
       return false;
     } finally {
       this.busy.set(null);
@@ -170,6 +172,8 @@ export class LoginFormComponent {
       if (this.wait() === 0) clearInterval(this.ticker);
     }, 1000);
   }
+
+  protected demoLabel = (u: DemoUser) => (this.i18n.locale() === 'en' ? u.label_en : u.label_th);
 
   private focus(ref: () => ElementRef<HTMLInputElement> | undefined, select = false) {
     setTimeout(() => {

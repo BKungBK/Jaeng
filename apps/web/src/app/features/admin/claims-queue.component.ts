@@ -1,31 +1,31 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import type { QueueClaim } from '@jaeng/shared/admin';
-import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { ApiError } from '../../core/api.service';
+import { I18nService, type Said } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
-import { formatAgo, formatDate } from '../../shared/time';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
 import { AdminService } from './admin.service';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
-/** Tab "แจ้งว่าแก้แล้ว" (spec 3.10.2): each claim with the before and after photos side by side. */
+/** Tab "Fix claims" (spec 3.10.2): each claim with the before and after photos side by side. */
 @Component({
   selector: 'app-claims-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent],
+  imports: [IconComponent, LevelShapeComponent, TPipe],
   template: `
-    <p class="status" role="status">{{ message() }}</p>
+    <p class="status" role="status">{{ i18n.say(message()) }}</p>
     @switch (state()) {
       @case ('loading') {
-        <p class="caption">กำลังโหลด…</p>
+        <p class="caption">{{ 'load.loading' | t }}</p>
         <div class="ghost"></div>
       }
       @case ('error') {
-        <p class="caption">โหลดคิวไม่สำเร็จ ลองอีกครั้งนะ</p>
-        <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />ลองอีกครั้ง</button>
+        <p class="caption">{{ 'admin.queueFailed' | t }}</p>
+        <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
       }
       @case ('ready') {
         @for (c of items(); track c.id) {
@@ -33,31 +33,31 @@ type LoadState = 'loading' | 'ready' | 'error';
             <div class="compare">
               <figure>
                 @if (c.report.photos[0]; as p) {
-                  <img [src]="p.url" alt="รูปก่อนแก้" />
+                  <img [src]="p.url" [attr.alt]="'admin.claims.beforeAlt' | t" />
                 } @else {
                   <span class="tile"><app-icon [name]="icon(c.report.category)" [size]="36" /></span>
                 }
-                <figcaption>ก่อนแก้</figcaption>
+                <figcaption>{{ 'detail.photoKind.before' | t }}</figcaption>
               </figure>
               <figure>
                 @if (c.photo; as p) {
-                  <img [src]="p.url" alt="รูปหลังแก้" />
+                  <img [src]="p.url" [attr.alt]="'admin.claims.afterAlt' | t" />
                 } @else {
-                  <span class="none">ไม่ได้แนบรูปหลังแก้</span>
+                  <span class="none">{{ 'admin.claims.noAfter' | t }}</span>
                 }
-                <figcaption>หลังแก้</figcaption>
+                <figcaption>{{ 'detail.photoKind.after' | t }}</figcaption>
               </figure>
             </div>
             <h2>{{ c.report.title }}</h2>
             <ul class="tags">
-              <li class="tag lvl"><app-level-shape [level]="level(c.report.danger_level).level" />ระดับ{{ level(c.report.danger_level).nameTh }}</li>
-              <li class="tag"><app-icon name="clock" [size]="16" />ค้างมา {{ c.report.days_open }} วัน</li>
+              <li class="tag lvl"><app-level-shape [level]="level(c.report.danger_level).level" />{{ 'detail.level' | t: { level: i18n.levelName(level(c.report.danger_level).level) } }}</li>
+              <li class="tag"><app-icon name="clock" [size]="16" />{{ 'age.days' | t: { n: c.report.days_open } }}</li>
               @if (c.report.place_name) {
                 <li class="tag"><app-icon name="mapPin" [size]="16" />{{ c.report.place_name }}</li>
               }
             </ul>
             <p class="who">
-              แจ้งว่าแก้แล้วโดย <strong>{{ c.claimant.display_name }}</strong>
+              {{ 'admin.claims.claimedBy' | t }} <strong>{{ c.claimant.display_name }}</strong>
               @if (c.claimant.email) {
                 <span class="email">{{ c.claimant.email }}</span>
               }
@@ -68,17 +68,17 @@ type LoadState = 'loading' | 'ready' | 'error';
             }
             <div class="decide">
               <button type="button" class="btn" [disabled]="busy()" (click)="review(c, false)">
-                <app-icon name="circleX" [size]="18" />ยังไม่แก้
+                <app-icon name="circleX" [size]="18" />{{ 'admin.claims.notFixed' | t }}
               </button>
               <button type="button" class="btn primary" [disabled]="busy()" (click)="review(c, true)">
-                <app-icon name="circleCheck" [size]="18" />ยืนยันว่าแก้แล้ว
+                <app-icon name="circleCheck" [size]="18" />{{ 'admin.claims.confirm' | t }}
               </button>
             </div>
           </article>
         } @empty {
           <div class="empty">
             <span class="disc"><app-icon name="circleCheck" [size]="30" /></span>
-            <p>ไม่มีคำขอรอตรวจ</p>
+            <p>{{ 'admin.claims.empty' | t }}</p>
           </div>
         }
       }
@@ -88,12 +88,13 @@ type LoadState = 'loading' | 'ready' | 'error';
 })
 export class ClaimsQueueComponent {
   private admin = inject(AdminService);
+  protected readonly i18n = inject(I18nService);
   readonly changed = output<void>();
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly items = signal<QueueClaim[]>([]);
   protected readonly busy = signal(false);
-  protected readonly message = signal('');
+  protected readonly message = signal<Said>(null);
 
   constructor() {
     void this.load();
@@ -112,14 +113,14 @@ export class ClaimsQueueComponent {
   protected async review(c: QueueClaim, approve: boolean) {
     if (this.busy()) return;
     this.busy.set(true);
-    this.message.set('');
+    this.message.set(null);
     try {
       await this.admin.reviewClaim(c.id, approve);
       this.items.update((list) => list.filter((x) => x.id !== c.id));
-      this.message.set(approve ? 'ยืนยันแล้ว ลำแสงดับ เหลือเครื่องหมายถูก' : 'ส่งกลับเป็นยังไม่แก้แล้ว');
+      this.message.set(approve ? 'admin.claims.confirmed' : 'admin.claims.sentBack');
       this.changed.emit();
     } catch (e) {
-      this.message.set(e instanceof ApiError ? e.messageTh : MSG_INTERNAL_TH);
+      this.message.set({ error: e });
       if (e instanceof ApiError && e.status === 409) {
         await this.load();
         this.changed.emit();
@@ -131,6 +132,6 @@ export class ClaimsQueueComponent {
 
   protected level = (n: number) => LEVELS[n as DangerLevel] ?? LEVELS[0];
   protected icon = categoryIcon;
-  protected ago = formatAgo;
-  protected date = formatDate;
+  protected ago = (iso: string) => this.i18n.ago(iso);
+  protected date = (iso: string) => this.i18n.date(iso);
 }

@@ -1,33 +1,17 @@
-import type { MyReport, REJECT_REASONS } from '@jaeng/shared/report';
+import { REJECT_REASONS, type MyReport } from '@jaeng/shared/report';
+import type { MessageKey } from '../../i18n/keys';
 import type { IconName } from '../map/icons';
 
 type Status = MyReport['status'];
 
-export const REJECT_REASON_TH: Record<(typeof REJECT_REASONS)[number], string> = {
-  duplicate: 'ซ้ำกับเรื่องที่มีอยู่แล้ว',
-  not_public: 'ไม่ใช่ปัญหาสาธารณะ',
-  inappropriate: 'เนื้อหาไม่เหมาะสม',
-  insufficient: 'ข้อมูลไม่พอ',
-  other: 'อื่นๆ',
-};
-
-export const MSG_NO_REASON = 'ผู้ดูแลไม่ได้ระบุเหตุผล';
-
-/** A known key becomes its Thai label, the admin's own words stay as written, nothing becomes a sentence. */
-export function rejectReasonText(reason: string | null): string {
-  if (!reason) return MSG_NO_REASON;
-  return Object.hasOwn(REJECT_REASON_TH, reason) ? REJECT_REASON_TH[reason as keyof typeof REJECT_REASON_TH] : reason;
+/** A known key becomes its words, the admin's own words stay as written, nothing becomes a sentence. */
+export function rejectReasonText(reason: string | null, t: (k: MessageKey) => string): string {
+  if (!reason) return t('reject.none');
+  return (REJECT_REASONS as readonly string[]).includes(reason) ? t(`reject.${reason as (typeof REJECT_REASONS)[number]}`) : reason;
 }
 
-/** Six statuses, six different words: a status is never told by colour alone. */
-export const STATUS_TH: Record<Status, string> = {
-  pending_review: 'รอผู้ดูแลตรวจ',
-  open: 'เปิดอยู่',
-  fix_claimed: 'รอตรวจว่าแก้แล้ว',
-  resolved: 'แก้แล้ว',
-  rejected: 'ไม่ผ่านการตรวจ',
-  hidden: 'ถูกซ่อน',
-};
+/** Six statuses, six different words ('myStatus.<status>'): a status is never told by colour alone. */
+export const statusKey = (s: Status): MessageKey => `myStatus.${s}`;
 
 /** ...and six different Lucide shapes beside the words. */
 export const STATUS_ICON: Record<Status, IconName> = {

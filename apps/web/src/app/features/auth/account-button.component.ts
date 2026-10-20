@@ -2,14 +2,18 @@ import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation
 import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { I18nService } from '../../core/i18n.service';
+import { LOCALE_NAMES, type Locale } from '../../i18n/keys';
+import { TPipe } from '../../i18n/t.pipe';
+import { MeService } from '../me/me.service';
 import { IconComponent } from '../../shared/icon.component';
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
-type MenuRole = 'mine' | 'admin' | 'switch' | 'signout';
+type MenuRole = 'mine' | 'admin' | 'switch' | 'signout' | 'about';
 
 // Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
-const THAI_LEADING_VOWEL = /^[เ-ไ]$/u;
+const THAI_LEADING_VOWEL = /^[\u0E40-\u0E44]$/u;
 const graphemes = new Intl.Segmenter('th', { granularity: 'grapheme' });
 
 /** The first letter of a name as one whole grapheme (a Thai consonant keeps its vowel and tone marks). */
@@ -25,32 +29,41 @@ export function initialOf(name: string): string {
   selector: 'app-account-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
     <div class="account-menu-body">
       <p class="account-menu-who">
-        <span class="account-menu-name">{{ profile()?.display_name ?? 'บัญชีของฉัน' }}</span>
+        <span class="account-menu-name">{{ profile()?.display_name ?? ('account.mine' | t) }}</span>
         @if (profile()?.role === 'admin') {
-          <span class="tag">ผู้ดูแล</span>
+          <span class="tag">{{ 'account.admin' | t }}</span>
         }
       </p>
       <button type="button" class="account-menu-item" (click)="choose('mine')">
         <app-icon name="fileText" [size]="20" />
-        เรื่องของฉัน
+        {{ 'account.myReports' | t }}
       </button>
       @if (profile()?.role === 'admin') {
         <button type="button" class="account-menu-item" (click)="choose('admin')">
           <app-icon name="shieldCheck" [size]="20" />
-          หน้าผู้ดูแล
+          {{ 'account.adminPage' | t }}
         </button>
       }
+      <!-- switches in place: the menu stays open so the reader sees the change -->
+      <button type="button" class="account-menu-item" [attr.lang]="other()" (click)="switchLanguage()">
+        <app-icon name="languages" [size]="20" />
+        {{ names[other()] }}
+      </button>
+      <button type="button" class="account-menu-item" (click)="choose('about')">
+        <app-icon name="info" [size]="20" />
+        {{ 'account.about' | t }}
+      </button>
       <button type="button" class="account-menu-item" (click)="choose('switch')">
         <app-icon name="circleUser" [size]="20" />
-        สลับผู้ใช้
+        {{ 'account.switch' | t }}
       </button>
       <button type="button" class="account-menu-item" (click)="choose('signout')">
         <app-icon name="logOut" [size]="20" />
-        ออกจากระบบ
+        {{ 'account.signOut' | t }}
       </button>
     </div>
   `,
@@ -117,7 +130,17 @@ export function initialOf(name: string): string {
 })
 export class AccountMenuComponent {
   private popovers = inject(PopoverController);
+  private i18n = inject(I18nService);
+  private me = inject(MeService);
   protected readonly profile = inject(AuthService).profile;
+  protected readonly names = LOCALE_NAMES;
+  protected readonly other = computed<Locale>(() => (this.i18n.locale() === 'th' ? 'en' : 'th'));
+
+  protected switchLanguage() {
+    const l = this.other();
+    this.i18n.setLocale(l);
+    this.me.setLocale(l).catch((e) => console.warn('language not saved to the account', e));
+  }
 
   protected choose(role: MenuRole) {
     void this.popovers.dismiss(undefined, role);
@@ -188,11 +211,12 @@ export class AccountButtonComponent {
   private popovers = inject(PopoverController);
   private router = inject(Router);
   private draft = inject(ReportDraftService);
+  private i18n = inject(I18nService);
 
   protected readonly label = computed(() => {
-    if (!this.auth.signedIn()) return 'เข้าสู่ระบบ';
+    if (!this.auth.signedIn()) return this.i18n.t('auth.login');
     const name = this.auth.profile()?.display_name;
-    return name ? `บัญชี: ${name}` : 'บัญชีของฉัน';
+    return name ? this.i18n.t('account.of', { name }) : this.i18n.t('account.mine');
   });
 
   /** Empty while signed out or while the profile loads: the icon shows instead. */
@@ -218,6 +242,7 @@ export class AccountButtonComponent {
     if (role === 'mine') await this.router.navigate(['/me']);
     else if (role === 'admin') await this.router.navigate(['/admin']);
     else if (role === 'switch') await this.prompt.ask();
+    else if (role === 'about') await this.router.navigate(['/about']);
     else if (role === 'signout') {
       // leaving on purpose: an unsent report draft goes too (a lapsed session keeps it, see ReportDraftService)
       this.draft.reset();

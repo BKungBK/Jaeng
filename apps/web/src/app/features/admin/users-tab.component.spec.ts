@@ -80,7 +80,7 @@ describe('UsersTabComponent', () => {
   });
 
   it('shows the API words for cannot_ban_admin', async () => {
-    const err = new ApiError(409, 'cannot_ban_admin', 'แบนบัญชีผู้ดูแลไม่ได้');
+    const err = new ApiError(409, 'cannot_ban_admin', 'แบนบัญชีผู้ดูแลไม่ได้', 'en');
     const { rows, btn, settle, root } = await setup(undefined, { setBan: vi.fn().mockRejectedValue(err) });
     btn(rows()[0], 'แบน')!.click();
     await settle();

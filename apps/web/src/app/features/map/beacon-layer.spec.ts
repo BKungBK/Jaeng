@@ -1,3 +1,5 @@
+import { TestBed } from '@angular/core/testing';
+import { I18nService } from '../../core/i18n.service';
 import type { ReportProps } from './report';
 
 vi.mock('maplibre-gl', () => {
@@ -45,14 +47,39 @@ function setup() {
     getCenter: () => ({ lng: 0, lat: 0 }),
     getCanvas: () => ({ width: 1, height: 1 }),
   };
-  const layer = new BeaconLayer(map as never, { hover: vi.fn(), leave: vi.fn(), select: vi.fn() });
+  const i18n = TestBed.inject(I18nService);
+  const layer = new BeaconLayer(map as never, { hover: vi.fn(), leave: vi.fn(), select: vi.fn() }, i18n);
   const show = (...ps: ReportProps[]) => {
     features = ps.map((p) => ({ geometry: { type: 'Point', coordinates: [100, 13] }, properties: p }));
     layer.sync();
   };
   const disc = (id: string) => document.querySelector<HTMLElement>(`.disc[data-id="${id}"]`);
-  return { layer, show, disc };
+  return { layer, show, disc, i18n };
 }
+
+describe('BeaconLayer language', () => {
+  afterEach(() => document.body.replaceChildren());
+
+  it('rewords the disc in place on a switch, and focus stays on it', () => {
+    const { show, disc, layer, i18n } = setup();
+    show(props('a'));
+    const before = disc('a')!;
+    layer.focus('a');
+    i18n.setLocale('en');
+    expect(disc('a')).toBe(before);
+    expect(before.getAttribute('aria-label')).toBe('เรื่อง a Caution level, Not fixed yet');
+    expect(document.activeElement).toBe(before);
+  });
+
+  it('stops listening once destroyed', () => {
+    const { show, disc, layer, i18n } = setup();
+    show(props('a'));
+    const d = disc('a')!;
+    layer.destroy();
+    i18n.setLocale('en');
+    expect(d.getAttribute('aria-label')).toContain('ระดับ');
+  });
+});
 
 describe('BeaconLayer selection', () => {
   afterEach(() => document.body.replaceChildren());

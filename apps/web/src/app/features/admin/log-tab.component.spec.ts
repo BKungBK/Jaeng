@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import type { LogEntry } from '@jaeng/shared/admin';
+import { I18nService } from '../../core/i18n.service';
 import { AdminService } from './admin.service';
 import { LogTabComponent } from './log-tab.component';
 
@@ -65,6 +66,16 @@ describe('LogTabComponent', () => {
   it('no more button when the first page is short', async () => {
     const { root } = await setup([[entry(1)]]);
     expect(root.querySelector('button.more')).toBeNull();
+  });
+
+  it('words actions, kinds and details in English after a switch (plan 6)', async () => {
+    const { rows, settle } = await setup([[entry(1, { action: 'approve_report', detail: { location_mode: 'fuzz' } }), entry(2, { action: 'reject_report', detail: { reason: 'duplicate' }, admin_name: null })]]);
+    TestBed.inject(I18nService).setLocale('en');
+    await settle();
+    expect(rows()[0].textContent).toContain('Approved report');
+    expect(rows()[0].textContent).toContain('Location: New random shift (up to 150 m)');
+    expect(rows()[1].textContent).toContain('Reason: Already reported');
+    expect(rows()[1].textContent).toContain('System');
   });
 
   it('shows known detail keys as text', async () => {

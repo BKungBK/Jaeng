@@ -1,18 +1,36 @@
-<!-- DOM order is tab order: chips and controls first, then the map's markers -->
-<div class="top" [class.beside]="panelOpen()">
+<!-- DOM order is tab order: the skip link, the brand card, chips and controls, then the map's markers -->
+<a class="skip" href="/list" (click)="skipToList($event)">{{ 'map.skipToList' | t }}</a>
+
+<div class="top" [class.beside]="panelOpen()" [class.searching]="searching()">
   <header class="card brand">
-    <h1>แจ้ง</h1>
-    <p>ทุกเรื่องคือสัญญาณไฟ</p>
+    <div class="brand-text">
+      <h1>{{ 'app.title' | t }}</h1>
+      <p>{{ 'map.tagline' | t }}</p>
+    </div>
+    <div class="brand-actions">
+      @if (!wide()) {
+        <app-search-box [collapsed]="true" (place)="flyToPlace($event)" (report)="openReport($event)" (opened)="searching.set($event)" />
+      }
+      <app-language-toggle />
+      <button type="button" class="ctl flat" [attr.aria-label]="'account.about' | t" (click)="openAbout()">
+        <app-icon name="info" />
+      </button>
+    </div>
   </header>
-  <app-filter-bar [(levels)]="levels" (levelsChange)="scheduleLoad()" />
+  @if (wide()) {
+    <app-search-box (place)="flyToPlace($event)" (report)="openReport($event)" />
+  }
+  <app-filter-bar />
 </div>
 
 <div class="controls" [class.beside]="panelOpen()">
-  <button type="button" class="ctl" aria-label="ซูมเข้า" (click)="zoomIn()"><app-icon name="plus" /></button>
-  <button type="button" class="ctl" aria-label="ซูมออก" (click)="zoomOut()"><app-icon name="minus" /></button>
-  <button type="button" class="ctl" aria-label="ไปที่ตำแหน่งของฉัน" (click)="locate()">
+  <button type="button" class="ctl" [attr.aria-label]="'map.zoomIn' | t" (click)="zoomIn()"><app-icon name="plus" /></button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.zoomOut' | t" (click)="zoomOut()"><app-icon name="minus" /></button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.locate' | t" (click)="locate()">
     <app-icon name="locateFixed" />
   </button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.home' | t" (click)="home()"><app-icon name="house" /></button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.list' | t" (click)="openList()"><app-icon name="list" /></button>
   <app-account-button />
 </div>
 
@@ -21,7 +39,10 @@
   <app-report-fab class="fab" [class.beside]="panelOpen()" />
 }
 
-<p class="card hint" aria-live="polite">{{ hint() }}</p>
+<div class="card hint">
+  <app-stats-line [state]="stats()" />
+  <p class="hint-line" aria-live="polite">{{ hint() }}</p>
+</div>
 
 <div class="map" #map></div>
 
@@ -72,7 +93,12 @@
 }
 
 @if (toast(); as t) {
-  <div class="toast" role="status">{{ t }}</div>
+  <div class="toast" role="status">
+    <span>{{ i18n.say(t.said) }}</span>
+    @if (t.action; as a) {
+      <button type="button" class="toast-action" (click)="runToast(t)">{{ a.label | t }}</button>
+    }
+  </div>
 }
 
 <ng-template #summary let-p let-id="id">
@@ -86,11 +112,11 @@
   <strong class="title" [attr.id]="id">{{ p.title }}</strong>
   <span class="meta">
     <app-level-shape class="shape" [level]="p.danger_level" />
-    {{ level(p).nameTh }} · {{ status(p) }} · เจอเหมือนกัน {{ p.confirm_count }}
+    {{ i18n.levelName(p.danger_level) }} · {{ status(p) }} · {{ 'map.metooCount' | t: { n: p.confirm_count } }}
   </span>
   @if (p.status === 'open') {
     <span class="age" [class.long]="p.days_open > 30">
-      {{ p.days_open > 30 ? 'ค้างนาน · ' : '' }}ค้างมา {{ p.days_open }} วัน
+      {{ p.days_open > 30 ? ('age.long' | t) + ' · ' : '' }}{{ 'age.days' | t: { n: p.days_open } }}
     </span>
   }
 </ng-template>

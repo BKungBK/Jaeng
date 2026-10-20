@@ -17,6 +17,20 @@ describe('routes', () => {
     expect(routes.indexOf(admin!)).toBeLessThan(routes.findIndex((r) => r.path === '**'));
   });
 
+  it('opens /list to everyone, before the catch-all', () => {
+    const list = routes.find((r) => r.path === 'list');
+    expect(list?.canActivate).toBeUndefined();
+    expect(list?.loadComponent).toBeDefined();
+    expect(routes.indexOf(list!)).toBeLessThan(routes.findIndex((r) => r.path === '**'));
+  });
+
+  it('opens /about to everyone, before the catch-all', () => {
+    const about = routes.find((r) => r.path === 'about');
+    expect(about?.canActivate).toBeUndefined();
+    expect(about?.loadComponent).toBeDefined();
+    expect(routes.indexOf(about!)).toBeLessThan(routes.findIndex((r) => r.path === '**'));
+  });
+
   it('puts /me behind the signed-in guard, before the catch-all', () => {
     const me = routes.find((r) => r.path === 'me');
     expect(me?.canActivate).toEqual([signedInGuard]);

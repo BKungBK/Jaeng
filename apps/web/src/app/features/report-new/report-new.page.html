@@ -2,11 +2,11 @@
   <main class="card">
     <header class="head">
       @let closes = view() === 'sent' || (view() === 'flow' && step() === 1);
-      <button type="button" class="ctl" [attr.aria-label]="closes ? 'ปิด' : 'ย้อนกลับ'" (click)="backOrClose()">
+      <button type="button" class="ctl" [attr.aria-label]="(closes ? 'common.close' : 'newReport.back') | t" (click)="backOrClose()">
         <app-icon [name]="closes ? 'x' : 'chevronLeft'" [size]="22" />
       </button>
       @if (view() === 'sent') {
-        <h1 class="sr-only">แจ้งเรื่อง</h1>
+        <h1 class="sr-only">{{ 'newReport.heading' | t }}</h1>
       } @else {
         <div class="titles">
           <h1 id="rn-step-title" tabindex="-1">{{ title() }}</h1>
@@ -16,7 +16,7 @@
                 <span class="seg" [class.done]="s < step()" [class.now]="s === step()"></span>
               }
             </span>
-            <span class="caption">ขั้น {{ step() }} จาก 3</span>
+            <span class="caption">{{ 'newReport.stepOf' | t: { n: step() } }}</span>
           </div>
         </div>
       }
@@ -44,7 +44,7 @@
                 @if (needsZoom()) {
                   <p class="gate">
                     <app-icon name="plus" [size]="18" />
-                    ซูมเข้าไปอีกหน่อยเพื่อปักหมุดให้แม่น
+                    {{ 'newReport.zoomCloser' | t }}
                   </p>
                 }
                 @if (photosWhy(); as why) {
@@ -52,10 +52,10 @@
                 }
                 <button type="button" class="btn primary big wide" [disabled]="!canSend()" [attr.aria-busy]="sending()" (click)="send()">
                   <app-icon name="send" [size]="20" />
-                  {{ sending() ? 'กำลังส่ง…' : 'ส่งเรื่อง' }}
+                  {{ (sending() ? 'load.sending' : 'newReport.send') | t }}
                 </button>
-                <p class="rule">เล่าที่ปัญหา ไม่ระบุชื่อหรือกล่าวหาบุคคล</p>
-                <p class="status" role="status">{{ message() }}</p>
+                <p class="rule">{{ 'newReport.rule' | t }}</p>
+                <p class="status" role="status">{{ i18n.say(message()) }}</p>
               </div>
               <app-details-section />
             </section>

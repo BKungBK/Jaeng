@@ -1,32 +1,32 @@
-<button type="button" class="ctl close" aria-label="ปิด" #closeBtn (click)="closed.emit()">
+<button type="button" class="ctl close" [attr.aria-label]="'common.close' | t" #closeBtn (click)="closed.emit()">
   <app-icon name="x" [size]="22" />
 </button>
 
 @switch (state()) {
   @case ('loading') {
     <div class="gallery"><div class="tile wait"></div></div>
-    <p class="note">กำลังเปิดเรื่องนี้…</p>
+    <p class="note">{{ 'detail.loading' | t }}</p>
   }
   @case ('error') {
     <div class="gallery"><div class="tile wait"></div></div>
-    <p class="note" role="status">{{ message() }}</p>
-    <button type="button" class="btn retry" (click)="retry()">ลองอีกครั้ง</button>
+    <p class="note" role="status">{{ i18n.say(message()) }}</p>
+    <button type="button" class="btn retry" (click)="retry()">{{ 'common.tryAgain' | t }}</button>
   }
   @case ('ready') {
     @if (detail(); as d) {
       <div class="gallery" [style.--c]="level(d).color">
         @if (d.photos.length) {
-          <ul class="strip" [class.single]="d.photos.length === 1" aria-label="รูปของเรื่องนี้">
+          <ul class="strip" [class.single]="d.photos.length === 1" [attr.aria-label]="'detail.photos' | t">
             @for (p of d.photos; track p.path; let i = $index) {
               <li class="shot">
                 <img
                   [src]="photoUrl(p.path)"
-                  [attr.alt]="'รูป' + kind[p.kind] + ' ' + (i + 1)"
+                  [attr.alt]="'detail.photoAlt' | t: { kind: kind(p.kind), n: i + 1 }"
                   [attr.width]="p.width"
                   [attr.height]="p.height"
                   loading="lazy"
                 />
-                <span class="kind" aria-hidden="true">{{ kind[p.kind] }}</span>
+                <span class="kind" aria-hidden="true">{{ kind(p.kind) }}</span>
               </li>
             }
           </ul>
@@ -39,13 +39,15 @@
 
       <ul class="tags">
         <li class="tag lvl" [style.--c]="level(d).color">
-          <app-level-shape [level]="d.danger_level" />ระดับ{{ level(d).nameTh }}
+          <app-level-shape [level]="d.danger_level" />{{ 'detail.level' | t: { level: i18n.levelName(d.danger_level) } }}
         </li>
-        <li class="tag"><app-icon [name]="icon(d)" [size]="16" />{{ category(d) }}</li>
+        @if (category(d); as name) {
+          <li class="tag"><app-icon [name]="icon(d)" [size]="16" />{{ name }}</li>
+        }
         <li class="tag">{{ status(d) }}</li>
         @if (d.status !== 'resolved') {
           <li class="tag age" [class.long]="longWait(d)">
-            {{ longWait(d) ? 'ค้างนาน · ' : '' }}ค้างมา {{ d.days_open }} วัน
+            {{ longWait(d) ? ('age.long' | t) + ' · ' : '' }}{{ 'age.days' | t: { n: d.days_open } }}
           </li>
         }
         @for (t of d.tags; track t) {
@@ -59,7 +61,7 @@
 
       <div class="byline">
         <p>
-          แจ้งโดย <strong>{{ d.author_name ?? 'ผู้ใช้นิรนาม' }}</strong> ·
+          {{ 'detail.by' | t }} <strong>{{ d.author_name ?? ('common.anonymous' | t) }}</strong> ·
           <time [attr.datetime]="d.created_at" [title]="date(d.created_at)">{{ ago(d.created_at) }}</time>
         </p>
         @if (d.place_name) {
@@ -68,16 +70,7 @@
       </div>
 
       @if (d.danger_level === 3) {
-        <div class="emergency">
-          <app-icon name="phone" [size]="20" />
-          <p>
-            ระบบนี้ไม่ใช่ช่องทางฉุกเฉิน หากมีอันตรายทันที โทร
-            <span class="numbers">
-              <a href="tel:191">191</a><span class="sep" aria-hidden="true"> / </span><a href="tel:199">199</a
-              ><span class="sep" aria-hidden="true"> / </span><a href="tel:1669">1669</a>
-            </span>
-          </p>
-        </div>
+        <app-emergency-box />
       }
 
       @if (form()?.kind === 'fix') {
@@ -87,7 +80,7 @@
       } @else {
         <div class="actions">
           @if (d.status === 'resolved') {
-            <p class="agreed"><app-icon name="hand" [size]="18" />มีคนเจอเหมือนกัน {{ d.confirm_count }} คน</p>
+            <p class="agreed"><app-icon name="hand" [size]="18" />{{ 'detail.agreed' | t: { n: d.confirm_count } }}</p>
           } @else {
             <button
               type="button"
@@ -98,22 +91,22 @@
             >
               <!-- pressed is shown by shape too, not by fill colour alone -->
               <app-icon [name]="confirmed() ? 'check' : 'hand'" [size]="20" />
-              เจอเหมือนกัน · <span class="n">{{ d.confirm_count }}</span>
+              {{ 'detail.metoo' | t }} · <span class="n">{{ d.confirm_count }}</span>
             </button>
           }
           @if (d.status === 'fix_claimed') {
-            <p class="waiting"><app-icon name="wrench" [size]="18" />มีคนแจ้งว่าแก้แล้ว รอผู้ดูแลตรวจ</p>
+            <p class="waiting"><app-icon name="wrench" [size]="18" />{{ 'detail.waiting' | t }}</p>
           }
           @if (d.status === 'open') {
             <button type="button" class="btn fix" (click)="openFix($event)">
-              <app-icon name="wrench" [size]="18" />แจ้งว่าแก้แล้ว
+              <app-icon name="wrench" [size]="18" />{{ 'detail.fix' | t }}
             </button>
           }
           <button
             #moreBtn
             type="button"
             class="ctl more"
-            aria-label="ตัวเลือกเพิ่มเติม"
+            [attr.aria-label]="'detail.more' | t"
             aria-haspopup="menu"
             (click)="openMenu($event)"
           >
@@ -121,27 +114,27 @@
           </button>
         </div>
       }
-      <p class="status" role="status">{{ message() }}</p>
+      <p class="status" role="status">{{ i18n.say(message()) }}</p>
 
       <section class="comments" aria-labelledby="report-comments-title">
-        <h3 id="report-comments-title">ความคิดเห็น · {{ d.comment_count }}</h3>
+        <h3 id="report-comments-title">{{ 'detail.comments' | t: { n: d.comment_count } }}</h3>
         @if (comments().length) {
           <ul>
             @for (c of comments(); track c.id) {
               <li>
                 <p class="who">
-                  <strong>{{ c.author_name ?? 'ผู้ใช้นิรนาม' }}</strong>
+                  <strong>{{ c.author_name ?? ('common.anonymous' | t) }}</strong>
                   @if (c.by_reporter) {
-                    <span class="badge">ผู้แจ้ง</span>
+                    <span class="badge">{{ 'detail.reporter' | t }}</span>
                   }
                   <time [attr.datetime]="c.created_at" [title]="date(c.created_at)">{{ ago(c.created_at) }}</time>
-                  <button type="button" class="flag-comment" aria-label="รายงานความคิดเห็นนี้" (click)="flagComment(c, $event)">
+                  <button type="button" class="flag-comment" [attr.aria-label]="'detail.flagComment' | t" (click)="flagComment(c, $event)">
                     <app-icon name="flag" [size]="18" />
                   </button>
                 </p>
                 <p class="body">{{ c.body }}</p>
                 @if (c.photo_path; as p) {
-                  <img class="attached" [src]="thumbUrl(p)" alt="รูปที่แนบในความคิดเห็น" />
+                  <img class="attached" [src]="thumbUrl(p)" [attr.alt]="'detail.attached' | t" />
                 }
                 @if (isFlagging('comment', c.id)) {
                   <app-flag-form class="comment-flag" [target]="{ type: 'comment', id: c.id }" (done)="flagDone()" (cancel)="closeForm()" />
@@ -150,16 +143,16 @@
             }
           </ul>
         } @else {
-          <p class="note">ยังไม่มีความคิดเห็น มาเริ่มคุยกันได้เลยนะ</p>
+          <p class="note">{{ 'detail.noComments' | t }}</p>
         }
 
         @if (auth.signedIn()) {
           <form class="composer" (submit)="$event.preventDefault(); send()">
             <textarea
               rows="3"
-              aria-label="เขียนความคิดเห็น"
+              [attr.aria-label]="'detail.write' | t"
               aria-describedby="report-comment-count"
-              placeholder="เล่าเพิ่ม หรือให้กำลังใจกันได้นะ"
+              [attr.placeholder]="'detail.placeholder' | t"
               [attr.maxlength]="max"
               [value]="draft()"
               (input)="onInput($event)"
@@ -168,14 +161,14 @@
             ></textarea>
             <div class="row">
               <span class="count" id="report-comment-count">{{ draft().length }}/{{ max }}</span>
-              <button type="submit" class="send" aria-label="ส่งความคิดเห็น" [disabled]="!canSend()">
+              <button type="submit" class="send" [attr.aria-label]="'detail.send' | t" [disabled]="!canSend()">
                 <app-icon name="send" [size]="20" />
               </button>
             </div>
           </form>
         } @else {
           <button type="button" class="btn login" (click)="login()">
-            <app-icon name="messageCircle" [size]="18" />เข้าสู่ระบบเพื่อแสดงความคิดเห็น
+            <app-icon name="messageCircle" [size]="18" />{{ 'detail.loginToComment' | t }}
           </button>
         }
       </section>

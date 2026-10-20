@@ -1,0 +1,16 @@
+{
+  "name": "แจ้ง",
+  "short_name": "แจ้ง",
+  "description": "แจ้งปัญหาในชุมชนด้วยรูปและหมุดบนแผนที่",
+  "lang": "th",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FBF7F2",
+  "theme_color": "#3F6FA8",
+  "icons": [
+    { "src": "assets/icon/app-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon/app-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

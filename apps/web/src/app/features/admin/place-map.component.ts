@@ -14,6 +14,8 @@ import {
   viewChild,
 } from '@angular/core';
 import type maplibregl from 'maplibre-gl';
+import { I18nService } from '../../core/i18n.service';
+import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { MAP_FACTORY } from '../map/map-factory';
 import { tintBaseMap } from '../map/map-style';
@@ -33,7 +35,7 @@ const same = (a: LngLat, b: LngLat) => Math.abs(a.lng - b.lng) < 1e-7 && Math.ab
 @Component({
   selector: 'app-place-map',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
     <div class="map" #map></div>
     @if (picking()) {
@@ -42,13 +44,13 @@ const same = (a: LngLat, b: LngLat) => Math.abs(a.lng - b.lng) < 1e-7 && Math.ab
       @if (truePx(); as p) {
         <span class="marker true" [style.left.px]="p.x" [style.top.px]="p.y">
           <app-icon name="mapPin" [size]="28" />
-          <span class="word">{{ together() ? 'จุดจริง (แสดงตรงนี้)' : 'จุดจริง' }}</span>
+          <span class="word">{{ (together() ? 'admin.place.trueHere' : 'admin.place.trueSpot') | t }}</span>
         </span>
       }
       @if (!together() && shownPx(); as p) {
         <span class="marker shown" [style.left.px]="p.x" [style.top.px]="p.y">
           <span class="disc"></span>
-          <span class="word">จุดที่แสดง</span>
+          <span class="word">{{ 'admin.place.shown' | t }}</span>
         </span>
       }
     }
@@ -107,6 +109,7 @@ const same = (a: LngLat, b: LngLat) => Math.abs(a.lng - b.lng) < 1e-7 && Math.ab
 })
 export class PlaceMapComponent {
   private createMap = inject(MAP_FACTORY);
+  private i18n = inject(I18nService);
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
   private map?: maplibregl.Map;
   private destroyed = false;
@@ -162,7 +165,7 @@ export class PlaceMapComponent {
       return;
     }
     this.map = map;
-    map.getCanvas().setAttribute('aria-label', 'แผนที่ตำแหน่งของเรื่อง');
+    map.getCanvas().setAttribute('aria-label', this.i18n.t('admin.place.mapLabel'));
     map.on('load', () => {
       // the attribution starts folded to its info button, so it does not cover a small map
       map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');

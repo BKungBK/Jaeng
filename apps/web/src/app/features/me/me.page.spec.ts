@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -9,7 +10,9 @@ import { MapReturnService } from '../report-new/map-return.service';
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { MePage } from './me.page';
 import { MeService } from './me.service';
-import { STATUS_ICON, STATUS_TH } from './reject-reason';
+import { ThemeService } from '../../core/theme.service';
+import { STATUS_ICON, statusKey } from './reject-reason';
+import { I18nService } from '../../core/i18n.service';
 
 const STATUSES = ['pending_review', 'open', 'fix_claimed', 'resolved', 'rejected', 'hidden'] as const;
 
@@ -45,7 +48,7 @@ async function setup(opts: { reports?: MyReport[] | Error; name?: string } = {})
   const reports = vi.fn();
   if (opts.reports instanceof Error) reports.mockRejectedValue(opts.reports);
   else reports.mockResolvedValue(opts.reports ?? []);
-  const svc = { reports, rename: vi.fn() };
+  const svc = { reports, rename: vi.fn(), setLocale: vi.fn().mockResolvedValue(undefined) };
   const profile = signal<{ id: string; display_name: string; role: 'user' }>({ id: 'u1', display_name: opts.name ?? 'พี่ปลา', role: 'user' });
   const order: string[] = [];
   const auth = {
@@ -88,6 +91,34 @@ async function setup(opts: { reports?: MyReport[] | Error; name?: string } = {})
 }
 
 describe('MePage', () => {
+  describe('display (plan 6)', () => {
+    it('sits between the name and the list, with language and theme choices', async () => {
+      const { root } = await setup();
+      const display = root.querySelector('section.display')!;
+      expect(display.querySelector('h2')?.textContent).toBe('การแสดงผล');
+      expect(display.querySelector('app-language-choice [role="radiogroup"]')).not.toBeNull();
+      expect(display.querySelector('app-theme-choice [role="radiogroup"]')).not.toBeNull();
+      expect(root.querySelector('section.who')!.compareDocumentPosition(display) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(display.compareDocumentPosition(root.querySelector('section.mine')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('choosing English rewords the page, saves it to the account, and words reasons in English', async () => {
+      const { root, svc, settle } = await setup({ reports: [report({ id: 'x', status: 'rejected', reject_reason: 'duplicate' })] });
+      root.querySelector<HTMLButtonElement>('app-language-choice [lang="en"]')!.click();
+      await settle();
+      expect(svc.setLocale).toHaveBeenCalledWith('en');
+      expect(root.querySelector('h1')?.textContent).toBe('My reports');
+      expect(root.querySelector('.reason')?.textContent?.trim()).toBe('Not approved: Already reported');
+    });
+
+    it('choosing dark sets the theme', async () => {
+      const { root, settle } = await setup();
+      root.querySelector<HTMLButtonElement>('app-theme-choice [data-value="dark"]')!.click();
+      await settle();
+      expect(TestBed.inject(ThemeService).choice()).toBe('dark');
+    });
+  });
+
   describe('the list', () => {
     it('shows one row per report, six statuses in six different words and icons', async () => {
       const { root } = await setup({ reports: sixStatuses() });
@@ -97,7 +128,7 @@ describe('MePage', () => {
       rows.forEach((row, i) => {
         const status = STATUSES[i];
         const line = row.querySelector('.state')!;
-        expect(line.textContent).toContain(STATUS_TH[status]);
+        expect(line.textContent).toContain(TestBed.inject(I18nService).t(statusKey(status)));
         expect(line.querySelector(`app-icon svg.icon-${STATUS_ICON[status]}`)).not.toBeNull();
         words.add(line.textContent!.trim());
         // no status is told by a colour class alone
@@ -157,7 +188,7 @@ describe('MePage', () => {
 
     it('shows how long it took to count the list', async () => {
       const { root } = await setup({ reports: sixStatuses() });
-      expect(root.querySelector('h2')?.textContent).toContain('6');
+      expect(root.querySelector('#me-list-title')?.textContent).toContain('6');
     });
 
     it('shows 100 rows without paging', async () => {
@@ -179,7 +210,7 @@ describe('MePage', () => {
     });
 
     it('offers a retry that asks again', async () => {
-      const { root, svc, button, settle } = await setup({ reports: new ApiError(0, 'network', 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ') });
+      const { root, svc, button, settle } = await setup({ reports: new ApiError(0, 'network', 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ', 'en') });
       expect(root.querySelector('[role="status"]')?.textContent).toContain('โหลดเรื่องของคุณไม่สำเร็จ');
       expect(svc.reports).toHaveBeenCalledTimes(1);
       svc.reports.mockResolvedValue([report({ title: 'กลับมาแล้ว' })]);
@@ -281,7 +312,7 @@ describe('MePage', () => {
 
     it('shows the API message in an alert and keeps the old name on 422', async () => {
       const { button, type, settle, svc, auth, profile, root, input } = await setup({ name: 'พี่ปลา' });
-      svc.rename.mockRejectedValue(new ApiError(422, 'profanity', 'ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่นนะ'));
+      svc.rename.mockRejectedValue(new ApiError(422, 'profanity', 'ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่นนะ', 'en'));
       button('แก้ชื่อ')!.click();
       await settle();
       type('ชื่อไม่ดี');
@@ -303,5 +334,11 @@ describe('MePage', () => {
       expect(svc.rename).not.toHaveBeenCalled();
       expect(root.querySelector('input')).toBeNull();
     });
+  });
+});
+
+describe('MePage accessibility (plan 6)', () => {
+  it('has one h1 and no unnamed button', async () => {
+    expectAccessiblePage((await setup({ reports: [report({ id: 'a' })] })).root);
   });
 });

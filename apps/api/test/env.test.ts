@@ -15,6 +15,15 @@ test('loadEnv names the first missing key', () => {
   expect(() => loadEnv({ ...full, SUPABASE_ANON_KEY: '' })).toThrow('SUPABASE_ANON_KEY');
 });
 
+test('Nominatim defaults to the public server and the repo as contact', () => {
+  const env = loadEnv(full);
+  expect(env.nominatimUrl).toBe('https://nominatim.openstreetmap.org');
+  expect(env.nominatimContact).toBe('https://github.com/BKungBK/Jaeng');
+  const set = loadEnv({ ...full, NOMINATIM_URL: 'http://x.test/', NOMINATIM_CONTACT: 'ops@x.test' });
+  expect(set.nominatimUrl).toBe('http://x.test');
+  expect(set.nominatimContact).toBe('ops@x.test');
+});
+
 test('SUPABASE_JWT_SECRET is not required', () => {
   expect(() => loadEnv(full)).not.toThrow();
 });

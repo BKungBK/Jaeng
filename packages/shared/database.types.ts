@@ -457,6 +457,9 @@ isOneToOne: false
 "hide_target":
 { Args: { "p_action": string,"p_admin": string,"p_target_id": string,"p_target_type": string }; Returns: Json
                            },
+"list_reports":
+{ Args: { "categories"?: (string)[],"include_old_resolved"?: boolean,"levels"?: (number)[],"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"near_lat"?: number,"near_lng"?: number,"p_limit"?: number,"p_offset"?: number,"sort"?: string,"statuses"?: (string)[] }; Returns: Json
+                           },
 "lock_profile":
 { Args: { "p_user": string }; Returns: undefined
                            },
@@ -482,6 +485,11 @@ isOneToOne: false
                            },
 "reports_in_bbox":
 { Args: { "categories"?: (string)[],"levels"?: (number)[],"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"q"?: string,"statuses"?: (string)[] }; Returns: Json
+                           },
+"search_areas":
+{ Args: { "p_limit"?: number,"q": string }; Returns: {
+              "lat": number,"level": number,"lng": number,"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"name_en": string,"name_th": string,"province_en": string,"province_th": string
+            }[]
                            },
 "stats_in_bbox":
 { Args: { "max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number }; Returns: {

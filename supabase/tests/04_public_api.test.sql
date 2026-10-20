@@ -40,8 +40,8 @@ insert into public.report_tags select id, :tag from r where k = 'claimed';
 -- public_reports
 select set_eq(
   $$select r.k from public.public_reports p join r on r.id = p.id$$,
-  $$values ('open'), ('claimed'), ('fresh'), ('anon'), ('cm')$$,
-  'public_reports has open, fix_claimed and fresh resolved only'
+  $$values ('open'), ('claimed'), ('fresh'), ('stale'), ('anon'), ('cm')$$,
+  'public_reports has open, fix_claimed and resolved of any age (plan 6: /list and old links)'
 );
 select is((select author_name from public.public_reports where id = (select id from r where k = 'anon')), null,
   'hidden author has no name');

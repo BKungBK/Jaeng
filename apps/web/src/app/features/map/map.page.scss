@@ -33,8 +33,35 @@
   }
 }
 
+// the first stop for keyboard users: out of sight until focused, then over the brand card
+.skip {
+  position: absolute;
+  z-index: 10;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: var(--surf);
+  color: var(--pri);
+  box-shadow: var(--sh);
+  font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  transform: translateY(calc(-100% - 24px));
+
+  &:focus-visible {
+    transform: none;
+    outline: 3px solid var(--pri);
+    outline-offset: 2px;
+  }
+}
+
 .brand {
-  padding: 8px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 10px 16px;
 
   h1 {
     margin: 0;
@@ -47,6 +74,20 @@
     font-size: 13px;
     line-height: 1.5;
   }
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-actions {
+  display: flex;
+  gap: 4px;
+}
+
+// a control inside a card: no float of its own
+.ctl.flat {
+  box-shadow: none;
 }
 
 .controls {
@@ -105,12 +146,18 @@
   z-index: 4;
   left: 12px;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: 2px;
   max-width: 340px;
   margin: 0;
   padding: 8px 14px;
   color: var(--ink2);
   font-size: 13px;
   line-height: 1.5;
+
+  .hint-line {
+    margin: 0;
+  }
 }
 
 .tip {
@@ -222,16 +269,55 @@ ion-modal.detail-sheet::part(handle) {
   top: calc(84px + env(safe-area-inset-top, 0px));
   transform: translateX(-50%);
   max-width: calc(100% - 32px);
+  display: flex;
+  align-items: center;
+  gap: 4px 12px;
   padding: 8px 16px;
   border-radius: 14px;
   background: var(--ink);
   color: var(--bg);
   font-size: 14px;
+
+  &:has(.toast-action) {
+    padding: 0 4px 0 16px;
+  }
+}
+
+// the toast's one action: a text button in the toast's own colours, underlined, 44 px tall
+.toast-action {
+  flex: none;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--bg);
+  font: 600 14px/1.4 'IBM Plex Sans Thai', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--pri);
+    outline-offset: 2px;
+  }
 }
 
 @media (max-width: 819px) {
   .top {
     right: 12px;
+  }
+
+  // phones: the two buttons sit under the name, so the card stays narrow beside nothing
+  .brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 12px 8px 16px;
+  }
+
+  .brand-actions {
+    margin-left: -4px;
   }
 
   // the FAB takes the thumb's corner, 52 px up so the folded attribution fits beneath; the controls

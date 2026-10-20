@@ -26,10 +26,10 @@ export type BeaconHandlers = {
 
 export type LayerWords = Words & Pick<I18nService, 'watch'>;
 
-type Entry = { marker: maplibregl.Marker; el: HTMLElement; kind: 'beacon' | 'cluster'; props?: ReportProps; count?: number; maxLevel?: number };
+type Entry = { marker: maplibregl.Marker; el: HTMLElement; kind: 'beacon' | 'cluster'; props?: ReportProps; count?: number; maxLevel?: number; critical?: number };
 
 type Item =
-  | { kind: 'cluster'; key: string; lngLat: [number, number]; clusterId: number; count: number; maxLevel: DangerLevel }
+  | { kind: 'cluster'; key: string; lngLat: [number, number]; clusterId: number; count: number; maxLevel: DangerLevel; critical: number }
   | { kind: 'beacon'; key: string; lngLat: [number, number]; props: ReportProps };
 
 export class BeaconLayer {
@@ -64,7 +64,7 @@ export class BeaconLayer {
       } else if (entry.kind === 'cluster' && entry.count !== undefined && entry.maxLevel !== undefined) {
         entry.el
           .querySelector('button')
-          ?.setAttribute('aria-label', clusterAriaLabel(entry.count, entry.maxLevel as DangerLevel, this.words));
+          ?.setAttribute('aria-label', clusterAriaLabel(entry.count, entry.maxLevel as DangerLevel, entry.critical ?? 0, this.words));
       }
     }
   }
@@ -138,6 +138,7 @@ export class BeaconLayer {
             clusterId: p['cluster_id'] as number,
             count: p['point_count'] as number,
             maxLevel: p['maxLevel'] as DangerLevel,
+            critical: Number(p['critical'] ?? 0),
           });
       } else {
         const key = `r${p['id']}`;
@@ -216,14 +217,21 @@ export class BeaconLayer {
 
   private showCluster(item: Extract<Item, { kind: 'cluster' }>) {
     const entry = this.entries.get(item.key);
-    if (entry && entry.count === item.count && entry.maxLevel === item.maxLevel) {
+    if (entry && entry.count === item.count && entry.maxLevel === item.maxLevel && entry.critical === item.critical) {
       entry.marker.setLngLat(item.lngLat);
       return;
     }
     entry?.marker.remove();
-    const el = createClusterElement(item.count, item.maxLevel, this.words);
+    const el = createClusterElement(item.count, item.maxLevel, item.critical, this.words);
     el.querySelector('button')!.addEventListener('click', () => this.expand(item.clusterId, item.lngLat));
-    this.entries.set(item.key, { el, kind: 'cluster', count: item.count, maxLevel: item.maxLevel, marker: this.place(el, item.lngLat) });
+    this.entries.set(item.key, {
+      el,
+      kind: 'cluster',
+      count: item.count,
+      maxLevel: item.maxLevel,
+      critical: item.critical,
+      marker: this.place(el, item.lngLat),
+    });
   }
 
   private place(el: HTMLElement, lngLat: [number, number]) {

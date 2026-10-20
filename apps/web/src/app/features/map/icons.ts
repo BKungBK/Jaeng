@@ -5,6 +5,9 @@ import {
   Ellipsis,
   Flag,
   History,
+  House,
+  List,
+  Map as MapIcon,
   Inbox,
   Info,
   Languages,
@@ -109,6 +112,9 @@ export const ICONS = {
   sun: Sun,
   moon: Moon,
   sunMoon: SunMoon,
+  house: House,
+  list: List,
+  map: MapIcon,
 } satisfies Record<string, IconNode>;
 
 export type IconName = keyof typeof ICONS;

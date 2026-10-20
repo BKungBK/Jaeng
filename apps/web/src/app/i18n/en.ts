@@ -41,6 +41,14 @@ export const en: Messages = {
     zoomOut: 'Zoom out',
     locate: 'Go to my location',
     filterGroup: 'Filter by danger level',
+    home: 'Back to the whole country',
+    list: 'Show as a list',
+    skipToList: 'Skip to the report list',
+    clusterCritical: '{n} {n|report|reports} here, highest level {level}, {c} critical',
+    stats: {
+      resolved: 'Fixed this month: {n}',
+      open: 'Still open: {n}',
+    },
     metooCount: 'Me too {n}',
     beacon: '{title} {level} level, {status}',
     cluster: '{n} {n|report|reports} here, highest level {level}',
@@ -55,7 +63,7 @@ export const en: Messages = {
     toast: {
       missing: "We couldn't find this report, or it isn't public yet.",
       beaconsFailed: "The map didn't fully load. Try refreshing the page.",
-      loadFailed: "Couldn't load the reports. Try moving the map again.",
+      loadFailed: "Couldn't load the reports.",
       noGeo: "This device can't find your location. Try zooming there yourself.",
       geoDenied: 'Please allow location access, then try again.',
     },

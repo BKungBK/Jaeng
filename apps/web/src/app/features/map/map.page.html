@@ -1,8 +1,18 @@
-<!-- DOM order is tab order: chips and controls first, then the map's markers -->
+<!-- DOM order is tab order: the skip link, the brand card, chips and controls, then the map's markers -->
+<a class="skip" href="/list" (click)="skipToList($event)">{{ 'map.skipToList' | t }}</a>
+
 <div class="top" [class.beside]="panelOpen()">
   <header class="card brand">
-    <h1>{{ 'app.title' | t }}</h1>
-    <p>{{ 'map.tagline' | t }}</p>
+    <div class="brand-text">
+      <h1>{{ 'app.title' | t }}</h1>
+      <p>{{ 'map.tagline' | t }}</p>
+    </div>
+    <div class="brand-actions">
+      <app-language-toggle />
+      <button type="button" class="ctl flat" [attr.aria-label]="'account.about' | t" (click)="openAbout()">
+        <app-icon name="info" />
+      </button>
+    </div>
   </header>
   <app-filter-bar [(levels)]="levels" (levelsChange)="scheduleLoad()" />
 </div>
@@ -13,6 +23,8 @@
   <button type="button" class="ctl" [attr.aria-label]="'map.locate' | t" (click)="locate()">
     <app-icon name="locateFixed" />
   </button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.home' | t" (click)="home()"><app-icon name="house" /></button>
+  <button type="button" class="ctl" [attr.aria-label]="'map.list' | t" (click)="openList()"><app-icon name="list" /></button>
   <app-account-button />
 </div>
 
@@ -21,7 +33,10 @@
   <app-report-fab class="fab" [class.beside]="panelOpen()" />
 }
 
-<p class="card hint" aria-live="polite">{{ hint() }}</p>
+<div class="card hint">
+  <app-stats-line [state]="stats()" />
+  <p class="hint-line" aria-live="polite">{{ hint() }}</p>
+</div>
 
 <div class="map" #map></div>
 
@@ -71,8 +86,13 @@
   </ion-modal>
 }
 
-@if (toast(); as said) {
-  <div class="toast" role="status">{{ i18n.say(said) }}</div>
+@if (toast(); as t) {
+  <div class="toast" role="status">
+    <span>{{ i18n.say(t.said) }}</span>
+    @if (t.action; as a) {
+      <button type="button" class="toast-action" (click)="runToast(t)">{{ a.label | t }}</button>
+    }
+  </div>
 }
 
 <ng-template #summary let-p let-id="id">

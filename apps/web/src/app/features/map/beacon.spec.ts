@@ -138,7 +138,7 @@ describe('createBeaconElement', () => {
 
 describe('createClusterElement', () => {
   it('shows the count with the highest level colour', () => {
-    const el = createClusterElement(7, 3, words());
+    const el = createClusterElement(7, 3, 0, words());
     expect(el.style.getPropertyValue('--c')).toBe(LEVELS[3].color);
     const btn = el.querySelector('button')!;
     expect(btn.textContent).toBe('7');
@@ -147,13 +147,31 @@ describe('createClusterElement', () => {
 
   it('labels in English', () => {
     words().setLocale('en');
-    expect(createClusterElement(7, 3, words()).querySelector('button')!.getAttribute('aria-label')).toBe(
+    expect(createClusterElement(7, 3, 0, words()).querySelector('button')!.getAttribute('aria-label')).toBe(
       '7 reports here, highest level Critical',
     );
   });
 
+  it('adds a critical pill and words it when the group holds critical reports', () => {
+    const el = createClusterElement(7, 3, 2, words());
+    const pill = el.querySelector('.crit')!;
+    expect(pill.textContent?.trim()).toBe('2');
+    expect(pill.querySelector('svg')).not.toBeNull();
+    expect(pill.getAttribute('aria-hidden')).toBe('true');
+    expect(el.querySelector('button')!.textContent).toBe('7');
+    expect(el.querySelector('button')!.getAttribute('aria-label')).toBe('7 เรื่องในพื้นที่นี้ ระดับสูงสุดวิกฤต วิกฤต 2 เรื่อง');
+    words().setLocale('en');
+    expect(createClusterElement(7, 3, 1, words()).querySelector('button')!.getAttribute('aria-label')).toBe(
+      '7 reports here, highest level Critical, 1 critical',
+    );
+  });
+
+  it('has no pill without critical reports', () => {
+    expect(createClusterElement(7, 2, 0, words()).querySelector('.crit')).toBeNull();
+  });
+
   it('says the highest level by shape too', () => {
-    const el = createClusterElement(7, 1, words());
+    const el = createClusterElement(7, 1, 0, words());
     expect(el.querySelector('.sym')!.getAttribute('data-level')).toBe('1');
   });
 });

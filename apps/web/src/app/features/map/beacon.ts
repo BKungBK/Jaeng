@@ -27,8 +27,9 @@ export function beaconAriaLabel(p: ReportProps, w: Words): string {
   return w.t('map.beacon', { title: p.title, level: w.levelName(p.danger_level), status: w.t(`status.${p.status}`) });
 }
 
-export function clusterAriaLabel(count: number, maxLevel: DangerLevel, w: Words): string {
-  return w.t('map.cluster', { n: count, level: w.levelName(maxLevel) });
+export function clusterAriaLabel(count: number, maxLevel: DangerLevel, critical: number, w: Words): string {
+  const params = { n: count, level: w.levelName(maxLevel), c: critical };
+  return w.t(critical > 0 ? 'map.clusterCritical' : 'map.cluster', params);
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, parent?: HTMLElement) {
@@ -101,15 +102,22 @@ export function createBeaconElement(p: ReportProps, view: BeaconView, showLabel:
   return root;
 }
 
-export function createClusterElement(count: number, maxLevel: DangerLevel, w: Words): HTMLElement {
+export function createClusterElement(count: number, maxLevel: DangerLevel, critical: number, w: Words): HTMLElement {
   const root = el('div', 'cluster');
   setLevelVars(root, LEVELS[maxLevel]);
   el('i', 'ring', root);
   const btn = el('button', 'count', root);
   btn.type = 'button';
   btn.textContent = String(count);
-  btn.setAttribute('aria-label', clusterAriaLabel(count, maxLevel, w));
+  btn.setAttribute('aria-label', clusterAriaLabel(count, maxLevel, critical, w));
   btn.appendChild(levelBadge(maxLevel));
+  if (critical > 0) {
+    // the critical shape + how many, at the disc's upper left; the button's label says it in words
+    const pill = el('span', 'crit', root);
+    pill.setAttribute('aria-hidden', 'true');
+    pill.appendChild(levelShapeSvg(3));
+    pill.appendChild(document.createTextNode(String(critical)));
+  }
   return root;
 }
 

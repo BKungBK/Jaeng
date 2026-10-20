@@ -21,6 +21,9 @@ import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { I18nService, type Said } from '../../core/i18n.service';
+import { MapViewService } from '../../core/map-view.service';
+import type { MessageKey } from '../../i18n/keys';
+import { LanguageToggleComponent } from '../../shared/language-toggle.component';
 import { RealtimeService } from '../../core/realtime.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
@@ -32,12 +35,14 @@ import { categoryIcon } from './beacon';
 import type { BeaconLayer } from './beacon-layer';
 import { FilterBarComponent } from './filter-bar.component';
 import { LevelShapeComponent } from './level-shape';
-import { MAP_FACTORY } from './map-factory';
-import { holdBaseLabels, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
+import { fitPadding, MAP_FACTORY, THAILAND_BOUNDS } from './map-factory';
+import { holdBaseLabels, labelBaseMap, REPORT_SOURCE, setupReportLayers, setupToyLayers, tintBaseMap } from './map-style';
 import { currentSeaTheme, SEA_HEX, SeaTheme, watchSeaTheme } from './sea/sea-palette';
-import { coverPhotoUrl, ReportProps, toBbox } from './report';
+import { Bbox, coverPhotoUrl, ReportProps, toBbox } from './report';
 import { ReportsLoader } from './reports-loader';
 import { ReportsService } from './reports.service';
+import { StatsLineComponent, type StatsState } from './stats-line.component';
+import { StatsService } from './stats.service';
 import { toyOpacity, zoomHint } from './toy';
 
 const LOAD_DEBOUNCE_MS = 300;
@@ -49,6 +54,11 @@ const WIDE = '(min-width: 820px)';
 /** Ionic's dismiss roles for the reader closing the sheet: a drag ('gesture'), the backdrop or Escape.
  *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
 const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
+const TOAST_MS = 3200;
+/** A toast with a button stays long enough to reach the button. */
+const ACTION_TOAST_MS = 8000;
+
+export type Toast = { said: Said; action?: { label: MessageKey; run: () => void } };
 
 /** The map centre that shows `target` at `offset` px from the middle of the view at `zoom` (Web Mercator,
  *  512 px tiles; close enough to the globe at street zoom). */
@@ -78,12 +88,17 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     ReportFabComponent,
     IonModal,
     TPipe,
+    StatsLineComponent,
+    LanguageToggleComponent,
   ],
   host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
   private reports = inject(ReportsService);
+  private statsSvc = inject(StatsService);
+  private view = inject(MapViewService);
+  private statsSeq = 0;
   private loader = new ReportsLoader((bbox, levels) => this.reports.inBbox(bbox, levels));
   private container = viewChild.required<ElementRef<HTMLElement>>('map');
 
@@ -91,6 +106,7 @@ export class MapPage {
   private beacons?: BeaconLayer;
   private stopSea?: () => void;
   private stopTheme?: () => void;
+  private stopWords?: () => void;
   private loadTimer?: ReturnType<typeof setTimeout>;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private destroyed = false;
@@ -110,7 +126,9 @@ export class MapPage {
   readonly zoom = signal(5);
   readonly shown = signal<number | null>(null);
   readonly hover = signal<{ p: ReportProps; x: number; y: number } | null>(null);
-  readonly toast = signal<Said>(null);
+  readonly toast = signal<Toast | null>(null);
+  /** the month numbers of the loaded view (hint card) */
+  readonly stats = signal<StatsState>('loading');
   /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
   readonly wide = signal(false);
   readonly panelOpen = computed(() => this.wide() && !!this.id());
@@ -154,6 +172,7 @@ export class MapPage {
       this.beacons?.destroy();
       this.stopSea?.();
       this.stopTheme?.();
+      this.stopWords?.();
       this.map?.remove();
     });
   }
@@ -225,6 +244,8 @@ export class MapPage {
     tint(currentSeaTheme());
     this.stopTheme = watchSeaTheme(tint);
     holdBaseLabels(map);
+    labelBaseMap(map, this.i18n.locale());
+    this.stopWords = this.i18n.watch((l) => labelBaseMap(map, l));
     setupReportLayers(map);
     // phones: start with the attribution folded to its info button so it does not sit under the hint card
     if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
@@ -248,7 +269,7 @@ export class MapPage {
       }, this.i18n);
       this.beacons.setSelected(this.id() ?? null);
     } catch {
-      if (!this.destroyed) this.showToast('map.toast.beaconsFailed');
+      if (!this.destroyed) this.showToast('map.toast.beaconsFailed', { label: 'common.retry', run: () => location.reload() });
     }
   }
 
@@ -345,20 +366,62 @@ export class MapPage {
     if (!map || this.destroyed) return;
     const b = map.getBounds();
     const bbox = toBbox({ west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() });
+    const c = map.getCenter();
+    this.view.set(bbox, [c.lng, c.lat]);
+    void this.loadStats(bbox);
     const result = await this.loader.load(bbox, this.levels());
     if (!result || this.destroyed) return;
     if ('error' in result) {
-      this.showToast('map.toast.loadFailed');
+      this.showToast('map.toast.loadFailed', { label: 'common.retry', run: () => this.scheduleLoad(0) });
       return;
     }
     this.shown.set(result.data.features.length);
     map.getSource<maplibregl.GeoJSONSource>(REPORT_SOURCE)?.setData(result.data);
   }
 
-  private showToast(message: Said) {
-    this.toast.set(message);
+  /** Encouragement, not data: a failure hides the line, the old numbers stay until new ones come. */
+  private async loadStats(bbox: Bbox) {
+    const seq = ++this.statsSeq;
+    try {
+      const s = await this.statsSvc.inBbox(bbox);
+      if (seq === this.statsSeq && !this.destroyed) this.stats.set(s);
+    } catch {
+      if (seq === this.statsSeq && !this.destroyed) this.stats.set('error');
+    }
+  }
+
+  private showToast(said: Said, action?: Toast['action']) {
+    this.toast.set({ said, action });
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
+    this.toastTimer = setTimeout(() => this.toast.set(null), action ? ACTION_TOAST_MS : TOAST_MS);
+  }
+
+  protected runToast(t: Toast) {
+    clearTimeout(this.toastTimer);
+    this.toast.set(null);
+    t.action?.run();
+  }
+
+  /** Back to the whole country: the same view the app opens with. */
+  home() {
+    const map = this.map;
+    if (!map) return;
+    map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth) });
+  }
+
+  openList() {
+    void this.router.navigate(['/list']);
+  }
+
+  openAbout() {
+    void this.router.navigate(['/about']);
+  }
+
+  /** The skip link: a real link for screen readers and new tabs, routed in place on a plain click. */
+  protected skipToList(e: MouseEvent) {
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
+    this.openList();
   }
 
   zoomIn() {

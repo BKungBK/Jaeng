@@ -24,7 +24,7 @@ export type MapFactory = (container: HTMLElement, options?: MapOptions) => mapli
 
 // keep Thailand clear of the brand card and chips (two rows tall on phones) and, on phones, of
 // the hint card at the bottom
-const fitPadding = (width: number, padding?: number) =>
+export const fitPadding = (width: number, padding?: number) =>
   padding !== undefined
     ? padding
     : width < 820

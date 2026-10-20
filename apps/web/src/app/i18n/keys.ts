@@ -6,6 +6,12 @@ export const LOCALES: readonly Locale[] = ['th', 'en'];
 /** Each language named in itself, the same in both dictionaries ("ไทย" stays Thai on an English page). */
 export const LOCALE_NAMES: Record<Locale, string> = { th: '\u0E44\u0E17\u0E22', en: 'English' };
 
+/** The brand card's toggle: a short name and a label, each written in the language it switches to. */
+export const LOCALE_SWITCH: Record<Locale, { short: string; label: string }> = {
+  th: { short: '\u0E44\u0E17\u0E22', label: '\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22' },
+  en: { short: 'EN', label: 'Switch to English' },
+};
+
 export function isLocale(v: unknown): v is Locale {
   return v === 'th' || v === 'en';
 }

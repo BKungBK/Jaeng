@@ -1,48 +1,103 @@
-<!-- DOM order is tab order: the skip link, the brand card, chips and controls, then the map's markers -->
+<!-- DOM order is tab order: the skip link, search, chips, summary, controls, then the map's markers.
+     Plan 6b: wide screens get a side panel, a menu capsule and a control column; phones get a top bar,
+     a summary pill, the locate button and a dock (.impeccable/mocks/decision/fused-*.html). -->
 <a class="skip" href="/list" (click)="skipToList($event)">{{ 'map.skipToList' | t }}</a>
 
-<div class="top" [class.beside]="panelOpen()" [class.searching]="searching()">
-  <header class="card brand">
-    <div class="brand-text">
-      <h1>{{ 'app.title' | t }}</h1>
-      <p>{{ 'map.tagline' | t }}</p>
+<ng-template #mark>
+  <h1 class="mark"><span class="sr-only">{{ 'app.title' | t }}</span></h1>
+</ng-template>
+
+<ng-template #hintLine>
+  <p class="hint-line" [class.sr-only]="!hintIsState()" aria-live="polite">{{ hint() }}</p>
+</ng-template>
+
+@if (wide()) {
+  <aside class="side glass" [class.compact]="sideCompact()" style="--i: 0">
+    <div class="search-row">
+      <ng-container *ngTemplateOutlet="mark" />
+      <app-search-box (place)="flyToPlace($event)" (report)="openReport($event)" />
+      <app-account-button />
     </div>
-    <div class="brand-actions">
-      @if (!wide()) {
-        <app-search-box [collapsed]="true" (place)="flyToPlace($event)" (report)="openReport($event)" (opened)="searching.set($event)" />
-      }
-      <app-language-toggle />
-      <button type="button" class="ctl flat" [attr.aria-label]="'account.about' | t" (click)="openAbout()">
-        <app-icon name="info" />
-      </button>
+    <app-filter-bar />
+    <div class="summary">
+      <app-stats-line [state]="stats()" [compact]="true" />
+      <ng-container *ngTemplateOutlet="hintLine" />
     </div>
+    @if (inViewCount()) {
+      <ul class="in-view">
+        @for (p of inView(); track p.id) {
+          <li>
+            <button type="button" (click)="select(p)">
+              <span class="dot" [style.--c]="level(p).color" aria-hidden="true"></span>
+              <app-level-shape class="shape" [level]="p.danger_level" />
+              <span class="name">{{ p.title }}</span>
+              <span class="facts">{{ 'map.inView.row' | t: { p: p.confirm_count, d: p.days_open } }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+      <a class="all" href="/list" (click)="skipToList($event)">{{ 'map.inView.all' | t: { n: inViewCount() } }}</a>
+    }
+  </aside>
+
+  <nav class="menu glass" [class.beside]="panelOpen()" style="--i: 3">
+    <button type="button" class="tab" aria-current="page" (click)="home()">{{ 'nav.map' | t }}</button>
+    <button type="button" class="tab" [attr.aria-label]="'map.list' | t" (click)="openList()">{{ 'nav.list' | t }}</button>
+    <app-language-toggle />
+    <button type="button" class="tab icon" [attr.aria-label]="'account.about' | t" (click)="openAbout()">
+      <app-icon name="info" [size]="18" />
+    </button>
+  </nav>
+
+  <div class="controls glass" [class.beside]="panelOpen()" style="--i: 3">
+    <button type="button" class="ctl" [attr.aria-label]="'map.zoomIn' | t" (click)="zoomIn()"><app-icon name="plus" [size]="18" /></button>
+    <button type="button" class="ctl" [attr.aria-label]="'map.zoomOut' | t" (click)="zoomOut()"><app-icon name="minus" [size]="18" /></button>
+    <button type="button" class="ctl" [attr.aria-label]="'map.locate' | t" (click)="locate()">
+      <app-icon name="locateFixed" [size]="18" />
+    </button>
+    <button type="button" class="ctl" [attr.aria-label]="'map.home' | t" (click)="home()"><app-icon name="house" [size]="18" /></button>
+  </div>
+
+  <app-report-fab class="fab" [class.beside]="panelOpen()" style="--i: 4" />
+} @else {
+  <header class="bar glass" [class.searching]="searching()" style="--i: 0">
+    <ng-container *ngTemplateOutlet="mark" />
+    <app-search-box [collapsed]="true" (place)="flyToPlace($event)" (report)="openReport($event)" (opened)="searching.set($event)" />
   </header>
-  @if (wide()) {
-    <app-search-box (place)="flyToPlace($event)" (report)="openReport($event)" />
+
+  <app-filter-bar class="phone-chips" [class.searching]="searching()" style="--i: 1" />
+
+  <div class="summary glass" style="--i: 2">
+    <!-- the live hint stays outside the button, so the button's name is just the numbers -->
+    <button type="button" class="open-list" (click)="openList()">
+      <app-stats-line [state]="stats()" [compact]="true" />
+      <app-icon class="chev" name="chevronRight" [size]="16" />
+    </button>
+    <ng-container *ngTemplateOutlet="hintLine" />
+  </div>
+
+  <div class="controls" style="--i: 2">
+    <button type="button" class="ctl glass" [attr.aria-label]="'map.locate' | t" (click)="locate()">
+      <app-icon name="locateFixed" [size]="18" />
+    </button>
+  </div>
+
+  <!-- hidden while the report sheet covers the bottom of the screen -->
+  @if (!id()) {
+    <nav class="dock glass" style="--i: 4">
+      <button type="button" class="tab" aria-current="page" (click)="home()">
+        <app-icon name="map" [size]="18" />
+        <span class="word">{{ 'nav.map' | t }}</span>
+      </button>
+      <button type="button" class="tab" [attr.aria-label]="'map.list' | t" (click)="openList()">
+        <app-icon name="list" [size]="18" />
+        <span class="word" aria-hidden="true">{{ 'nav.list' | t }}</span>
+      </button>
+      <app-report-fab variant="round" />
+      <app-account-button variant="tab" />
+    </nav>
   }
-  <app-filter-bar />
-</div>
-
-<div class="controls" [class.beside]="panelOpen()">
-  <button type="button" class="ctl" [attr.aria-label]="'map.zoomIn' | t" (click)="zoomIn()"><app-icon name="plus" /></button>
-  <button type="button" class="ctl" [attr.aria-label]="'map.zoomOut' | t" (click)="zoomOut()"><app-icon name="minus" /></button>
-  <button type="button" class="ctl" [attr.aria-label]="'map.locate' | t" (click)="locate()">
-    <app-icon name="locateFixed" />
-  </button>
-  <button type="button" class="ctl" [attr.aria-label]="'map.home' | t" (click)="home()"><app-icon name="house" /></button>
-  <button type="button" class="ctl" [attr.aria-label]="'map.list' | t" (click)="openList()"><app-icon name="list" /></button>
-  <app-account-button />
-</div>
-
-<!-- hidden while the report sheet covers that corner on phones -->
-@if (wide() || !id()) {
-  <app-report-fab class="fab" [class.beside]="panelOpen()" />
 }
-
-<div class="card hint">
-  <app-stats-line [state]="stats()" />
-  <p class="hint-line" aria-live="polite">{{ hint() }}</p>
-</div>
 
 <div class="map" #map></div>
 

@@ -58,6 +58,7 @@ export const en: Messages = {
     },
     inView: {
       all: 'See all {n}',
+      row: '{p} me too · {d}d',
     },
     metooCount: 'Me too {n}',
     beacon: '{title} {level} level, {status}',

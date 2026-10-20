@@ -96,6 +96,27 @@ const DETAIL = {
   resolved_at: null,
 } as const;
 
+/** one report on the map, as reports_in_bbox returns it */
+function feature(id: string, o: Record<string, unknown>) {
+  return {
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [100.5, 13.7] },
+    properties: {
+      id,
+      title: `เรื่อง ${id}`,
+      category: 'road',
+      icon: 'construction',
+      danger_level: 0,
+      status: 'open',
+      confirm_count: 0,
+      comment_count: 0,
+      days_open: 0,
+      cover_photo_path: null,
+      ...o,
+    },
+  };
+}
+
 function fakeDetailService(detail: unknown = DETAIL) {
   return {
     get: vi.fn().mockResolvedValue(detail),
@@ -106,12 +127,12 @@ function fakeDetailService(detail: unknown = DETAIL) {
   };
 }
 
-/** jsdom has no layout: answer the one breakpoint query as asked. */
-function mockWide(wide: boolean) {
+/** jsdom has no layout: answer the breakpoint queries as asked (820 px: wide; 1180 px: room for both panels). */
+function mockWide(wide: boolean, roomy = true) {
   vi.spyOn(window, 'matchMedia').mockImplementation(
     (q: string) =>
       ({
-        matches: q.includes('min-width: 820px') ? wide : false,
+        matches: q.includes('min-width: 820px') ? wide : q.includes('min-width: 1180px') ? wide && roomy : false,
         media: q,
         addEventListener: () => undefined,
         removeEventListener: () => undefined,
@@ -121,10 +142,10 @@ function mockWide(wide: boolean) {
 
 async function setup(
   inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION),
-  opts: { wide?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn> } = {},
+  opts: { wide?: boolean; roomy?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn> } = {},
 ) {
   const stats = opts.stats ?? vi.fn().mockResolvedValue({ resolved_this_month: 3, open_count: 12 });
-  mockWide(opts.wide ?? true);
+  mockWide(opts.wide ?? true, opts.roomy ?? true);
   const map = fakeMap();
   const navigate = vi.fn().mockResolvedValue(true);
   const events = new Subject<unknown>();
@@ -186,10 +207,23 @@ describe('MapPage', () => {
     }
   });
 
-  it('puts the account button after the locate button', async () => {
+  it('wide: the control column is zoom, locate, home', async () => {
     const { root } = await setup();
     const labels = [...root.querySelectorAll('.controls button')].map((b) => b.getAttribute('aria-label'));
-    expect(labels).toEqual(['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน', 'กลับไปดูทั้งประเทศ', 'ดูเป็นรายการ', 'เข้าสู่ระบบ']);
+    expect(labels).toEqual(['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน', 'กลับไปดูทั้งประเทศ']);
+    expect(root.querySelector('.dock')).toBeNull();
+  });
+
+  it('phone: only locate floats; the dock has map, list, report and me', async () => {
+    const { root } = await setup(undefined, { wide: false });
+    const labels = [...root.querySelectorAll('.controls button')].map((b) => b.getAttribute('aria-label'));
+    expect(labels).toEqual(['ไปที่ตำแหน่งของฉัน']);
+    const dock = root.querySelector('nav.dock')!;
+    expect(dock.querySelector('button[aria-current="page"]')?.textContent?.trim()).toBe('แผนที่');
+    expect(dock.querySelector('button[aria-label="ดูเป็นรายการ"]')).not.toBeNull();
+    expect(dock.querySelector('app-report-fab button[aria-label="แจ้งเรื่องใหม่"]')).not.toBeNull();
+    expect(dock.querySelector('app-account-button button[aria-label="ของฉัน: เข้าสู่ระบบ"]')).not.toBeNull();
+    expect(root.querySelector('button[aria-label="ซูมเข้า"]')).toBeNull();
   });
 
   it('loads reports for the view 300 ms after the map stops moving', async () => {
@@ -205,11 +239,22 @@ describe('MapPage', () => {
 
   it('says so when every level chip is off', async () => {
     vi.useFakeTimers();
-    const { fixture, root } = await setup();
-    for (const b of [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button.chip')]) b.click();
+    const inBbox = vi.fn().mockResolvedValue({ type: 'FeatureCollection', features: [feature('r1', {})] });
+    const { fixture, root } = await setup(inBbox);
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('app-filter-bar button.chip')];
+    for (const b of chips) b.click();
     await vi.advanceTimersByTimeAsync(300);
     fixture.detectChanges();
-    expect(root.querySelector('.hint')?.textContent).toContain('ปิดตัวกรองครบทุกระดับแล้ว');
+    const line = () => root.querySelector('.summary .hint-line')!;
+    expect(root.querySelector('.summary')?.textContent).toContain('ปิดตัวกรองครบทุกระดับแล้ว');
+    expect(line().classList).not.toContain('sr-only');
+    // a zoom tip is not a state: it stays for screen readers only
+    for (const b of chips) b.click();
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    expect(line().textContent).toContain('ภาพรวมประเทศ');
+    expect(line().classList).toContain('sr-only');
   });
 
   it('shows a toast when loading fails', async () => {
@@ -223,7 +268,7 @@ describe('MapPage', () => {
 
   it('puts the chips and controls before the map in tab order', async () => {
     const { root } = await setup();
-    const order = [...root.querySelectorAll('app-filter-bar, .controls, .map')].map((e) => e.className || e.tagName);
+    const order = [...root.querySelectorAll('app-filter-bar, .controls, .map')].map((e) => e.classList[0] ?? e.tagName);
     expect(order).toEqual(['APP-FILTER-BAR', 'controls', 'map']);
   });
 
@@ -356,7 +401,7 @@ describe('MapPage', () => {
     // left of the 380 px panel: the view's centre sits east of the report, at the same latitude
     const [{ center, zoom }] = map.flyTo.mock.calls[0] as [{ center: [number, number]; zoom: number }];
     expect(zoom).toBe(15);
-    expect(center).toEqual(centerFor([100.5, 13.7], 15, [-202, 0]));
+    expect(center).toEqual(centerFor([100.5, 13.7], 15, [-210, 0])); // half the 420 px panel space
     expect(center[0]).toBeGreaterThan(100.5);
     expect(center[1]).toBeCloseTo(13.7, 6);
   });
@@ -475,12 +520,63 @@ describe('MapPage', () => {
   it('hides the floating button while the report sheet is open on a phone', async () => {
     const { fixture, root } = await setup(undefined, { wide: false });
     expect(root.querySelector('app-report-fab')).not.toBeNull();
+    expect(root.querySelector('.dock')).not.toBeNull();
     fixture.componentRef.setInput('id', DETAIL.id);
     fixture.detectChanges();
     expect(root.querySelector('app-report-fab')).toBeNull();
+    expect(root.querySelector('.dock')).toBeNull();
     fixture.componentRef.setInput('id', undefined);
     fixture.detectChanges();
     expect(root.querySelector('app-report-fab')).not.toBeNull();
+    expect(root.querySelector('.dock')).not.toBeNull();
+  });
+
+  it('lists the top three reports in view and links to all', async () => {
+    vi.useFakeTimers();
+    const inBbox = vi.fn().mockResolvedValue({
+      type: 'FeatureCollection',
+      features: [
+        feature('low', { danger_level: 0 }),
+        feature('crit', { danger_level: 3, confirm_count: 18 }),
+        feature('done', { danger_level: 3, status: 'resolved' }),
+        feature('mid', { danger_level: 2 }),
+      ],
+    });
+    const { map, fixture, root, navigate } = await setup(inBbox);
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    const rows = [...root.querySelectorAll<HTMLButtonElement>('.side .in-view button')];
+    expect(rows.map((b) => b.querySelector('.name')?.textContent?.trim())).toEqual(['เรื่อง crit', 'เรื่อง mid', 'เรื่อง low']);
+    expect(rows[0].querySelector('app-level-shape')).not.toBeNull();
+    expect(rows[0].textContent).toContain('18 คน');
+    rows[0].click();
+    expect(navigate).toHaveBeenCalledWith(['/r', 'crit']);
+    const all = root.querySelector<HTMLAnchorElement>('.side a.all')!;
+    expect(all.textContent?.trim()).toBe('ดูทั้งหมด 4 เรื่อง');
+    expect(all.getAttribute('href')).toBe('/list');
+  });
+
+  it('folds the side panel to the search row when the detail panel opens below 1180 px', async () => {
+    const narrow = await setup(undefined, { wide: true, roomy: false });
+    expect(narrow.root.querySelector('.side')?.classList).not.toContain('compact');
+    narrow.fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(narrow.fixture);
+    expect(narrow.root.querySelector('.side')?.classList).toContain('compact');
+    TestBed.resetTestingModule();
+    const roomy = await setup(undefined, { wide: true, roomy: true });
+    roomy.fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(roomy.fixture);
+    expect(roomy.root.querySelector('.side')?.classList).not.toContain('compact');
+  });
+
+  it('keeps English labels inside the dock', async () => {
+    const { root, fixture } = await setup(undefined, { wide: false });
+    TestBed.inject(I18nService).setLocale('en');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const words = [...root.querySelectorAll('.dock button')].map((b) => b.textContent?.trim()).filter(Boolean);
+    expect(words).toEqual(['Map', 'List', 'Me']);
   });
 
   it('keeps the floating button beside the open panel on a wide screen', async () => {
@@ -537,9 +633,11 @@ describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
   it('shows the month numbers for the view next to the hint, from the same load', async () => {
     const { root, stats } = await loaded();
     expect(stats).toHaveBeenCalledWith([97, 5, 106, 21]);
-    expect(root.querySelector('.hint app-stats-line')?.textContent?.replace(/\s+/g, ' ')).toContain('เดือนนี้แก้แล้ว 3 เรื่อง');
-    expect(root.querySelector('.hint .hint-line')?.textContent).toContain('ยังไม่มีเรื่อง');
-    expect(root.querySelector('.hint .hint-line')?.getAttribute('aria-live')).toBe('polite');
+    const numbers = root.querySelector('.summary app-stats-line')?.textContent?.replace(/\s+/g, ' ');
+    expect(numbers).toContain('12 ค้างอยู่');
+    expect(numbers).toContain('แก้แล้ว 3');
+    expect(root.querySelector('.summary .hint-line')?.textContent).toContain('ยังไม่มีเรื่อง');
+    expect(root.querySelector('.summary .hint-line')?.getAttribute('aria-live')).toBe('polite');
     expect(root.querySelector('app-stats-line')?.hasAttribute('aria-live')).toBe(false);
   });
 
@@ -550,7 +648,7 @@ describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
     await vi.advanceTimersByTimeAsync(300);
     fixture.detectChanges();
     expect(root.querySelector('app-stats-line')?.textContent?.trim()).toBe('');
-    expect(root.querySelector('.hint .hint-line')?.textContent).toContain('ยังไม่มีเรื่อง');
+    expect(root.querySelector('.summary .hint-line')?.textContent).toContain('ยังไม่มีเรื่อง');
   });
 
   it('keeps newer numbers when an older answer arrives late', async () => {
@@ -583,15 +681,22 @@ describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
     expect(map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything() }));
     root.querySelector<HTMLButtonElement>('button[aria-label="ดูเป็นรายการ"]')!.click();
     expect(navigate).toHaveBeenCalledWith(['/list']);
+    TestBed.resetTestingModule();
+    // phones: the map tab you are on flies home; the summary pill opens the list
+    const phone = await setup(undefined, { wide: false });
+    phone.root.querySelector<HTMLButtonElement>('.dock button[aria-current="page"]')!.click();
+    expect(phone.map.fitBounds).toHaveBeenCalledWith(THAILAND_BOUNDS, expect.objectContaining({ padding: expect.anything() }));
+    phone.root.querySelector<HTMLButtonElement>('.summary button.open-list')!.click();
+    expect(phone.navigate).toHaveBeenCalledWith(['/list']);
   });
 
-  it('starts with a skip link to the list, and the brand card carries language and about', async () => {
+  it('starts with a skip link to the list, and the menu carries language and about', async () => {
     const { root } = await setup();
     const first = root.querySelector('a, button')!;
     expect(first.textContent?.trim()).toBe('ข้ามไปที่รายการเรื่อง');
     expect(first.getAttribute('href')).toBe('/list');
-    expect(root.querySelector('.brand app-language-toggle button')).not.toBeNull();
-    expect(root.querySelector('.brand button[aria-label="เกี่ยวกับแจ้ง"]')).not.toBeNull();
+    expect(root.querySelector('.menu app-language-toggle button')).not.toBeNull();
+    expect(root.querySelector('.menu button[aria-label="เกี่ยวกับแจ้ง"]')).not.toBeNull();
   });
 
   it('a failed load offers "ลองใหม่", which loads again and hides the toast', async () => {
@@ -670,13 +775,15 @@ describe('MapPage plan 6: filters and search', () => {
     expect(navigate).toHaveBeenCalledWith(['/r', 'r9']);
   });
 
-  it('puts a search field between the brand and the chips on a wide screen, an icon in the brand card on a phone', async () => {
+  it('puts the search field in the side panel before the chips on a wide screen, a pill in the top bar on a phone', async () => {
     const wide = await setup();
-    const order = [...wide.root.querySelectorAll('.top > *')].map((e) => e.tagName.toLowerCase());
-    expect(order).toEqual(['header', 'app-search-box', 'app-filter-bar']);
+    const order = [...wide.root.querySelectorAll('.side .search-row app-search-box, .side app-filter-bar')].map((e) =>
+      e.tagName.toLowerCase(),
+    );
+    expect(order).toEqual(['app-search-box', 'app-filter-bar']);
     TestBed.resetTestingModule();
     const phone = await setup(undefined, { wide: false });
-    expect(phone.root.querySelector('.brand app-search-box button[aria-label="ค้นหา"]')).not.toBeNull();
+    expect(phone.root.querySelector('.bar app-search-box button.search-pill[aria-label="ค้นหา"]')).not.toBeNull();
   });
 });
 

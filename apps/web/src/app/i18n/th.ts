@@ -57,6 +57,7 @@ export const th = {
     },
     inView: {
       all: 'ดูทั้งหมด {n} เรื่อง',
+      row: '{p} คน · {d} วัน',
     },
     metooCount: 'เจอเหมือนกัน {n}',
     beacon: '{title} ระดับ{level} {status}',

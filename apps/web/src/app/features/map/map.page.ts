@@ -46,14 +46,19 @@ import { ReportsService } from './reports.service';
 import { StatsLineComponent, type StatsState } from './stats-line.component';
 import { StatsService } from './stats.service';
 import { SearchBoxComponent } from './search-box.component';
+import { topReports } from './top-reports';
 import { toyOpacity, zoomHint } from './toy';
 
 const LOAD_DEBOUNCE_MS = 300;
 /** A linked report opens at street level at least (spec 3.4). */
 const DETAIL_ZOOM = 15;
-/** Room the right panel takes: 380 px plus its two 12 px gutters. */
-const PANEL_SPACE = 404;
+/** Room the right panel takes: 380 px plus its two 20 px gutters. */
+const PANEL_SPACE = 420;
 const WIDE = '(min-width: 820px)';
+/** Room for the side panel, the detail panel and ~440 px of map between them (plan 6b decision 8). */
+const ROOMY = '(min-width: 1180px)';
+/** How many reports the side panel lists. */
+const IN_VIEW = 3;
 /** Ionic's dismiss roles for the reader closing the sheet: a drag ('gesture'), the backdrop or Escape.
  *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
 const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
@@ -138,6 +143,13 @@ export class MapPage {
   /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
   readonly wide = signal(false);
   readonly panelOpen = computed(() => this.wide() && !!this.id());
+  /** wide enough for both panels side by side */
+  private readonly roomy = signal(false);
+  /** the detail panel is open on a screen under 1180 px: the side panel folds to its search row */
+  readonly sideCompact = computed(() => this.panelOpen() && !this.roomy());
+  /** the side panel's top reports of the loaded view, and how many the view holds */
+  readonly inView = signal<ReportProps[]>([]);
+  readonly inViewCount = signal(0);
   /** The sheet keeps showing its report while it slides away after the URL went back to `/`. */
   protected readonly sheetId = linkedSignal<string | undefined, string | undefined>({
     source: this.id,
@@ -145,14 +157,22 @@ export class MapPage {
   });
 
   readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.filters.levels().length, (k) => this.i18n.t(k)));
+  /** The hint shows only when it reports a state (every level off, nothing here); zoom tips stay for
+   *  screen readers (plan 6b decision 6). */
+  readonly hintIsState = computed(() => this.filters.levels().length === 0 || this.shown() === 0);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    const media = matchMedia(WIDE);
-    this.wide.set(media.matches);
-    const onMedia = (e: MediaQueryListEvent) => this.wide.set(e.matches);
-    media.addEventListener('change', onMedia);
-    destroyRef.onDestroy(() => media.removeEventListener('change', onMedia));
+    for (const [query, flag] of [
+      [WIDE, this.wide],
+      [ROOMY, this.roomy],
+    ] as const) {
+      const media = matchMedia(query);
+      flag.set(media.matches);
+      const onMedia = (e: MediaQueryListEvent) => flag.set(e.matches);
+      media.addEventListener('change', onMedia);
+      destroyRef.onDestroy(() => media.removeEventListener('change', onMedia));
+    }
     effect(() => {
       const id = this.id();
       untracked(() => this.follow(id));
@@ -388,7 +408,10 @@ export class MapPage {
       this.showToast('map.toast.loadFailed', { label: 'common.retry', run: () => this.scheduleLoad(0) });
       return;
     }
-    this.shown.set(result.data.features.length);
+    const props = result.data.features.map((f) => f.properties);
+    this.shown.set(props.length);
+    this.inView.set(topReports(props, IN_VIEW));
+    this.inViewCount.set(props.length);
     map.getSource<maplibregl.GeoJSONSource>(REPORT_SOURCE)?.setData(result.data);
   }
 

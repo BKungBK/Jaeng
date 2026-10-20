@@ -1,9 +1,10 @@
 @if (!showField()) {
-  <button type="button" class="ctl flat search-icon" [attr.aria-label]="'search.open' | t" (click)="openCard()">
-    <app-icon name="search" />
+  <button type="button" class="search-pill" [attr.aria-label]="'search.open' | t" (click)="openCard()">
+    <app-icon name="search" [size]="20" />
+    <span class="ph" aria-hidden="true">{{ 'search.label' | t }}</span>
   </button>
 } @else {
-  <div class="card box" [class.phone]="collapsed()">
+  <div class="box" [class.phone]="collapsed()" [class.glass]="collapsed()">
     <div class="field">
       <app-icon name="search" [size]="20" />
       <input
@@ -30,7 +31,15 @@
       }
     </div>
 
-    <div class="results" [id]="id + '-list'" role="listbox" [attr.aria-label]="'search.label' | t" [hidden]="!expanded()">
+    <div
+      class="results"
+      [class.glass]="!collapsed()"
+      [class.float]="!collapsed()"
+      [id]="id + '-list'"
+      role="listbox"
+      [attr.aria-label]="'search.label' | t"
+      [hidden]="!expanded()"
+    >
       @switch (state()) {
         @case ('loading') {
           <p class="note" role="presentation">{{ 'search.loading' | t }}</p>

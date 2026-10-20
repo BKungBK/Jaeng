@@ -35,6 +35,11 @@ export const en: Messages = {
     long: 'Long wait',
     days: 'Open for {n} {n|day|days}',
   },
+  nav: {
+    map: 'Map',
+    list: 'List',
+    mine: 'Me',
+  },
   map: {
     tagline: 'Every report is a signal light',
     zoomIn: 'Zoom in',
@@ -48,6 +53,11 @@ export const en: Messages = {
     stats: {
       resolved: 'Fixed this month: {n}',
       open: 'Still open: {n}',
+      openShort: '{n} open',
+      resolvedShort: '{n} fixed',
+    },
+    inView: {
+      all: 'See all {n}',
     },
     metooCount: 'Me too {n}',
     beacon: '{title} {level} level, {status}',

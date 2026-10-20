@@ -13,9 +13,16 @@ export type StatsState = 'loading' | 'error' | Stats;
   template: `
     @if (state() !== 'error') {
       @let s = numbers();
-      <span class="n"><app-icon name="circleCheck" [size]="16" />{{ 'map.stats.resolved' | t: { n: s.resolved } }}</span>
-      <span class="sr-only"> · </span>
-      <span class="n"><app-icon name="clock" [size]="16" />{{ 'map.stats.open' | t: { n: s.open } }}</span>
+      @if (compact()) {
+        <!-- the ring shows the share fixed; the words carry the numbers, so it is decoration -->
+        <span class="ring" aria-hidden="true" [style.--p]="ratio()"></span>
+        <b class="open">{{ 'map.stats.openShort' | t: { n: s.open } }}</b>
+        <span class="fixed"><span aria-hidden="true">· </span>{{ 'map.stats.resolvedShort' | t: { n: s.resolved } }}</span>
+      } @else {
+        <span class="n"><app-icon name="circleCheck" [size]="16" />{{ 'map.stats.resolved' | t: { n: s.resolved } }}</span>
+        <span class="sr-only"> · </span>
+        <span class="n"><app-icon name="clock" [size]="16" />{{ 'map.stats.open' | t: { n: s.open } }}</span>
+      }
     }
   `,
   styles: `
@@ -37,10 +44,49 @@ export type StatsState = 'loading' | 'error' | Stats;
       gap: 4px;
       white-space: nowrap;
     }
+    /* compact: one line, the ring then "34 open · 4 fixed" */
+    :host(.compact) {
+      flex-wrap: nowrap;
+      gap: 10px;
+      min-width: 0;
+      font: 400 13px/1.4 var(--font);
+    }
+    .ring {
+      flex: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: conic-gradient(#f4b49a 0 calc(var(--p) * 100%), color-mix(in srgb, var(--ink) 14%, transparent) 0);
+      -webkit-mask: radial-gradient(circle, transparent 9px, #000 10px);
+      mask: radial-gradient(circle, transparent 9px, #000 10px);
+    }
+    .open {
+      flex: none;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .fixed {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--ink2);
+    }
   `,
+  host: { '[class.compact]': 'compact()' },
 })
 export class StatsLineComponent {
   readonly state = input.required<StatsState>();
+  /** the map's one-line summary: a ring and short words */
+  readonly compact = input(false);
+
+  /** fixed this month / (fixed + still open), 0 until there are numbers */
+  ratio(): number {
+    const s = this.state();
+    if (typeof s !== 'object') return 0;
+    const total = s.resolved_this_month + s.open_count;
+    return total ? s.resolved_this_month / total : 0;
+  }
 
   protected numbers() {
     const s = this.state();

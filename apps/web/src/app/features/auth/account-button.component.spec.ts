@@ -9,7 +9,9 @@ import { AccountButtonComponent, AccountMenuComponent, initialOf } from './accou
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
-async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismissRole?: string } = {}) {
+async function setup(
+  opts: { signedIn?: boolean; profile?: Profile | null; dismissRole?: string; variant?: 'icon' | 'tab' } = {},
+) {
   const auth = {
     signedIn: signal(opts.signedIn ?? false),
     profile: signal<Profile | null>(opts.profile ?? null),
@@ -33,6 +35,7 @@ async function setup(opts: { signedIn?: boolean; profile?: Profile | null; dismi
     ],
   });
   const fixture = TestBed.createComponent(AccountButtonComponent);
+  if (opts.variant) fixture.componentRef.setInput('variant', opts.variant);
   await fixture.whenStable();
   const root = fixture.nativeElement as HTMLElement;
   const button = root.querySelector<HTMLButtonElement>('button')!;
@@ -49,6 +52,12 @@ describe('AccountButtonComponent', () => {
     await flush();
     expect(prompt.ask).toHaveBeenCalled();
     expect(popovers.create).not.toHaveBeenCalled();
+  });
+
+  it('tab: names the dock slot and still says what it does', async () => {
+    const { button } = await setup({ variant: 'tab' });
+    expect(button.getAttribute('aria-label')).toBe('ของฉัน: เข้าสู่ระบบ');
+    expect(button.textContent?.trim()).toBe('ของฉัน');
   });
 
   it('names the account when signed in and follows sign-in changes', async () => {

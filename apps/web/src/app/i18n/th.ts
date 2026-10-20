@@ -34,6 +34,11 @@ export const th = {
     long: 'ค้างนาน',
     days: 'ค้างมา {n} วัน',
   },
+  nav: {
+    map: 'แผนที่',
+    list: 'รายการ',
+    mine: 'ของฉัน',
+  },
   map: {
     tagline: 'ทุกเรื่องคือสัญญาณไฟ',
     zoomIn: 'ซูมเข้า',
@@ -47,6 +52,11 @@ export const th = {
     stats: {
       resolved: 'เดือนนี้แก้แล้ว {n} เรื่อง',
       open: 'ค้างอยู่ {n} เรื่อง',
+      openShort: '{n} ค้างอยู่',
+      resolvedShort: 'แก้แล้ว {n}',
+    },
+    inView: {
+      all: 'ดูทั้งหมด {n} เรื่อง',
     },
     metooCount: 'เจอเหมือนกัน {n}',
     beacon: '{title} ระดับ{level} {status}',

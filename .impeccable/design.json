@@ -1,47 +1,238 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-18T12:00:00+07:00",
+  "generatedAt": "2026-10-20T07:13:21.306Z",
   "title": "Design System: แจ้ง",
   "extensions": {
     "colorMeta": {
-      "trust-blue": { "role": "primary", "displayName": "Trust Blue", "canonical": "#3F6FA8", "tonalRamp": ["#14243a", "#1f3858", "#2b4c77", "#3f6fa8", "#5f89bd", "#87a7cf", "#b3c8e2", "#e0e9f4"] },
-      "level-minor-mint": { "role": "secondary", "displayName": "Level Minor Mint", "canonical": "#8FD3B6", "tonalRamp": ["#173d2e", "#245a45", "#36785e", "#4f9a7b", "#6db897", "#8fd3b6", "#bde5d3", "#e8f6f0"] },
-      "level-caution-butter": { "role": "secondary", "displayName": "Level Caution Butter", "canonical": "#F6D983", "tonalRamp": ["#4a3a0c", "#6b5516", "#8e7224", "#b39136", "#d6b44f", "#f6d983", "#f9e7b3", "#fdf6e2"] },
-      "level-danger-peach": { "role": "secondary", "displayName": "Level Danger Peach", "canonical": "#F4A582", "tonalRamp": ["#4d2312", "#70341c", "#94482a", "#b9603d", "#db8059", "#f4a582", "#f8c9b4", "#fdeee7"] },
-      "level-critical-rose": { "role": "secondary", "displayName": "Level Critical Rose", "canonical": "#E57373", "tonalRamp": ["#4a1515", "#6d2020", "#922d2d", "#b84141", "#e57373", "#ec9a9a", "#f4c4c4", "#fbeaea"] },
-      "toy-sea": { "role": "tertiary", "displayName": "Toy Sea", "canonical": "#4FB3EA", "tonalRamp": ["#0d3348", "#154b69", "#1f658c", "#2b80b0", "#3d9bd2", "#4fb3ea", "#93d0f2", "#dcf0fb"] },
-      "cream-ground": { "role": "neutral", "displayName": "Cream Ground", "canonical": "#FBF7F2", "tonalRamp": ["#2b2722", "#4a443c", "#6b6358", "#8f8577", "#b3a999", "#d6cdc0", "#ede6dc", "#fbf7f2"] },
-      "slate-ink": { "role": "neutral", "displayName": "Slate Ink", "canonical": "#2B2A33", "tonalRamp": ["#141319", "#2b2a33", "#43414e", "#5b5969", "#757385", "#9391a1", "#b4b2bf", "#dcdbe2"] }
+      "trust-blue": {
+        "role": "primary",
+        "displayName": "Trust Blue",
+        "canonical": "#3F6FA8",
+        "tonalRamp": [
+          "#14243a",
+          "#1f3858",
+          "#2b4c77",
+          "#3f6fa8",
+          "#5f89bd",
+          "#87a7cf",
+          "#b3c8e2",
+          "#e0e9f4"
+        ]
+      },
+      "level-minor-mint": {
+        "role": "secondary",
+        "displayName": "Level Minor Mint",
+        "canonical": "#8FD3B6",
+        "tonalRamp": [
+          "#173d2e",
+          "#245a45",
+          "#36785e",
+          "#4f9a7b",
+          "#6db897",
+          "#8fd3b6",
+          "#bde5d3",
+          "#e8f6f0"
+        ]
+      },
+      "level-caution-butter": {
+        "role": "secondary",
+        "displayName": "Level Caution Butter",
+        "canonical": "#F6D983",
+        "tonalRamp": [
+          "#4a3a0c",
+          "#6b5516",
+          "#8e7224",
+          "#b39136",
+          "#d6b44f",
+          "#f6d983",
+          "#f9e7b3",
+          "#fdf6e2"
+        ]
+      },
+      "level-danger-peach": {
+        "role": "secondary",
+        "displayName": "Level Danger Peach",
+        "canonical": "#F4A582",
+        "tonalRamp": [
+          "#4d2312",
+          "#70341c",
+          "#94482a",
+          "#b9603d",
+          "#db8059",
+          "#f4a582",
+          "#f8c9b4",
+          "#fdeee7"
+        ]
+      },
+      "level-critical-rose": {
+        "role": "secondary",
+        "displayName": "Level Critical Rose",
+        "canonical": "#E57373",
+        "tonalRamp": [
+          "#4a1515",
+          "#6d2020",
+          "#922d2d",
+          "#b84141",
+          "#e57373",
+          "#ec9a9a",
+          "#f4c4c4",
+          "#fbeaea"
+        ]
+      },
+      "toy-sea": {
+        "role": "tertiary",
+        "displayName": "Toy Sea",
+        "canonical": "#4FB3EA",
+        "tonalRamp": [
+          "#0d3348",
+          "#154b69",
+          "#1f658c",
+          "#2b80b0",
+          "#3d9bd2",
+          "#4fb3ea",
+          "#93d0f2",
+          "#dcf0fb"
+        ]
+      },
+      "cream-ground": {
+        "role": "neutral",
+        "displayName": "Cream Ground",
+        "canonical": "#FBF7F2",
+        "tonalRamp": [
+          "#2b2722",
+          "#4a443c",
+          "#6b6358",
+          "#8f8577",
+          "#b3a999",
+          "#d6cdc0",
+          "#ede6dc",
+          "#fbf7f2"
+        ]
+      },
+      "slate-ink": {
+        "role": "neutral",
+        "displayName": "Slate Ink",
+        "canonical": "#2B2A33",
+        "tonalRamp": [
+          "#141319",
+          "#2b2a33",
+          "#43414e",
+          "#5b5969",
+          "#757385",
+          "#9391a1",
+          "#b4b2bf",
+          "#dcdbe2"
+        ]
+      }
     },
     "typographyMeta": {
-      "headline": { "displayName": "Headline", "purpose": "Brand word แจ้ง and sheet titles, Prompt 600." },
-      "title": { "displayName": "Title", "purpose": "Buttons, card headings and report titles in tooltip and detail panel, Prompt 500." },
-      "body": { "displayName": "Body", "purpose": "Descriptions and comments in Thai and English." },
-      "label": { "displayName": "Label", "purpose": "Level chips and toast." },
-      "caption": { "displayName": "Caption", "purpose": "Tagline, hint card, meta and age lines." },
-      "map-label": { "displayName": "Map Label", "purpose": "Toy province names, white with a Slate Ink halo, 13px at zoom 4 growing to 21px by zoom 6.5." },
-      "count": { "displayName": "Count", "purpose": "Cluster counts in tabular figures." }
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Brand word แจ้ง and sheet titles, Prompt 600."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Buttons, card headings and report titles in tooltip and detail panel, Prompt 500."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and comments in Thai and English."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Level chips and toast."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Tagline, hint card, meta and age lines."
+      },
+      "map-label": {
+        "displayName": "Map Label",
+        "purpose": "Toy province names, white with a Slate Ink halo, 13px at zoom 4 growing to 21px by zoom 6.5."
+      },
+      "count": {
+        "displayName": "Count",
+        "purpose": "Cluster counts in tabular figures."
+      }
     },
     "shadows": [
-      { "name": "float", "value": "0 8px 28px rgba(60,50,40,.18)", "purpose": "Every floating card, chip tray, icon button, tooltip, detail panel and sheets." },
-      { "name": "pill", "value": "0 2px 8px rgba(0,0,0,.15)", "purpose": "Beacon short labels." },
-      { "name": "glow", "value": "0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px var(--c)", "purpose": "Beacon and cluster discs only." },
-      { "name": "selected", "value": "0 0 0 3px var(--surf), 0 0 0 6px var(--pri), 0 0 28px var(--c)", "purpose": "The beacon whose detail panel is open." },
-      { "name": "prop-lift", "value": "drop-shadow(0 6px 6px rgba(40,60,80,.25))", "purpose": "Filter on moving toy props (planes, clouds, train, ships) only." }
+      {
+        "name": "float",
+        "value": "0 8px 28px rgba(60,50,40,.18)",
+        "purpose": "Every floating card, chip tray, icon button, tooltip, detail panel and sheets."
+      },
+      {
+        "name": "pill",
+        "value": "0 2px 8px rgba(0,0,0,.15)",
+        "purpose": "Beacon short labels."
+      },
+      {
+        "name": "glow",
+        "value": "0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px var(--c)",
+        "purpose": "Beacon and cluster discs only."
+      },
+      {
+        "name": "selected",
+        "value": "0 0 0 3px var(--surf), 0 0 0 6px var(--pri), 0 0 28px var(--c)",
+        "purpose": "The beacon whose detail panel is open."
+      },
+      {
+        "name": "prop-lift",
+        "value": "drop-shadow(0 6px 6px rgba(40,60,80,.25))",
+        "purpose": "Filter on moving toy props (planes, clouds, train, ships) only."
+      }
     ],
     "motion": [
-      { "name": "pulse-l0", "value": "3s ease-out infinite", "purpose": "Level 0 pulse ring." },
-      { "name": "pulse-l1", "value": "2.4s ease-out infinite", "purpose": "Level 1 pulse ring." },
-      { "name": "pulse-l2", "value": "1.6s ease-out infinite", "purpose": "Level 2 pulse rings (two, half-period offset)." },
-      { "name": "pulse-l3", "value": "1s ease-out infinite", "purpose": "Level 3 pulse rings (two, half-period offset)." },
-      { "name": "beam-grow", "value": "height 400ms cubic-bezier(.3,.7,.2,1)", "purpose": "Beam rising after a me-too." },
-      { "name": "sheet", "value": "transform 350ms cubic-bezier(.3,.7,.2,1)", "purpose": "Detail sheet and panel entrance." },
-      { "name": "toy-fade", "value": "zoom 6 → 8, linear", "purpose": "Toy land, mask, landmarks, movers and compass fade out; soil offsets flatten over the same range." },
-      { "name": "toy-label-fade", "value": "zoom 6 → 7, linear", "purpose": "Toy province names leave before the street map's names arrive." }
+      {
+        "name": "pulse-l0",
+        "value": "3s ease-out infinite",
+        "purpose": "Level 0 pulse ring."
+      },
+      {
+        "name": "pulse-l1",
+        "value": "2.4s ease-out infinite",
+        "purpose": "Level 1 pulse ring."
+      },
+      {
+        "name": "pulse-l2",
+        "value": "1.6s ease-out infinite",
+        "purpose": "Level 2 pulse rings (two, half-period offset)."
+      },
+      {
+        "name": "pulse-l3",
+        "value": "1s ease-out infinite",
+        "purpose": "Level 3 pulse rings (two, half-period offset)."
+      },
+      {
+        "name": "beam-grow",
+        "value": "height 400ms cubic-bezier(.3,.7,.2,1)",
+        "purpose": "Beam rising after a me-too."
+      },
+      {
+        "name": "sheet",
+        "value": "transform 350ms cubic-bezier(.3,.7,.2,1)",
+        "purpose": "Detail sheet and panel entrance."
+      },
+      {
+        "name": "toy-fade",
+        "value": "zoom 6 → 8, linear",
+        "purpose": "Toy land, mask, landmarks, movers and compass fade out; soil offsets flatten over the same range."
+      },
+      {
+        "name": "toy-label-fade",
+        "value": "zoom 6 → 7, linear",
+        "purpose": "Toy province names leave before the street map's names arrive."
+      }
     ],
     "breakpoints": [
-      { "name": "narrow", "value": "420px" },
-      { "name": "wide", "value": "820px" }
+      {
+        "name": "narrow",
+        "value": "420px"
+      },
+      {
+        "name": "wide",
+        "value": "820px"
+      }
     ]
   },
   "components": [
@@ -132,6 +323,38 @@
       "description": "Admin claim review: the before and after photos as two equal square tiles side by side, each named by a white label pill; a missing after photo is a dashed Sand Line tile that says so.",
       "html": "<div class=\"ds-ba\"><figure><span class=\"ds-ba-img\" style=\"background:#CBA582\"></span><figcaption>ก่อนแก้</figcaption></figure><figure><span class=\"ds-ba-none\">ไม่ได้แนบรูปหลังแก้</span><figcaption>หลังแก้</figcaption></figure></div>",
       "css": ".ds-ba{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:320px}.ds-ba figure{position:relative;margin:0;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#FBF7F2}.ds-ba-img{display:block;width:100%;height:100%}.ds-ba-none{display:grid;place-items:center;height:100%;box-sizing:border-box;padding:12px;border:2px dashed #E8E0D5;border-radius:12px;color:#6B6878;font:400 14px/1.5 'IBM Plex Sans Thai',sans-serif;text-align:center}.ds-ba figcaption{position:absolute;left:8px;bottom:8px;padding:2px 10px;border-radius:10px;background:#fff;color:#2B2A33;font:500 13px/1.5 'IBM Plex Sans Thai',sans-serif}"
+    },
+    {
+      "name": "Language Toggle",
+      "kind": "button",
+      "refersTo": "language-toggle",
+      "description": "Brand card button (plan 6): the other language named in itself, labelled in that language; swaps every word in place.",
+      "html": "<button class=\"ds-lang\" aria-label=\"Switch to English\"><span lang=\"en\">EN</span></button>",
+      "css": ".ds-lang{display:grid;place-items:center;min-width:44px;height:44px;padding:0 8px;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;font:600 14px/1 'Prompt','IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-lang:hover{background:#FBF7F2}.ds-lang:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    },
+    {
+      "name": "Segmented Choice",
+      "kind": "control",
+      "refersTo": "segmented-choice",
+      "description": "Language, theme and list-sort radiogroups (plan 6): chosen = Card White + Float shadow + weight 600, never colour alone.",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\" aria-label=\"ธีม\"><button role=\"radio\" aria-checked=\"true\" class=\"ds-opt\">ตามเครื่อง</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-opt\">สว่าง</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-opt\">มืด</button></div>",
+      "css": ".ds-seg{display:flex;gap:4px;padding:4px;border-radius:16px;background:#FBF7F2;box-shadow:inset 0 0 0 1px #E8E0D5}.ds-opt{flex:1 1 auto;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:#6B6878;font:500 14px/1.4 'IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-opt[aria-checked=true]{background:#fff;box-shadow:0 8px 28px rgba(60,50,40,.18);color:#2B2A33;font-weight:600}.ds-opt:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+    },
+    {
+      "name": "Cluster Critical Pill",
+      "kind": "badge",
+      "refersTo": "cluster-critical",
+      "description": "Upper-left of a cluster disc when the group holds critical reports (plan 6): critical shape + count, Slate Ink on rose 55% into white.",
+      "html": "<span class=\"ds-crit\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg>2</span>",
+      "css": ".ds-crit{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px 0 5px;border-radius:11px;background:color-mix(in srgb,#E57373 55%,#fff);color:#2B2A33;box-shadow:0 2px 8px rgba(0,0,0,.15);font:600 12px/1 'Prompt',sans-serif}.ds-crit svg{width:12px;height:12px;fill:currentColor}"
+    },
+    {
+      "name": "Action Toast",
+      "kind": "feedback",
+      "refersTo": "toast-action",
+      "description": "A toast with one underlined text button in its own colours (plan 6); stays 8 s.",
+      "html": "<div class=\"ds-toast\" role=\"status\"><span>โหลดข้อมูลไม่สำเร็จ</span><button>ลองใหม่</button></div>",
+      "css": ".ds-toast{display:inline-flex;align-items:center;gap:12px;padding:0 4px 0 16px;border-radius:14px;background:#2B2A33;color:#FBF7F2;font:400 14px/1.5 'IBM Plex Sans Thai',sans-serif}.ds-toast button{min-height:44px;padding:0 12px;border:0;background:none;color:#FBF7F2;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}"
     }
   ],
   "narrative": {
@@ -146,14 +369,46 @@
       "Prompt for voice, IBM Plex Sans Thai for reading."
     ],
     "rules": [
-      { "name": "The Levels Only Mean Danger Rule", "body": "Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.", "section": "colors" },
-      { "name": "The Ink On Pastel Rule", "body": "Text on any pastel fill is Slate Ink (#2B2A33), never white and never the theme ink, and the pastel is always mixed into white, never into the theme surface. A chip reads the same in light and dark and every one passes WCAG AA.", "section": "colors" },
-      { "name": "The Toy Stays Toy Rule", "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.", "section": "colors" },
-      { "name": "The Cel Rule", "body": "The map has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs.", "section": "colors" },
-      { "name": "The Thai First Rule", "body": "Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.", "section": "typography" },
-      { "name": "The Names Stay Home Rule", "body": "A toy province name sits on its town, else one row below, else one row above (a name may prefer up), clear of clusters, beacons, landmarks and other names. If none of the three spots is free, it hides rather than drift. Names are short forms (กรุงเทพฯ).", "section": "typography" },
-      { "name": "The One Light Rule", "body": "Only beacons glow. No other element gets a coloured shadow or glow.", "section": "elevation" },
-      { "name": "The One Shape Set Rule", "body": "A danger level's shape is always drawn from the SVG set, never typed as a character, so chips, badges and meta lines show the same weight on every device.", "section": "shapes" }
+      {
+        "name": "The Levels Only Mean Danger Rule",
+        "body": "Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink On Pastel Rule",
+        "body": "Text on any pastel fill is Slate Ink (#2B2A33), never white and never the theme ink, and the pastel is always mixed into white, never into the theme surface. A chip reads the same in light and dark and every one passes WCAG AA.",
+        "section": "colors"
+      },
+      {
+        "name": "The Toy Stays Toy Rule",
+        "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cel Rule",
+        "body": "The map has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Thai First Rule",
+        "body": "Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.",
+        "section": "typography"
+      },
+      {
+        "name": "The Names Stay Home Rule",
+        "body": "A toy province name sits on its town, else one row below, else one row above (a name may prefer up), clear of clusters, beacons, landmarks and other names. If none of the three spots is free, it hides rather than drift. Names are short forms (กรุงเทพฯ).",
+        "section": "typography"
+      },
+      {
+        "name": "The One Light Rule",
+        "body": "Only beacons glow. No other element gets a coloured shadow or glow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Shape Set Rule",
+        "body": "A danger level's shape is always drawn from the SVG set, never typed as a character, so chips, badges and meta lines show the same weight on every device.",
+        "section": "shapes"
+      }
     ],
     "dos": [
       "Do encode every danger level with colour, the solid SVG shape and pulse speed together.",

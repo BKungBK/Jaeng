@@ -31,7 +31,7 @@ One breakpoint (820 px), 12 px gutters plus safe area, 8 px between floating ele
 | Brand card | "แจ้ง" + tagline, then a row of two 44 px buttons: language (text "EN" / "ไทย") and about (`info`) | same; the two buttons sit at the card's right end on the brand's line |
 | Search | a 44 px `search` icon button in the brand card's button row; pressing it lays a full-width search card over the top group (brand and chips hidden while it is open) | a 300 px search field card between the brand card and the chip tray (the group still stops 72 px from the right) |
 | Chip tray | under the brand card, the four level chips then a 44 px `slidersHorizontal` button ("ตัวกรองเพิ่มเติม") inside the same tray | beside the search card, same contents |
-| Filters panel | `ion-modal` sheet, auto height, 24 px top corners | a 320 px Card White popover under the more-filters button (18 px radius, Float shadow) |
+| Filters panel | the app's own full-width bottom card over a backdrop, 24 px top corners (built: not an `ion-modal`, no drag to dismiss) | a 320 px Card White popover under the more-filters button (18 px radius, Float shadow) |
 | Hint card | bottom-left, stretches to the controls column, numbers line above the hint line | bottom-left, max 340 px |
 | Controls column | zoom in, zoom out, locate, home, list, account; 8 px stack above the FAB | same stack, vertically centred |
 | `/list`, `/about` | full page on Cream Ground | centred 600 px Card White card, 24 px from the top (the `/me` grammar) |
@@ -71,7 +71,7 @@ Why search collapses to an icon on phones: the top of a 375 px screen already ho
 | `StatsLineComponent` | `features/map/stats-line.component.ts` | `[stats]` | inside the hint card |
 | `ListPage` | `features/list/list.page.ts` | reads `FilterState`, `MapViewService` | |
 | `AboutPage` | `features/about/about.page.ts` | — | static text from the dictionaries |
-| Toast | `map.page.html` `.toast` | `{ text, action? }` | action is one text button |
+| Toast | `map.page.html` `.toast` | `{ said, action? }` (built: the text is kept as `Said` so it rewords on a language switch) | action is one text button |
 | Cluster | `features/map/beacon.ts` `createClusterElement` | `count, maxLevel, critical` | pill when `critical > 0` |
 | Buttons | `report-new/_flow.scss` `.btn`, `.primary`, `.ctl` | — | reuse; no new button styles |
 
@@ -118,7 +118,7 @@ New Lucide names (check the export names in the container before adding to `ICON
 | Element | State | Behavior |
 |---|---|---|
 | Numbers line | loading first time | "—" in place of both numbers |
-| Numbers line | ready | `circleCheck` "เดือนนี้แก้แล้ว {n} เรื่อง" · `clock` "ค้างอยู่ {m} เรื่อง" (tabular figures); counts the visible map area |
+| Numbers line | ready | `circleCheck` "เดือนนี้แก้แล้ว {n} เรื่อง" then `clock` "ค้างอยู่ {m} เรื่อง" (tabular figures); counts the visible map area. Built: no visible "·" between them (it stranded at a line end on phones); a screen-reader-only " · " keeps the read text |
 | Numbers line | map moved | refreshes with the bbox load (same debounce); old numbers stay until new ones arrive |
 | Numbers line | error | the line hides; the hint line stays (the numbers are encouragement, not data the reader needs) |
 | Month | — | the calendar month in Asia/Bangkok, whatever the device's zone |
@@ -162,7 +162,7 @@ Sections in order, each with an h2: "แจ้งคืออะไร" (two sen
 | Element | Behavior |
 |---|---|
 | `/me` | new section "การแสดงผล" between the name and the list: `LanguageChoiceComponent` then `ThemeChoiceComponent` |
-| Account menu | new rows after "หน้าผู้ดูแล": "English" / "ภาษาไทย" (`languages`, switches and keeps the menu open) and "เกี่ยวกับแจ้ง" (`info`) |
+| Account menu | new rows after "หน้าผู้ดูแล": "English" / "ไทย" (`languages`, each language named in itself; switches, keeps the menu open, saves to the account without waiting) and "เกี่ยวกับแจ้ง" (`info`) |
 
 ## Responsive Behavior
 
@@ -203,3 +203,15 @@ No motion reads `prefers-reduced-motion` (owner rule); nothing here loops.
 - **Numbers line** is not live (it would chatter while panning); the hint line stays `aria-live="polite"` as today.
 - **Viewport:** drop `maximum-scale=1, user-scalable=no` from `index.html` so pages can be zoomed; the map canvas keeps its own pinch.
 - Every new target ≥ 44 × 44 px; every icon-only button has an `aria-label` in both languages.
+
+## As built (plan 6 close-out, 2026-10-20)
+
+Where the build differs from the sheet above, the build wins:
+
+- Filters panel is one component for both widths (popover ≥ 820 px, bottom card below), closes on Escape, outside press or "เสร็จ" and returns focus. Status filters (open / fix claimed) were not built; the panel holds categories and "แสดงเรื่องที่แก้แล้ว".
+- Place search while typing asks only our own districts and provinces. A Trust Blue action row "ค้นสถานที่อื่นใน OpenStreetMap" (`search` icon, an option in the listbox after the places) or Enter with no row chosen asks OpenStreetMap too; the reports stay on screen while it answers, and the row goes once asked. Reason: the OSM Nominatim policy forbids auto-complete on the public server (final review, Important 2). The server stops waiting for OSM after 3.5 s, queue included, and answers `online: false`.
+- Report search returns the first five matches over the whole country in the map's own order (most confirmed first); resolved reports older than 30 days are not found by search but are on `/list`.
+- `/list` header count is the number of rows loaded so far, not a server total.
+- `/about` has its own h2 "เบอร์ฉุกเฉิน" for the shared emergency box (`shared/emergency-box.component.ts`); credits carry no "©".
+- The load-failed toast reads "โหลดข้อมูลไม่สำเร็จ" with "ลองใหม่"; the new-version notice ("มีเวอร์ชันใหม่" + "โหลดใหม่") lives in the app shell, not the map toast, because an update can arrive on any page.
+- English base-map labels: only symbol layers whose text already shows a name are rewritten (`name:en` → `name:latin` → `name`); road shields keep their numbers.

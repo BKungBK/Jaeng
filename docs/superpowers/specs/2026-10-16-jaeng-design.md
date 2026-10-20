@@ -159,7 +159,7 @@
 |---|---|
 | ยังไม่ได้แก้ (`open`) | ลำแสงเต็ม วงพัลส์ทำงาน และมีป้าย "ค้างมา N วัน" ถ้าค้างเกิน 30 วัน ป้ายจะเข้มขึ้นเป็น "ค้างนาน" |
 | รอตรวจว่าแก้แล้ว (`fix_claimed`) | ลำแสงจางเหลือ 28% วงหัวเป็นเส้นประ และไม่มีพัลส์ |
-| แก้แล้ว (`resolved`) | ไม่มีลำแสง วงเปลี่ยนเป็นสีมิ้นต์พร้อมเครื่องหมายถูก และหายจากแผนที่หลัง 30 วัน (แต่ยังค้นเจอในรายการ) |
+| แก้แล้ว (`resolved`) | ไม่มีลำแสง วงเปลี่ยนเป็นสีมิ้นต์พร้อมเครื่องหมายถูก และหายจากแผนที่หลัง 30 วัน (แต่ยังค้นเจอในรายการ: แผน 6 ให้ `/list` แสดงเมื่อเปิด "แสดงเรื่องที่แก้แล้ว" และลิงก์ตรงเปิดได้ทุกอายุ) |
 
 **วงรวมกลุ่ม (cluster)** ตอนซูมไกล เป็นวงขาวที่มีตัวเลขจำนวนเรื่อง สีขอบใช้ **ระดับสูงสุด** ในกลุ่มนั้น พอกดวงจะบินซูมเข้าไป
 
@@ -284,6 +284,8 @@
 
 **ปุ่มลอยมุมขวา:** ซูมเข้า, ซูมออก, ไปที่ตำแหน่งฉัน และสลับมุมมองแผนที่/รายการ
 
+**ที่อยู่จริงหลังแผน 6 (2026-10-20):** การ์ดแบรนด์มีปุ่มภาษา ("EN" / "ไทย") และปุ่ม `info` ไป `/about` (บนมือถือมีปุ่มค้นหารูปแว่นด้วย) · ช่องค้นหาเป็นการ์ด 300 px ระหว่างการ์ดแบรนด์กับชิปตั้งแต่ 820 px และเป็นปุ่มไอคอนที่เปิดการ์ดเต็มกว้างบนมือถือ ค้นได้ทั้งเรื่อง (หัวข้อ/แท็ก ทั้งประเทศ) และสถานที่ (ชื่ออำเภอ/จังหวัดในเครื่องระหว่างพิมพ์ และ Nominatim เมื่อกด "ค้นสถานที่อื่นใน OpenStreetMap" หรือ Enter) · ปุ่มตัวกรองเพิ่มเติมอยู่ท้ายถาดชิป (หมวด และแสดงเรื่องที่แก้แล้ว; ตัวกรองสถานะ open/fix_claimed ไม่ได้ทำ) ใช้ `FilterState` ร่วมกับ `/list` · ปุ่มลอยขวาเพิ่มกลับไปดูทั้งประเทศ (`house`) และดูเป็นรายการ (`list`) · ตัวเลขกำลังใจเป็นบรรทัดแรกของการ์ดคำใบ้ นับตามเดือนเวลาไทย
+
 ### 3.10 หน้าแอดมิน
 
 แท็บบนหน้า `/admin`:
@@ -344,7 +346,8 @@
 
 ### 3.12 สองภาษา
 
-- ภาษาไทยเป็นค่าเริ่มต้น สลับเป็นอังกฤษได้ที่ `/me` และในเมนู โดยไม่ต้องโหลดหน้าใหม่
+- ภาษาไทยเป็นค่าเริ่มต้น สลับเป็นอังกฤษได้ที่ `/me` และในเมนู โดยไม่ต้องโหลดหน้าใหม่ (แผน 6: และที่ปุ่มในการ์ดแบรนด์บนแผนที่ซึ่งใช้ได้แม้ไม่ล็อกอิน และที่ `/about`)
+- ลำดับการเลือกภาษาเริ่มต้น (แผน 6): ค่าที่เครื่องนี้เลือกไว้ (`localStorage['jaeng.locale']`) → `profiles.locale` ของผู้ที่ล็อกอิน (เฉพาะเมื่อเครื่องนี้ยังไม่เคยเลือก) → ไทย ไม่อ่าน `navigator.language` · เปลี่ยนภาษาขณะล็อกอินอยู่บันทึกลงบัญชีด้วย `PATCH /me` แบบไม่รอ · ธีม (ตามเครื่อง/สว่าง/มืด) เก็บในเครื่องอย่างเดียว
 - ข้อความ UI แยกไว้ในไฟล์แปล ส่วนชื่อหมวดเก็บทั้งสองภาษาในฐานข้อมูล
 - วันที่ใช้ `Intl` ตาม locale: ภาษาไทยแสดงเป็น พ.ศ. และ "3 วันที่แล้ว" ส่วนภาษาอังกฤษแสดงเป็น ค.ศ.
 - เนื้อหาที่ผู้ใช้พิมพ์ไม่แปล
@@ -382,14 +385,14 @@
   - RLS ปิดการเขียนตรงจากฝั่ง client ทั้งหมด
 - **Auth: Supabase Auth** Angular ล็อกอินผ่าน supabase-js แล้วแนบ access token (JWT) ไปกับทุกคำขอเขียน Elysia ตรวจ JWT ด้วย `jose` แบบ JWKS (ES256) ผ่าน `createRemoteJWKSet` จาก `/auth/v1/.well-known/jwks.json` (แก้ในแผน 3 เมื่อ 2026-10-17: ตรวจเครื่องจริงด้วย Supabase CLI 2.121.0 แล้ว access token ของผู้ใช้มี header `{"alg":"ES256","kid":…}` และ JWKS มีคีย์ EC P-256 ส่วน `JWT_SECRET` (HS256) ใช้เซ็นได้แค่ anon key กับ service key แบบเก่า ถ้าตรวจด้วย HS256 token ของผู้ใช้จะไม่ผ่านเลย ข้อดีคือ API ใช้แค่กุญแจสาธารณะ ไม่ต้องถือ secret และ `jose` โหลดคีย์ใหม่เองเมื่อเจอ `kid` ที่ไม่รู้จัก เช่นหลัง `supabase stop/start`) แล้วอ่าน `sub` เป็น user id ถ้าตรวจ `iss` ให้รู้ไว้ว่ามีค่าเป็น `http://127.0.0.1:54321/auth/v1` ไม่ใช่ `/sb`
 - **Caddy เป็นจุดเข้าเดียวตั้งแต่วันแรก** ทำให้ไม่มีปัญหา CORS และตอนเปิดให้คนนอกลอง (ขั้นสุดท้าย) แค่ต่อ tunnel เข้าพอร์ต 8000 พอร์ตเดียว ทุกอย่างก็ใช้ได้ทันที
-- **พอร์ต:** 8000 (Caddy) และ 54321–54324 (Supabase CLI ค่าเริ่มต้น) ไม่ใช้ 8080 เพราะ `docker-webui` ใช้อยู่
+- **พอร์ต:** 8000 (Caddy) และ 54321–54324 (Supabase CLI ค่าเริ่มต้น) ไม่ใช้ 8080 เพราะ `docker-webui` ใช้อยู่ · แผน 6 เพิ่ม **8100** (Caddy site ที่สอง) เสิร์ฟ production build ใน `apps/web/www` พร้อม service worker และส่ง `/api`, `/sb` ต่อเหมือน 8000 (build ด้วย `bash scripts/build-web.sh`)
 
 ### 4.2 เทคโนโลยีที่เลือก
 
 | ส่วน | เลือก | เหตุผล |
 |---|---|---|
 | Frontend | **Angular 22 + Ionic 9** (zoneless, standalone components + signals, เทสต์ด้วย Vitest) ตามที่ starter ทางการของ Ionic จับคู่ให้ (อัปเดต 2026-10-17 จากเดิมที่เขียนว่า Ionic 8) | **ตัดสินแล้ว** Ionic ให้ bottom sheet, modal และ FAB ที่ดูเป็นแอปมือถือ |
-| PWA | `@angular/pwa` | ติดตั้งลงหน้าจอได้ (service worker ทำงานเฉพาะ production build จึงต้องเดโม PWA ด้วย build ที่ Caddy เสิร์ฟ ไม่ใช่ `ng serve`) และกล้องใช้ได้ผ่าน `<input type="file" capture>` |
+| PWA | `@angular/service-worker` (แผน 6 ติดตั้งตัวนี้ตรงๆ แทน schematic `@angular/pwa`; manifest และไอคอนวาดด้วยสคริปต์ `apps/web/scripts/build-app-icons.mjs`; ไม่ cache ข้อมูล API หรือรูป) | ติดตั้งลงหน้าจอได้ (service worker ทำงานเฉพาะ production build จึงต้องเดโม PWA ด้วย build ที่ Caddy เสิร์ฟ ไม่ใช่ `ng serve`) และกล้องใช้ได้ผ่าน `<input type="file" capture>` |
 | แอป Android | **Capacitor 8** (มาพร้อม starter ของ Ionic 9) + `@capacitor/android`, `@capacitor/geolocation`, `@capacitor/camera`, `@capacitor/preferences` | **ตัดสินแล้ว**: ต้องการ APK ใช้โค้ด Angular ชุดเดิมทั้งหมด GPS และกล้องเรียกผ่าน plugin native จึงใช้ได้แม้เซิร์ฟเวอร์เป็น http |
 | ฟอนต์ | `@fontsource/prompt` และ `@fontsource/ibm-plex-sans-thai` (เสิร์ฟในเครื่อง) | ไม่ต้องใช้เน็ตตอนเดโม |
 | ค้นหาสถานที่ | Nominatim (OSM) ผ่าน API ของเรา (ใส่ cache และ User-Agent ตามกติกา) | ฟรี ถ้าไม่มีเน็ต ช่องค้นหาจะค้นได้แค่เรื่องที่แจ้งและชื่ออำเภอ/จังหวัดในเครื่อง |
@@ -397,7 +400,7 @@
 | แผนที่ | **MapLibre GL JS v5** (มี globe projection; ใช้ `5.24.0` ตัวสุดท้ายของ v5 เพราะ npm มี v6 แล้ว) | ฟรี โอเพนซอร์ส ซูมจากโลกถึงระดับถนนได้ในตัวเดียว |
 | ไทล์แผนที่ปกติ | **OpenFreeMap** สไตล์ `positron` ปรับสีให้เข้าโทน | ฟรี ไม่ต้องมีคีย์ ข้อมูลจาก OpenStreetMap แผนสำรองดูหัวข้อ 11 |
 | ภาพประกอบแผนที่ไทย | **เลเยอร์เวกเตอร์ใน MapLibre** สร้างจาก GeoJSON ขอบเขตจังหวัด | ซูมแล้วคม และปรับ opacity ตาม zoom ได้ ดูหัวข้อ 4.4 |
-| i18n | Transloco | สลับภาษาได้ทันทีโดยไม่ต้อง build แยกต่อภาษา |
+| i18n | **เขียนเอง** (แผน 6, 2026-10-20 แทน Transloco ที่เคยเขียนไว้): `I18nService` ถือ `locale` เป็น signal, พจนานุกรม `i18n/th.ts` / `en.ts` ที่ type บังคับให้คีย์ตรงกันตอน compile, pipe `t` และข้อความสถานะเก็บเป็นข้อมูล (`Said`) | สลับภาษาได้ทันทีโดยไม่ต้อง build แยกต่อภาษา; คีย์ผิดหรือแปลไม่ครบเป็น compile error; ไม่ต้องพึ่งแพ็กเกจที่ยังไม่ยืนยันว่าเข้ากับ Angular 22; สองภาษาราว 500 ข้อความรวมใน bundle ได้ |
 | API | Elysia บน Bun + `@supabase/supabase-js` (service role) + `sharp` + `jose` | **ตัดสินแล้ว** (Elysia) |
 | Validation | TypeBox ของ Elysia (`t.Object`) | มาพร้อม Elysia และได้ type ไปใช้ใน TS |
 | DB | Postgres ของ Supabase + PostGIS + pg_trgm | ค้นหาตามรัศมีกับค้นข้อความไทย (Postgres full-text ตัดคำไทยไม่ได้ จึงใช้ trigram) |
@@ -518,7 +521,7 @@ Jaeng/
 
 ### 5.2 View สาธารณะ (ให้ Angular อ่าน)
 
-- **`public_reports`**: เรื่องที่ `status in (open, fix_claimed, resolved)` (resolved เอาเฉพาะไม่เกิน 30 วัน เว้นแต่ขอ) มีคอลัมน์:
+- **`public_reports`**: เรื่องที่ `status in (open, fix_claimed, resolved)` (แผน 6: resolved ทุกอายุ เพื่อให้ `/list` และลิงก์เก่าเปิดได้ ส่วนแผนที่ซ่อนเรื่องที่แก้เกิน 30 วันเองใน `reports_in_bbox`) มีคอลัมน์:
   - `id`, `category`, `danger_level`, `title`, `description`, `status`
   - `lng`/`lat` (จาก `public_location`), `place_name`, `confirm_count`, `comment_count`
   - `days_open`
@@ -527,8 +530,10 @@ Jaeng/
 
   **ไม่มี** `author_id` และพิกัดจริง
 - **`public_comments`**: ความคิดเห็นที่ `visible` ของเรื่องสาธารณะ พร้อม `author_name`
-- **`public_stats`**: ฟังก์ชัน `stats_in_bbox(minlng, minlat, maxlng, maxlat)` คืนจำนวนที่แก้แล้วในเดือนนี้และจำนวนที่ค้างอยู่
-- **ฟังก์ชัน `reports_in_bbox(...)`**: คืน GeoJSON FeatureCollection ของเรื่องในกรอบจอ ใช้ป้อนแผนที่ (จำกัด 2000 จุด)
+- **`public_stats`**: ฟังก์ชัน `stats_in_bbox(minlng, minlat, maxlng, maxlat)` คืนจำนวนที่แก้แล้วในเดือนนี้และจำนวนที่ค้างอยู่ (แผน 6: "เดือนนี้" นับตามเวลา `Asia/Bangkok`)
+- **ฟังก์ชัน `reports_in_bbox(...)`**: คืน GeoJSON FeatureCollection ของเรื่องในกรอบจอ ใช้ป้อนแผนที่ (จำกัด 2000 จุด) เรื่องที่แก้แล้วเกิน 30 วันไม่ขึ้นบนแผนที่ (แผน 6 ย้ายเงื่อนไขนี้มาจาก view)
+- **ฟังก์ชัน `list_reports(...)`** (แผน 6): ป้อนหน้า `/list` เรียงได้ 4 แบบ (ใกล้ฉัน ระยะวัดจากจุดสาธารณะ, ใหม่สุด, คนเจอมากสุด, ค้างนานสุด) แบ่งหน้า รับตัวกรองเดียวกับแผนที่ และรวมเรื่องที่แก้แล้วทุกอายุเมื่อขอ
+- **ฟังก์ชัน `search_areas(q)`** (แผน 6): ค้นชื่ออำเภอ/จังหวัดไทยและอังกฤษจากตารางในเครื่อง เรียกได้เฉพาะ service role (ผ่าน `GET /api/places`)
 
 ### 5.3 RLS
 
@@ -564,7 +569,8 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 | POST | `/api/reports/:id/merge` | (แผน 4) "ใช่ กดเจอเหมือนกันแทน" จากการ์ดเรื่องซ้ำ: นับ +1 ให้เรื่องเดิม และแนบรูปที่ผู้ใช้เพิ่งอัปโหลดเป็นความคิดเห็นในครั้งเดียวแบบ atomic (แยกจาก `confirm` เพราะ `confirm` สลับได้และไม่รับรูป) | สมาชิก |
 | POST | `/api/reports/:id/confirm` | สลับ "เจอเหมือนกัน" | สมาชิก |
 | GET | `/api/me/reports` | (แผน 4) เรื่องของฉันทุกสถานะสำหรับหน้า `/me` ผ่าน API เพราะรูปที่ยังรออยู่ใน `photos-private` ต้องใช้ signed URL และพิกัดจริงของ hazard ไม่เคยเดินทางผ่านเส้นทางนี้ | สมาชิก |
-| PATCH | `/api/me` | (แผน 4) แก้ชื่อที่แสดง (2–30 ตัวอักษร นับเป็น code point และกรองคำหยาบ) ผ่าน API เพราะ client เขียนตาราง `profiles` ตรงไม่ได้ | สมาชิก |
+| PATCH | `/api/me` | (แผน 4) แก้ชื่อที่แสดง (2–30 ตัวอักษร นับเป็น code point และกรองคำหยาบ) ผ่าน API เพราะ client เขียนตาราง `profiles` ตรงไม่ได้ แผน 6 รับ `{display_name?, locale?}` (`locale` เป็น `th` หรือ `en`) | สมาชิก |
+| GET | `/api/places?q=&lang=&more=` | (แผน 6) ค้นสถานที่: อำเภอ/จังหวัดในเครื่องเสมอ ถาม Nominatim เฉพาะเมื่อ `more=1` ซึ่งเว็บส่งเมื่อผู้ใช้กดแถว "ค้นสถานที่อื่นใน OpenStreetMap" หรือกด Enter โดยไม่ได้เลือกแถว (นโยบาย OSM ห้ามค้นแบบพิมพ์ไปค้นไป) รอ OSM รวมเวลาเข้าคิวไม่เกิน 3.5 วินาที (คิวห่างกัน ≥ 1.1 วินาที, timeout 4 วินาที, cache 24 ชั่วโมง, จำความล้มเหลว 60 วินาที) คืน `{places: [{name, detail, lng, lat, bbox, source}], online}` (`online: false` เมื่อ Nominatim ล่มหรือช้า ผลในเครื่องยังมา) | ทุกคน |
 | POST | `/api/reports/:id/comments` | เพิ่มความคิดเห็น (photo_id ได้) | สมาชิก |
 | POST | `/api/reports/:id/fix-claims` | แจ้งว่าแก้แล้ว (note, photo_id) | สมาชิก |
 | POST | `/api/flags` | รายงานเนื้อหา | สมาชิก |
@@ -623,6 +629,7 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 ### 7.1 โครงสร้างหลัก
 
 - `core/`: `ServerConfigService` (ที่อยู่เซิร์ฟเวอร์: บนเว็บใช้ `location.origin` ส่วนใน APK อ่านจาก `@capacitor/preferences` ค่าเริ่มต้นมาจากตอน build), `SupabaseService` (สร้าง client ด้วย `{server}/sb` เพราะ supabase-js ไม่รับ URL แบบ relative), `DeviceService` (เรียก GPS/กล้องผ่าน Capacitor เมื่ออยู่ใน APK และใช้ Web API เมื่ออยู่บนเว็บ), `AuthService` (signal ของ session/profile), `ApiService` (fetch `/api` + แนบ token), `I18nService`, `ThemeService`
+  - แผน 6: `I18nService` (signal `locale`, `t()`, `say()` สำหรับข้อความสถานะ, รูปแบบวันที่/เวลาที่ผ่านมาตามภาษา, `watch()` ให้โค้ดที่ไม่ใช่ template วาดคำใหม่) พร้อมพจนานุกรม `app/i18n/th.ts` (ต้นฉบับ) และ `en.ts` · `ThemeService` (`data-theme` บน `<html>`, ตามเครื่องแบบสด, สคริปต์เล็กใน `index.html` ตั้งก่อน Angular บูตจึงไม่กะพริบ) · `FilterState` (ตัวกรองที่แผนที่กับ `/list` ใช้ร่วมกัน) · `MapViewService` (จำกรอบแผนที่ล่าสุดและส่ง "ไปที่สถานที่นี้" จาก `/list`) · `AppUpdateService` (เตือน "มีเวอร์ชันใหม่" จาก service worker)
 - `features/map/`: `MapComponent` (สร้าง MapLibre และเลเยอร์), `BeaconLayer` (จัดการ HTML marker), `ClusterLayer`, `IllustrationLayer`, `MaskLayer`, `FilterBar`, `StatsCard`
 - `features/report-detail/`: แผงรายละเอียด (Ionic modal sheet บนมือถือ, side panel บนจอกว้าง ≥ 820px)
 - `features/report-new/`: 3 ขั้นตอน + การ์ดเรื่องซ้ำ
@@ -668,7 +675,7 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 - **web**: image `node:22` รัน `ng serve --host 0.0.0.0 --poll 1000`, bind mount `apps/web` และใช้ volume แยกเก็บ `node_modules` ต้องตั้ง `allowedHosts` ของ dev server ให้รับ Host ที่มาผ่าน Caddy (และ IP ใน LAN)
 - **api**: image `oven/bun` รัน `nodemon -L --watch src --exec "bun src/index.ts"` (`bun --watch` ไม่มีโหมด polling จึงไม่เห็นไฟล์ที่เปลี่ยนบน `/mnt/d`), bind mount `apps/api`
 - Caddy ใช้ `handle_path /sb/*` และ `handle_path /api/*` เพื่อตัด prefix ก่อนส่งต่อ (API ฝั่ง Elysia จึงรับ path แบบไม่มี `/api`)
-- **โหมดเดโม** (`scripts/demo-up.sh`): build web แบบ production แล้วให้ Caddy เสิร์ฟไฟล์ static แทน `ng serve` เพื่อให้ PWA และ service worker ทำงาน และให้โหลดเร็ว
+- **โหมดเดโม** (`scripts/demo-up.sh`): build web แบบ production แล้วให้ Caddy เสิร์ฟไฟล์ static แทน `ng serve` เพื่อให้ PWA และ service worker ทำงาน และให้โหลดเร็ว (แผน 6 ทำส่วนแรกแล้ว: `scripts/build-web.sh` build ลง `apps/web/www` และ Caddy เสิร์ฟที่พอร์ต 8100 คู่กับ dev server ที่ 8000)
 - ทุก service ต่อเข้า external network `supabase_network_Jaeng` (ชื่อจริงดูจาก `docker network ls` หลัง `supabase start`) เพื่อเรียก Kong ที่ `supabase_kong_Jaeng:8000`
 
 **เรื่องโฟลเดอร์บนไดรฟ์ D:** (**ผู้ออกแบบเลือก**) เก็บโค้ดไว้ที่ `D:\Project\Jaeng` ตามเดิม แต่ไฟล์บน `/mnt/d` ถูก Docker ใน WSL อ่านช้าและไม่ส่งสัญญาณไฟล์เปลี่ยน จึงต้องใช้ `--poll` (กับ `bun --watch` ก็อาจต้องตั้ง polling ด้วย) ถ้าช้าจนรำคาญ ให้ย้ายโปรเจ็กต์ไปไว้ที่ `~/jaeng` ใน WSL แล้วเปิดจาก Windows ผ่าน `\\wsl$\Ubuntu\home\...` จะเร็วขึ้นมาก
@@ -683,6 +690,7 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 - `DEV_QUICK_LOGIN`
 - `RATE_LIMIT_*`
 - `MAP_STYLE_URL`
+- `NOMINATIM_URL` และ `NOMINATIM_CONTACT` (แผน 6: ที่อยู่ Nominatim สำหรับค้นสถานที่ ค่าเริ่มต้นคือบริการสาธารณะของ OpenStreetMap และอีเมลติดต่อที่ใส่ใน `User-Agent` ตามนโยบายการใช้งาน)
 
 `.env` ห้าม commit
 

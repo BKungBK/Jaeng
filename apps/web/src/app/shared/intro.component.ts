@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { TPipe } from '../i18n/t.pipe';
+import { BackdropComponent } from './backdrop.component';
 
 /** How long the intro plays before it lets go of the app. */
 export const INTRO_MS = 1800;
@@ -24,10 +25,11 @@ function seenThisVisit(): boolean {
 @Component({
   selector: 'app-intro',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TPipe],
+  imports: [TPipe, BackdropComponent],
   template: `
     @if (show()) {
       <div class="intro" aria-hidden="true" (click)="hide()">
+        <app-backdrop />
         <div class="dawn"></div>
         <div class="beam"></div>
         <div class="dot"></div>

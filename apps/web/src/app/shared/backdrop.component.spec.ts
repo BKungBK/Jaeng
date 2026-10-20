@@ -1,0 +1,75 @@
+import { TestBed } from '@angular/core/testing';
+import { ThemeService } from '../core/theme.service';
+import { BACKDROP_COLORS, BackdropComponent } from './backdrop.component';
+
+/** Enough of a WebGL context for the component: every method a spy, shaders and programs compile. */
+function stubGl() {
+  const loseContext = vi.fn();
+  const gl: Record<string, unknown> = {
+    VERTEX_SHADER: 1,
+    FRAGMENT_SHADER: 2,
+    getShaderParameter: () => true,
+    getProgramParameter: () => true,
+    getExtension: (name: string) => (name === 'WEBGL_lose_context' ? { loseContext } : null),
+  };
+  const ctx = new Proxy(gl, { get: (t, k: string) => (k in t ? t[k] : (t[k] = vi.fn(() => ({})))) });
+  return { ctx, loseContext };
+}
+
+function setup(gl: unknown) {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((() => gl) as never);
+  const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 7);
+  const caf = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+  const fixture = TestBed.createComponent(BackdropComponent);
+  fixture.detectChanges();
+  const root = fixture.nativeElement as HTMLElement;
+  return { fixture, root, raf, caf };
+}
+
+describe('BackdropComponent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    localStorage.clear();
+    document.documentElement.removeAttribute('data-theme');
+  });
+
+  it('falls back to the CSS gradient without WebGL', () => {
+    const { root } = setup(null);
+    expect(root.querySelector('div.fallback')).not.toBeNull();
+    expect(root.querySelector('canvas')).toBeNull();
+  });
+
+  it('draws on a canvas, pauses with the tab and lets go of the GPU when destroyed', () => {
+    const { ctx, loseContext } = stubGl();
+    const { fixture, root, raf, caf } = setup(ctx);
+    expect(root.querySelector('canvas')).not.toBeNull();
+    expect(root.querySelector('div.fallback')).toBeNull();
+    expect(raf).toHaveBeenCalled();
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(caf).toHaveBeenCalled();
+    caf.mockClear();
+    fixture.destroy();
+    expect(caf).toHaveBeenCalled();
+    expect(loseContext).toHaveBeenCalled();
+  });
+
+  it('switches to the CSS gradient when the context is lost', () => {
+    const { ctx } = stubGl();
+    const { fixture, root } = setup(ctx);
+    root.querySelector('canvas')!.dispatchEvent(new Event('webglcontextlost'));
+    fixture.detectChanges();
+    expect(root.querySelector('canvas')).toBeNull();
+    expect(root.querySelector('div.fallback')).not.toBeNull();
+  });
+
+  it('takes its colours from the theme', () => {
+    const { fixture } = setup(null);
+    TestBed.inject(ThemeService).set('light');
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).classList).toContain('light');
+    expect(BACKDROP_COLORS.dark).toEqual(['#0E1D40', '#2A2F6B', '#7C6BB0', '#F4B49A']);
+    expect(BACKDROP_COLORS.light).toEqual(['#F6F1FA', '#DCD6F2', '#F9D9CB', '#FFFFFF']);
+  });
+});

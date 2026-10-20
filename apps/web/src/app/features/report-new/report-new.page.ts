@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -44,6 +45,7 @@ export const PIN_MIN_ZOOM = 14;
   selector: 'app-report-new',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    BackdropComponent,
     IconComponent,
     PhotoStepComponent,
     CategoryStepComponent,

@@ -12,16 +12,16 @@
   gap: 8px;
   min-height: 48px;
   padding: 0 12px 0 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-edge);
   border-radius: 14px;
-  background: var(--surf);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
   font: 500 15px/1.4 flow.$prompt;
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 
   .opt {
@@ -82,9 +82,9 @@ legend {
   width: 100%;
   min-height: 48px;
   padding: 10px 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-edge);
   border-radius: 14px;
-  background: var(--surf);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
   caret-color: var(--pri);
   font: 400 16px/1.5 flow.$plex; // 16 px: no zoom-on-focus on phones
@@ -99,7 +99,7 @@ legend {
   }
 
   &:disabled {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 }
 
@@ -123,7 +123,7 @@ textarea.input {
   min-height: 44px;
   padding: 0 12px;
   border-radius: 14px;
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
   color: var(--ink2);
   cursor: pointer;
 
@@ -147,7 +147,7 @@ textarea.input {
   }
 
   &:hover:not(:has(input:checked)) {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 }
 
@@ -165,9 +165,9 @@ textarea.input {
   align-items: center;
   min-height: 36px;
   padding-left: 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-edge);
   border-radius: 10px;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
   font-size: 14px;
   overflow-wrap: anywhere;
 }
@@ -200,15 +200,15 @@ textarea.input {
 .chip {
   min-height: 44px;
   padding: 0 12px;
-  border: 1px dashed var(--line);
+  border: 1px dashed var(--glass-edge);
   border-radius: 14px;
-  background: var(--surf);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--pri);
   font: 500 14px/1.4 flow.$plex;
   cursor: pointer;
 
   &:hover {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 }
 
@@ -239,7 +239,7 @@ textarea.input {
     width: 48px;
     height: 28px;
     border-radius: 14px;
-    background: var(--line);
+    background: var(--glass-edge);
     transition: background-color 160ms ease-out;
 
     &::after {

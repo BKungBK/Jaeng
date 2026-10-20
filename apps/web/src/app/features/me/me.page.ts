@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -36,7 +37,7 @@ type State = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-me',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, NgTemplateOutlet, RouterLink, TPipe, LanguageChoiceComponent, ThemeChoiceComponent],
+  imports: [BackdropComponent, IconComponent, LevelShapeComponent, NgTemplateOutlet, RouterLink, TPipe, LanguageChoiceComponent, ThemeChoiceComponent],
   templateUrl: 'me.page.html',
   styleUrl: 'me.page.scss',
   host: { class: 'ion-page' },

@@ -22,6 +22,12 @@ async function setup() {
 }
 
 describe('AboutPage', () => {
+  it('sits on the shared backdrop', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('app-backdrop')).not.toBeNull();
+    expect(root.querySelector('main.card')?.classList).toContain('glass');
+  });
+
   it('has one h1 and the six sections in order', async () => {
     const { root } = await setup();
     expect(root.querySelectorAll('h1')).toHaveLength(1);

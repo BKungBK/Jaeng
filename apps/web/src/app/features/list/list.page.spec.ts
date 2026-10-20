@@ -63,6 +63,12 @@ async function setup(opts: { bbox?: [number, number, number, number]; pages?: Li
 }
 
 describe('ListPage', () => {
+  it('sits on the shared backdrop', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('app-backdrop')).not.toBeNull();
+    expect(root.querySelector('main.card')?.classList).toContain('glass');
+  });
+
   it('uses the whole country when there was no map view, and says so', async () => {
     const { page, root } = await setup();
     expect(page).toHaveBeenCalledWith(expect.objectContaining({ bbox: [...THAILAND_BBOX], sort: 'new', offset: 0 }));

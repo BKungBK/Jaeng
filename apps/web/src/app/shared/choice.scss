@@ -10,8 +10,8 @@
   gap: 4px;
   padding: 4px;
   border-radius: 16px;
-  background: var(--bg);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
 }
 
 .opt {
@@ -34,7 +34,7 @@
   }
 
   &[aria-checked='true'] {
-    background: var(--surf);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
     box-shadow: var(--sh);
     color: var(--ink);
     font-weight: 600;

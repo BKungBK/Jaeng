@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,7 +24,7 @@ const isTab = (v: string | null): v is AdminTab => (ADMIN_TABS as readonly strin
 @Component({
   selector: 'app-admin',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent, UsersTabComponent, LogTabComponent],
+  imports: [BackdropComponent, IconComponent, TPipe, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent, UsersTabComponent, LogTabComponent],
   templateUrl: 'admin.page.html',
   styleUrl: 'admin.page.scss',
   host: { class: 'ion-page' },

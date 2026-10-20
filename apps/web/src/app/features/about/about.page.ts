@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import { ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
@@ -23,7 +24,7 @@ const CREDITS: { what: MessageKey; who: string; href: string }[] = [
 @Component({
   selector: 'app-about',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TPipe, IconComponent, EmergencyBoxComponent, LanguageChoiceComponent, ThemeChoiceComponent],
+  imports: [BackdropComponent, TPipe, IconComponent, EmergencyBoxComponent, LanguageChoiceComponent, ThemeChoiceComponent],
   templateUrl: 'about.page.html',
   styleUrl: 'about.page.scss',
   host: { class: 'ion-page' },

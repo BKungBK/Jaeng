@@ -91,6 +91,12 @@ async function setup(opts: { reports?: MyReport[] | Error; name?: string } = {})
 }
 
 describe('MePage', () => {
+  it('sits on the shared backdrop', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('app-backdrop')).not.toBeNull();
+    expect(root.querySelector('main.card')?.classList).toContain('glass');
+  });
+
   describe('display (plan 6)', () => {
     it('sits between the name and the list, with language and theme choices', async () => {
       const { root } = await setup();

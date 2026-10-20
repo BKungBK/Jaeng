@@ -34,7 +34,7 @@ import { IconComponent } from './icon.component';
       gap: 10px;
       align-items: flex-start;
       padding: 12px 14px;
-      border-radius: 14px;
+      border-radius: 18px; /* plan 6b: rounder like the glass around it; the warning colours stay */
       background: color-mix(in srgb, var(--s3) 24%, #fff);
       color: #2b2a33;
       font-size: 14px;
@@ -50,7 +50,7 @@ import { IconComponent } from './icon.component';
       min-width: 56px;
       min-height: 44px;
       padding: 0 10px;
-      border-radius: 14px;
+      border-radius: 12px;
       background: #fff;
       color: #2b2a33;
       font: 600 16px/1 var(--font);

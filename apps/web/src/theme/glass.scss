@@ -20,6 +20,8 @@
   --dawn-ink: #2a1f3a;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --font: 'Anuphan', system-ui, sans-serif;
+  // native controls (checkboxes, scrollbars) follow the app's theme, not the OS one
+  color-scheme: light;
 }
 
 @mixin dark-glass {
@@ -30,6 +32,7 @@
   --glass-bg-dense: rgba(16, 26, 54, 0.8);
   // the toy land is bright pastel: dimmed behind the glass, ink keeps 4.5:1 over it too
   --glass-dim: brightness(0.55);
+  color-scheme: dark;
 }
 
 // same selectors as dark-tokens in tokens.scss

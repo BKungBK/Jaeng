@@ -44,5 +44,5 @@ describe('theme', () => {
       expect(read(file), file).not.toMatch(/'Prompt'|IBM Plex Sans Thai/);
     }
     expect(read('src/global.scss')).toMatch(/@fontsource\/anuphan\/400/);
-  });
+  }, 30_000); // walks every source file, slow on the /mnt/d bind mount
 });

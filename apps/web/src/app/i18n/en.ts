@@ -122,6 +122,7 @@ export const en: Messages = {
     reports: 'Reports',
     none: 'Nothing matches “{q}”',
     offline: 'Online place search is down right now. Showing districts and provinces only.',
+    more: 'Search more places on OpenStreetMap',
     failed: "Search didn't work",
   },
   filters: {

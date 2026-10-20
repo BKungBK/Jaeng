@@ -25,6 +25,8 @@ export type AppDeps = {
   photos: PhotoStorage;
   rateLimits: Env['rateLimits'];
   places: Geocoder;
+  /** how long GET /places?more=1 waits for OpenStreetMap (queue included) before answering online:false */
+  placesDeadlineMs?: number;
 };
 
 function reply(set: { status?: number | string }, code: ErrorCode) {

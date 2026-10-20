@@ -86,9 +86,14 @@ describe('SearchBoxComponent', () => {
     await settle(299);
     expect(places.search).not.toHaveBeenCalled();
     await settle(1);
-    expect(places.search).toHaveBeenCalledExactlyOnceWith('ถนน', 'th');
+    expect(places.search).toHaveBeenCalledExactlyOnceWith('ถนน', 'th', false);
     expect(reports.search).toHaveBeenCalledExactlyOnceWith('ถนน');
-    expect(options().map((o) => o.textContent?.replace(/\s+/g, ' ').trim().slice(0, 9))).toEqual(['เชียงใหม่', 'เรื่อง r1', 'เรื่อง r2']);
+    expect(options().map((o) => o.querySelector('.name')?.textContent)).toEqual([
+      'เชียงใหม่',
+      'ค้นสถานที่อื่นใน OpenStreetMap',
+      'เรื่อง r1',
+      'เรื่อง r2',
+    ]);
     expect(input().getAttribute('aria-expanded')).toBe('true');
   });
 
@@ -112,8 +117,9 @@ describe('SearchBoxComponent', () => {
     await settle(300);
     await key('ArrowDown');
     await key('ArrowDown');
-    expect(input().getAttribute('aria-activedescendant')).toBe(options()[1].id);
-    expect(options()[1].getAttribute('aria-selected')).toBe('true');
+    await key('ArrowDown');
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[2].id);
+    expect(options()[2].getAttribute('aria-selected')).toBe('true');
     await key('Enter');
     expect(out.report).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
     expect(input().getAttribute('aria-expanded')).toBe('false');
@@ -149,12 +155,40 @@ describe('SearchBoxComponent', () => {
     expect(document.activeElement).toBe(root.querySelector('button[aria-label="ค้นหา"]'));
   });
 
+  it('asks OpenStreetMap only from the "more places" row, keeping the reports on screen', async () => {
+    let more!: (a: PlacesAnswer) => void;
+    const { type, settle, root, options, places } = await setup();
+    await type('ท่าแพ');
+    await settle(300);
+    places.search.mockImplementationOnce(() => new Promise((r) => (more = r)));
+    options()[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await settle();
+    expect(places.search).toHaveBeenLastCalledWith('ท่าแพ', 'th', true);
+    expect(root.textContent).toContain('กำลังค้นหา…');
+    expect(root.textContent).toContain('เรื่อง r1');
+    more({ places: [place('เชียงใหม่'), { ...place('ประตูท่าแพ'), source: 'osm' }], online: true });
+    await settle();
+    expect(options().map((o) => o.querySelector('.name')?.textContent)).toEqual(['เชียงใหม่', 'ประตูท่าแพ', 'เรื่อง r1', 'เรื่อง r2']);
+  });
+
+  it('Enter with no row chosen asks for more places', async () => {
+    const { type, settle, key, places } = await setup();
+    await type('ท่าแพ');
+    await settle(300);
+    await key('Enter');
+    expect(places.search).toHaveBeenLastCalledWith('ท่าแพ', 'th', true);
+  });
+
   it('says when online places are down, and still lists local ones', async () => {
-    const { type, settle, root, options } = await setup({ places: { places: [place('เชียงใหม่')], online: false } });
+    const { type, settle, root, options, places } = await setup();
     await type('เชียง');
     await settle(300);
+    places.search.mockResolvedValueOnce({ places: [place('เชียงใหม่')], online: false });
+    options()[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await settle();
     expect(root.textContent).toContain('ค้นสถานที่ออนไลน์ไม่ได้ตอนนี้');
     expect(options()[0].textContent).toContain('เชียงใหม่');
+    expect(options().some((o) => o.textContent?.includes('ค้นสถานที่อื่น'))).toBe(false);
   });
 
   it('offers to try again when both searches fail', async () => {
@@ -181,6 +215,6 @@ describe('SearchBoxComponent', () => {
     TestBed.inject(I18nService).setLocale('en');
     await type('Chiang');
     await settle(300);
-    expect(places.search).toHaveBeenCalledWith('Chiang', 'en');
+    expect(places.search).toHaveBeenCalledWith('Chiang', 'en', false);
   });
 });

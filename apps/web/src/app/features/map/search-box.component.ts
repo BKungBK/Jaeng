@@ -24,14 +24,17 @@ import { ReportsService } from './reports.service';
 export const SEARCH_DEBOUNCE_MS = 300;
 
 type State = 'idle' | 'loading' | 'ready' | 'failed';
-type Option = { kind: 'place'; place: Place } | { kind: 'report'; report: ReportProps };
+type Option = { kind: 'place'; place: Place } | { kind: 'more' } | { kind: 'report'; report: ReportProps };
+/** OpenStreetMap: not asked yet (typing asks only our districts), on its way, or answered */
+type More = 'idle' | 'loading' | 'done';
 
 let nextId = 0;
 
 /**
  * Search reports and places (spec 3.9): an ARIA 1.2 combobox. A field from 820 px; below it an icon
  * that opens a full-width card over the top of the map (`collapsed`). Choosing a place flies the map
- * there; choosing a report opens it. Answers for an older query are dropped.
+ * there; choosing a report opens it. Answers for an older query are dropped. OpenStreetMap is asked only
+ * from the "search more places" row or Enter with no row chosen (its policy forbids auto-complete).
  */
 @Component({
   selector: 'app-search-box',
@@ -60,6 +63,7 @@ export class SearchBoxComponent {
   protected readonly places = signal<Place[]>([]);
   protected readonly reports = signal<ReportProps[]>([]);
   protected readonly online = signal(true);
+  protected readonly more = signal<More>('idle');
   protected readonly resultsOpen = signal(false);
   protected readonly active = signal(-1);
   protected readonly cardOpen = signal(false);
@@ -67,6 +71,7 @@ export class SearchBoxComponent {
   protected readonly showField = computed(() => !this.collapsed() || this.cardOpen());
   protected readonly options = computed<Option[]>(() => [
     ...this.places().map((place): Option => ({ kind: 'place', place })),
+    ...(this.state() === 'ready' && this.more() === 'idle' ? [{ kind: 'more' } as Option] : []),
     ...this.reports().map((report): Option => ({ kind: 'report', report })),
   ]);
   protected readonly expanded = computed(() => this.resultsOpen() && this.state() !== 'idle');
@@ -102,6 +107,7 @@ export class SearchBoxComponent {
   private schedule() {
     clearTimeout(this.timer);
     this.seq++; // whatever is in flight now answers an older query
+    this.more.set('idle');
     if (this.q().trim().length < PLACE_QUERY_MIN) {
       this.state.set('idle');
       this.places.set([]);
@@ -115,9 +121,10 @@ export class SearchBoxComponent {
   protected async run() {
     const seq = ++this.seq;
     const q = this.q().trim();
+    this.more.set('idle');
     this.state.set('loading');
     this.resultsOpen.set(true);
-    const [p, r] = await Promise.allSettled([this.placesSvc.search(q, this.i18n.locale()), this.reportsSvc.search(q)]);
+    const [p, r] = await Promise.allSettled([this.placesSvc.search(q, this.i18n.locale(), false), this.reportsSvc.search(q)]);
     if (seq !== this.seq) return;
     if (p.status === 'rejected' && r.status === 'rejected') {
       this.state.set('failed');
@@ -128,6 +135,24 @@ export class SearchBoxComponent {
     this.reports.set(r.status === 'fulfilled' ? r.value : []);
     this.active.set(-1);
     this.state.set('ready');
+  }
+
+  /** Our districts plus OpenStreetMap for the same query; the reports stay on screen meanwhile. */
+  protected async askMore() {
+    const seq = this.seq;
+    const q = this.q().trim();
+    this.more.set('loading');
+    this.active.set(-1);
+    let answer: { places: Place[]; online: boolean };
+    try {
+      answer = await this.placesSvc.search(q, this.i18n.locale(), true);
+    } catch {
+      answer = { places: this.places(), online: false };
+    }
+    if (seq !== this.seq) return;
+    this.places.set(answer.places);
+    this.online.set(answer.online);
+    this.more.set('done');
   }
 
   protected onKey(e: KeyboardEvent) {
@@ -143,6 +168,9 @@ export class SearchBoxComponent {
       if (this.expanded() && o) {
         e.preventDefault();
         this.choose(o);
+      } else if (this.state() === 'ready' && this.more() === 'idle') {
+        e.preventDefault();
+        void this.askMore();
       }
     } else if (e.key === 'Escape') {
       // three steps: close the results, clear the field, close the phone card
@@ -156,6 +184,10 @@ export class SearchBoxComponent {
   }
 
   protected choose(o: Option) {
+    if (o.kind === 'more') {
+      void this.askMore();
+      return;
+    }
     this.resultsOpen.set(false);
     this.active.set(-1);
     if (o.kind === 'place') this.place.emit(o.place);
@@ -168,6 +200,7 @@ export class SearchBoxComponent {
     this.seq++;
     this.q.set('');
     this.state.set('idle');
+    this.more.set('idle');
     this.places.set([]);
     this.reports.set([]);
     this.resultsOpen.set(false);
@@ -182,6 +215,7 @@ export class SearchBoxComponent {
   protected optionId = (i: number) => `${this.id}-opt-${i}`;
   protected indexOf = (o: Option) => this.options().indexOf(o);
   protected placeOptions = computed(() => this.options().filter((o) => o.kind === 'place'));
+  protected moreOption = computed(() => this.options().find((o) => o.kind === 'more') ?? null);
   protected reportOptions = computed(() => this.options().filter((o) => o.kind === 'report'));
   protected level = (r: ReportProps) => LEVELS[r.danger_level];
   protected icon = (r: ReportProps) => categoryIcon(r.category);

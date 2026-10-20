@@ -14,6 +14,13 @@ describe('PlacesService', () => {
     expect(init).toBeUndefined();
   });
 
+  it('adds more=1 only when OpenStreetMap is asked for', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"places":[],"online":true}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    await TestBed.inject(PlacesService).search('ab', 'th', true);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/places?q=ab&lang=th&more=1');
+  });
+
   it('rejects on an error answer', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 400 })));
     await expect(TestBed.inject(PlacesService).search('x', 'th')).rejects.toThrow('400');

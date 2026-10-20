@@ -42,10 +42,10 @@
           </p>
         }
         @case ('ready') {
-          @if (options().length === 0) {
+          @if (!placeOptions().length && !reportOptions().length && more() !== 'loading') {
             <p class="note" role="presentation">{{ 'search.none' | t: { q: q().trim() } }}</p>
           }
-          @if (placeOptions().length) {
+          @if (placeOptions().length || moreOption() || more() === 'loading') {
             <div role="group" [attr.aria-label]="'search.places' | t">
               <p class="group" role="presentation">{{ 'search.places' | t }}</p>
               @for (o of placeOptions(); track $index) {
@@ -67,6 +67,22 @@
                     }
                   </span>
                 </div>
+              }
+              @if (moreOption(); as m) {
+                @let i = indexOf(m);
+                <div
+                  class="opt more"
+                  role="option"
+                  [id]="optionId(i)"
+                  [attr.aria-selected]="active() === i"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="choose(m)"
+                >
+                  <app-icon name="search" [size]="20" />
+                  <span class="text"><span class="name">{{ 'search.more' | t }}</span></span>
+                </div>
+              } @else if (more() === 'loading') {
+                <p class="note small" role="presentation">{{ 'search.loading' | t }}</p>
               }
             </div>
           }

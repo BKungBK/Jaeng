@@ -1001,6 +1001,14 @@ async function plan6() {
     `${found.status} ${took} ms ${JSON.stringify(found.json)?.slice(0, 200)}`,
   );
   check('plan 6: GET /places?q=x -> 400', (await api('/places?q=x')).status === 400);
+  const moreStarted = Date.now();
+  const more = await api(`/places?q=${encodeURIComponent('ท่าแพ')}&more=1`);
+  const moreTook = Date.now() - moreStarted;
+  check(
+    'plan 6: GET /places?more=1 answers within 5 s (OpenStreetMap or online:false)',
+    more.status === 200 && Array.isArray(more.json?.places) && typeof more.json?.online === 'boolean' && moreTook < 5000,
+    `${more.status} ${moreTook} ms`,
+  );
 
   const reporter = (await api('/dev/quick-login', { method: 'POST', body: { who: 'reporter' } })).json;
   if (!reporter?.access_token) {

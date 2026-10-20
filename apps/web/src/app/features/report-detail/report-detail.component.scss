@@ -33,21 +33,24 @@ textarea {
   }
 }
 
-// icon button over the picture's corner: it keeps its own white fill so it reads on any photo
+// icon button over the picture's corner: a dense glass circle of its own, so it reads on any photo
 .ctl {
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surf);
+  border: 1px solid var(--glass-edge);
+  border-radius: 50%;
+  background: var(--glass-bg-dense);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--ink);
   cursor: pointer;
+  transition: background-color 160ms ease-out;
 
   &:hover {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 14%, var(--glass-bg-dense));
   }
 }
 
@@ -256,15 +259,15 @@ h2 {
   gap: 8px;
   min-height: 44px;
   padding: 0 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-edge);
   border-radius: 14px;
-  background: var(--surf);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
   font: 500 15px/1.4 $prompt;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
   }
 }
 
@@ -425,9 +428,9 @@ h3 {
     width: 100%;
     min-height: 88px;
     padding: 10px 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--glass-edge);
     border-radius: 14px;
-    background: var(--surf);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
     color: var(--ink);
     font: inherit;
     resize: vertical;

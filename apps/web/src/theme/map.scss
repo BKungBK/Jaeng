@@ -34,9 +34,12 @@
   }
 }
 
-// MapLibre attribution, themed from the tokens
+// MapLibre attribution, a strip of the same glass
 .maplibregl-ctrl.maplibregl-ctrl-attrib {
-  background: color-mix(in srgb, var(--surf) 88%, transparent);
+  border: 1px solid var(--glass-edge);
+  background: var(--glass-bg-dense);
+  backdrop-filter: blur(12px) var(--glass-dim);
+  -webkit-backdrop-filter: blur(12px) var(--glass-dim);
   color: var(--ink2);
 
   a {
@@ -113,7 +116,9 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: var(--surf);
+    background: color-mix(in srgb, var(--surf) 72%, transparent); // frosted, like the panels
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 3px solid var(--c);
     box-shadow:
       0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),
@@ -162,7 +167,9 @@
     text-overflow: ellipsis;
     padding: 0 8px;
     border-radius: 10px;
-    background: var(--surf);
+    background: color-mix(in srgb, var(--surf) 72%, transparent); // frosted, like the panels
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: var(--ink);
     font: 400 12px/22px var(--font);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -239,7 +246,9 @@
     box-sizing: border-box;
     padding: 0;
     border-radius: 50%;
-    background: var(--surf);
+    background: color-mix(in srgb, var(--surf) 72%, transparent); // frosted, like the panels
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 3px solid var(--c);
     box-shadow:
       0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),

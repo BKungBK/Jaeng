@@ -48,14 +48,6 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   background: var(--sea);
 }
 
-// tooltip and detail panel keep a solid card until they turn to glass (plan 6b Task 4)
-.card {
-  background: var(--surf);
-  color: var(--ink);
-  border-radius: 18px;
-  box-shadow: var(--sh);
-}
-
 // the first stop for keyboard users: out of sight until focused, then over the top bar
 .skip {
   position: absolute;
@@ -619,6 +611,8 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   gap: 4px;
   width: 240px;
   padding: 10px 12px 12px;
+  border-radius: 16px;
+  color: var(--ink);
   pointer-events: none;
 }
 
@@ -633,10 +627,17 @@ $beside: calc(#{$panel} + 40px); // the panel and its two 20 px gutters
   right: 20px;
   bottom: calc(20px + #{$safe-bottom});
   width: $panel;
+  border-radius: 22px;
+  color: var(--ink);
+}
+
+.panel-scroll {
+  height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  border-radius: inherit;
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--glass-edge) transparent;
 }
 
 // while it is open the menu, the controls, the report pill and MapLibre's corner controls step left of it
@@ -658,22 +659,29 @@ $beside: calc(#{$panel} + 40px); // the panel and its two 20 px gutters
 }
 
 // ---- report detail: bottom sheet (< 820 px) ----
+// the sheet's own ground is clear; its scrolling layer is the glass
 ion-modal.detail-sheet {
-  --border-radius: 24px 24px 0 0;
-  --background: var(--surf);
-  --box-shadow: var(--sh);
-  --backdrop-opacity: 0.32;
+  --border-radius: 26px 26px 0 0;
+  --background: transparent;
+  --box-shadow: var(--glass-shadow);
+  --backdrop-opacity: 0.2;
   --max-height: calc(100% - env(safe-area-inset-top, 0px));
 }
 
 ion-modal.detail-sheet::part(handle) {
-  background: var(--line);
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
 .sheet-scroll {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  border-top: 1px solid var(--glass-edge);
+  border-radius: 26px 26px 0 0;
+  background: var(--glass-sheen), var(--glass-bg-dense);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  color: var(--ink);
   padding-top: 8px; // clear of the drag handle
   box-sizing: border-box;
 }
@@ -684,7 +692,7 @@ ion-modal.detail-sheet::part(handle) {
   height: 120px;
   overflow: hidden;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--c) 45%, var(--surf));
+  background: color-mix(in srgb, var(--c) 45%, transparent);
 
   img {
     width: 100%;
@@ -726,9 +734,10 @@ ion-modal.detail-sheet::part(handle) {
   align-items: center;
   gap: 4px 12px;
   padding: 8px 16px;
-  border-radius: 14px;
-  background: var(--ink);
-  color: var(--bg);
+  border-radius: 16px;
+  // a denser glass than the panels: a toast is read in passing, over anything
+  background: var(--glass-sheen), color-mix(in srgb, var(--bg) 85%, transparent);
+  color: var(--ink);
   font-size: 14px;
 
   &:has(.toast-action) {
@@ -736,7 +745,14 @@ ion-modal.detail-sheet::part(handle) {
   }
 }
 
-// the toast's one action: a text button in the toast's own colours, underlined, 44 px tall
+// phones: under the top bar and the chip row
+@media (max-width: 819px) {
+  .toast {
+    top: calc(124px + #{$safe-top});
+  }
+}
+
+// the toast's one action: a text button in the accent, underlined, 44 px tall
 .toast-action {
   flex: none;
   min-height: 44px;
@@ -744,7 +760,7 @@ ion-modal.detail-sheet::part(handle) {
   border: 0;
   border-radius: 10px;
   background: none;
-  color: var(--bg);
+  color: var(--pri);
   font: 600 14px/1.4 var(--font);
   text-decoration: underline;
   text-underline-offset: 3px;

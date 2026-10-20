@@ -8,6 +8,11 @@
   --glass-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12) 60%);
   --glass-edge: rgba(255, 255, 255, 0.75);
   --glass-shadow: 0 16px 36px -20px rgba(40, 40, 80, 0.45);
+  // panels of running text (report detail, sheet, toast): denser, so ink keeps 4.5:1 over bright toy land
+  --glass-bg-dense: rgba(255, 255, 255, 0.84);
+
+  // what the glass does to the map behind it, after the blur (dark: dims it, see below)
+  --glass-dim: brightness(1);
 
   // both themes
   --glass-blur: 24px;
@@ -22,6 +27,9 @@
   --glass-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 60%);
   --glass-edge: rgba(255, 255, 255, 0.13);
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 16px 36px -20px rgba(3, 8, 25, 0.9);
+  --glass-bg-dense: rgba(16, 26, 54, 0.8);
+  // the toy land is bright pastel: dimmed behind the glass, ink keeps 4.5:1 over it too
+  --glass-dim: brightness(0.55);
 }
 
 // same selectors as dark-tokens in tokens.scss
@@ -39,10 +47,14 @@
   position: relative;
   isolation: isolate;
   background: var(--glass-sheen), var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
   border: 1px solid var(--glass-edge);
   box-shadow: var(--glass-shadow);
+}
+
+.glass.dense {
+  background: var(--glass-sheen), var(--glass-bg-dense);
 }
 
 // the grain: sits under the panel's content, clipped to its corners

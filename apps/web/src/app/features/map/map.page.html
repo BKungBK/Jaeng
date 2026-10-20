@@ -102,7 +102,7 @@
 <div class="map" #map></div>
 
 @if (hover(); as h) {
-  <div class="card tip" role="tooltip" [style.left.px]="h.x" [style.top.px]="h.y" [style.--c]="level(h.p).color">
+  <div class="tip glass dense" role="tooltip" [style.left.px]="h.x" [style.top.px]="h.y" [style.--c]="level(h.p).color">
     <ng-container *ngTemplateOutlet="summary; context: { $implicit: h.p, id: null }" />
   </div>
 }
@@ -110,14 +110,17 @@
 <!-- the report detail: a right panel from 820 px, a bottom sheet that still lets the map pan below -->
 @if (wide()) {
   @if (id(); as rid) {
-    <aside class="card panel" role="dialog" aria-labelledby="report-detail-title">
-      <app-report-detail
-        [reportId]="rid"
-        (closed)="close()"
-        (loaded)="onLoaded($event)"
-        (missing)="onMissing($event)"
-        (changed)="scheduleLoad(0)"
-      />
+    <!-- the glass stays put while its inner layer scrolls, so the grain covers the whole panel -->
+    <aside class="panel glass dense" role="dialog" aria-labelledby="report-detail-title">
+      <div class="panel-scroll">
+        <app-report-detail
+          [reportId]="rid"
+          (closed)="close()"
+          (loaded)="onLoaded($event)"
+          (missing)="onMissing($event)"
+          (changed)="scheduleLoad(0)"
+        />
+      </div>
     </aside>
   }
 } @else {
@@ -148,7 +151,7 @@
 }
 
 @if (toast(); as t) {
-  <div class="toast" role="status">
+  <div class="toast glass" role="status">
     <span>{{ i18n.say(t.said) }}</span>
     @if (t.action; as a) {
       <button type="button" class="toast-action" (click)="runToast(t)">{{ a.label | t }}</button>

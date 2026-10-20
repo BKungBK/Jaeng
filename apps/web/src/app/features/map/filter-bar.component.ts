@@ -82,8 +82,8 @@ import { LevelShapeComponent } from './level-shape';
       border-radius: 15px;
       /* the map page sets a quieter ground for chips that already sit inside a glass panel */
       background: var(--chip-bg, var(--glass-bg));
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px) var(--glass-dim);
+      -webkit-backdrop-filter: blur(16px) var(--glass-dim);
       transition:
         background-color 160ms ease-out,
         opacity 160ms ease-out;

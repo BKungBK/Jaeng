@@ -70,16 +70,7 @@
       </div>
 
       @if (d.danger_level === 3) {
-        <div class="emergency">
-          <app-icon name="phone" [size]="20" />
-          <p>
-            {{ 'detail.emergency' | t }}
-            <span class="numbers">
-              <a href="tel:191">191</a><span class="sep" aria-hidden="true"> / </span><a href="tel:199">199</a
-              ><span class="sep" aria-hidden="true"> / </span><a href="tel:1669">1669</a>
-            </span>
-          </p>
-        </div>
+        <app-emergency-box />
       }
 
       @if (form()?.kind === 'fix') {

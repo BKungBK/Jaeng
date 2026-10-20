@@ -22,6 +22,7 @@ import { CategoriesService } from '../../core/categories.service';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { RealtimeService } from '../../core/realtime.service';
 import { TPipe } from '../../i18n/t.pipe';
+import { EmergencyBoxComponent } from '../../shared/emergency-box.component';
 import { IconComponent } from '../../shared/icon.component';
 import { AdminService } from '../admin/admin.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
@@ -51,7 +52,7 @@ type OpenForm = { kind: 'fix' } | { kind: 'flag'; type: FlagTarget; id: string }
   templateUrl: 'report-detail.component.html',
   styleUrls: ['report-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe],
+  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe, EmergencyBoxComponent],
 })
 export class ReportDetailComponent {
   private svc = inject(ReportDetailService);

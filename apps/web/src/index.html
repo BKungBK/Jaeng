@@ -7,6 +7,19 @@
 
   <base href="/" />
 
+  <meta name="theme-color" content="#FBF7F2" />
+  <!-- the stored theme and language, applied before the first paint so nothing flashes -->
+  <script data-boot>
+    try {
+      var t = localStorage.getItem('jaeng.theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m && t === 'dark') m.setAttribute('content', '#23212B');
+      var l = localStorage.getItem('jaeng.locale');
+      if (l === 'th' || l === 'en') document.documentElement.lang = l;
+    } catch (e) {}
+  </script>
+
   <meta name="color-scheme" content="light dark" />
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />

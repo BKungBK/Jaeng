@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { I18nService } from './core/i18n.service';
+import { ThemeService } from './core/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,8 @@ import { I18nService } from './core/i18n.service';
 })
 export class AppComponent {
   constructor() {
-    // created at boot so <html lang> and the title are right from the first paint
+    // created at boot so <html lang>, the title and the theme are right from the first paint
     inject(I18nService);
+    inject(ThemeService);
   }
 }

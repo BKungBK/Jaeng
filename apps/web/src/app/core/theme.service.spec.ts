@@ -41,9 +41,19 @@ describe('ThemeService', () => {
     root().removeAttribute('data-theme');
   });
 
-  it('follows the system by default and sets no data-theme', () => {
+  it('is dark when nothing is stored', () => {
+    fakeMedia(false);
+    localStorage.removeItem(THEME_STORAGE_KEY);
+    const s = make();
+    expect(s.choice()).toBe('dark');
+    expect(root().getAttribute('data-theme')).toBe('dark');
+    expect(meta()).toBe('#0F1F44');
+  });
+
+  it('follows the system when asked and sets no data-theme', () => {
     fakeMedia(false);
     const s = make();
+    s.set('system');
     expect(s.choice()).toBe('system');
     expect(root().hasAttribute('data-theme')).toBe(false);
     expect(s.effective()).toBe('light');
@@ -52,11 +62,12 @@ describe('ThemeService', () => {
   it('forces dark, stores it and paints the browser bar', () => {
     fakeMedia(false);
     const s = make();
+    s.set('light');
     s.set('dark');
     expect(root().getAttribute('data-theme')).toBe('dark');
     expect(s.effective()).toBe('dark');
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
-    expect(meta()).toBe('#23212B');
+    expect(meta()).toBe('#0F1F44');
   });
 
   it('removes the attribute again for system', () => {
@@ -71,9 +82,10 @@ describe('ThemeService', () => {
   it('follows a live system switch while on system', () => {
     const media = fakeMedia(false);
     const s = make();
+    s.set('system');
     media.flip(true);
     expect(s.effective()).toBe('dark');
-    expect(meta()).toBe('#23212B');
+    expect(meta()).toBe('#0F1F44');
   });
 
   it('starts from the stored choice', () => {
@@ -129,12 +141,23 @@ describe('pre-boot script in index.html', () => {
     const el = boot({ 'jaeng.theme': 'dark', 'jaeng.locale': 'en' });
     expect(el.getAttribute('data-theme')).toBe('dark');
     expect(el.lang).toBe('en');
-    expect(el.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#23212B');
+    expect(el.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0F1F44');
   });
 
-  it('ignores junk values', () => {
-    const el = boot({ 'jaeng.theme': 'purple', 'jaeng.locale': 'fr' });
+  it('is dark when nothing is stored', () => {
+    const el = boot({});
+    expect(el.getAttribute('data-theme')).toBe('dark');
+    expect(el.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#0F1F44');
+  });
+
+  it('leaves the theme to the system when that is stored', () => {
+    const el = boot({ 'jaeng.theme': 'system' });
     expect(el.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('treats junk values like nothing stored', () => {
+    const el = boot({ 'jaeng.theme': 'purple', 'jaeng.locale': 'fr' });
+    expect(el.getAttribute('data-theme')).toBe('dark');
     expect(el.lang).toBe('');
   });
 

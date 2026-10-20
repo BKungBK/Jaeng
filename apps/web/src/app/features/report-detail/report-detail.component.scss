@@ -1,7 +1,7 @@
 // Report detail (DESIGN.md "Report detail", .impeccable/surfaces/report-detail-*.md).
 // Text on a pastel fill is always Slate Ink on the pastel mixed into white (Ink On Pastel), in both themes.
 $slate: #2b2a33;
-$prompt: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+$prompt: var(--font);
 
 :host {
   position: relative;
@@ -9,7 +9,7 @@ $prompt: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
   gap: 12px;
   padding: 12px 12px calc(20px + env(safe-area-inset-bottom, 0px));
   color: var(--ink);
-  font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 400 16px/1.6 var(--font);
 }
 
 p,

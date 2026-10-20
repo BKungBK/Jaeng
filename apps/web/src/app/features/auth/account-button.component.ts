@@ -83,7 +83,7 @@ export function initialOf(name: string): string {
       gap: 6px;
       padding: 8px; /* room for the 3 px + 2 px focus ring inside the popover's clipped content */
       color: var(--ink);
-      font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 400 16px/1.6 var(--font);
     }
     .account-menu-who {
       display: flex;
@@ -95,7 +95,7 @@ export function initialOf(name: string): string {
       border-bottom: 1px solid var(--line);
     }
     .account-menu-name {
-      font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 15px/1.4 var(--font);
       overflow-wrap: anywhere;
     }
     .account-menu-body .tag {
@@ -103,7 +103,7 @@ export function initialOf(name: string): string {
       border-radius: 10px;
       background: color-mix(in srgb, var(--pri) 14%, var(--surf));
       color: var(--ink);
-      font: 500 13px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 13px/1.5 var(--font);
     }
     .account-menu-item {
       display: flex;
@@ -115,7 +115,7 @@ export function initialOf(name: string): string {
       border-radius: 12px;
       background: none;
       color: var(--ink);
-      font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 15px/1.4 var(--font);
       text-align: left;
       cursor: pointer;
     }
@@ -185,7 +185,7 @@ export class AccountMenuComponent {
       pointer-events: none;
     }
     .initial {
-      font: 600 19px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 19px/1 var(--font);
     }
     .ctl:hover {
       background: var(--bg);

@@ -12,9 +12,10 @@
   <script data-boot>
     try {
       var t = localStorage.getItem('jaeng.theme');
-      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      if (t !== 'light' && t !== 'system') t = 'dark'; // dark until the device picks
+      if (t !== 'system') document.documentElement.setAttribute('data-theme', t);
       var m = document.querySelector('meta[name="theme-color"]');
-      if (m && t === 'dark') m.setAttribute('content', '#23212B');
+      if (m && t === 'dark') m.setAttribute('content', '#0F1F44');
       var l = localStorage.getItem('jaeng.locale');
       if (l === 'th' || l === 'en') document.documentElement.lang = l;
     } catch (e) {}

@@ -1,7 +1,7 @@
 // Shared pieces of the report flow (DESIGN.md Buttons, .impeccable/surfaces/pp-features-report-new-*.md).
 // Each step component @uses this file, so the rules land inside its own encapsulated styles.
-$prompt: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
-$plex: 'IBM Plex Sans Thai', system-ui, sans-serif;
+$prompt: var(--font);
+$plex: var(--font);
 $slate: #2b2a33;
 
 button,

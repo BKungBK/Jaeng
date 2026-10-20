@@ -3,7 +3,7 @@
 :host {
   display: block;
   color: var(--ink);
-  font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 400 16px/1.6 var(--font);
 }
 
 .steps {
@@ -13,7 +13,7 @@
 
 .head {
   margin: 0;
-  font: 600 24px/1.2 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 600 24px/1.2 var(--font);
   text-wrap: balance;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .field {
-  font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 500 14px/1.4 var(--font);
 }
 
 .input {
@@ -49,7 +49,7 @@
   background: var(--surf);
   color: var(--ink);
   caret-color: var(--pri);
-  font: 400 17px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif; // ≥ 16 px: no zoom-on-focus on phones
+  font: 400 17px/1.4 var(--font); // ≥ 16 px: no zoom-on-focus on phones
 
   &::placeholder {
     color: var(--ink2);
@@ -68,7 +68,7 @@
 }
 
 .code {
-  font: 600 26px/1 'Prompt', system-ui, sans-serif;
+  font: 600 26px/1 var(--font);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.4em;
   text-align: center;
@@ -76,7 +76,7 @@
 }
 
 button {
-  font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 500 15px/1.4 var(--font);
   cursor: pointer;
 
   &:focus-visible {
@@ -171,7 +171,7 @@ button {
 .demo-head {
   margin: 0 0 8px;
   color: var(--ink2);
-  font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 500 14px/1.4 var(--font);
 }
 
 .who {

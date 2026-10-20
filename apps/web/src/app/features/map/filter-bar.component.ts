@@ -67,7 +67,7 @@ import { LevelShapeComponent } from './level-shape';
       border-radius: 14px;
       background: color-mix(in srgb, var(--c) 55%, #fff);
       color: #2b2a33;
-      font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 14px/1.4 var(--font);
       cursor: pointer;
     }
     .chip:hover {
@@ -119,7 +119,7 @@ import { LevelShapeComponent } from './level-shape';
       border-radius: 10px;
       background: var(--pri);
       color: var(--onpri);
-      font: 600 12px/20px 'Prompt', sans-serif;
+      font: 600 12px/20px var(--font);
       text-align: center;
     }
     @media (max-width: 419px) {

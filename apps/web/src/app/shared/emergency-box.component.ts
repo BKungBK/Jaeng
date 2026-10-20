@@ -53,7 +53,7 @@ import { IconComponent } from './icon.component';
       border-radius: 14px;
       background: #fff;
       color: #2b2a33;
-      font: 600 16px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 16px/1 var(--font);
       font-variant-numeric: tabular-nums;
       text-decoration: underline;
       text-underline-offset: 3px;

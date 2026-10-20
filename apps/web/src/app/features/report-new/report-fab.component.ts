@@ -35,7 +35,7 @@ import { LoginPromptService } from '../auth/login-prompt.service';
       background: var(--pri);
       color: var(--onpri);
       box-shadow: var(--sh);
-      font: 600 17px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 17px/1 var(--font);
       cursor: pointer;
       transition: background-color 160ms ease-out;
     }

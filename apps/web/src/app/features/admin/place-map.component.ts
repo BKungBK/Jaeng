@@ -93,7 +93,7 @@ const same = (a: LngLat, b: LngLat) => Math.abs(a.lng - b.lng) < 1e-7 && Math.ab
       border-radius: 10px;
       background: #fff;
       color: #2b2a33;
-      font: 500 12px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 12px/1.5 var(--font);
       white-space: nowrap;
     }
     .pin {

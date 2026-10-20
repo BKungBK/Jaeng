@@ -25,7 +25,7 @@ export type StatsState = 'loading' | 'error' | Stats;
       align-items: center;
       gap: 2px 14px;
       color: var(--ink);
-      font: 500 14px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 14px/1.5 var(--font);
       font-variant-numeric: tabular-nums;
     }
     :host:empty {
@@ -35,14 +35,6 @@ export type StatsState = 'loading' | 'error' | Stats;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      white-space: nowrap;
-    }
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
       white-space: nowrap;
     }
   `,

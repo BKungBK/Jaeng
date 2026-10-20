@@ -26,7 +26,7 @@
   border-radius: 12px;
   background: transparent;
   color: var(--ink2);
-  font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 500 14px/1.4 var(--font);
   cursor: pointer;
 
   &:hover {

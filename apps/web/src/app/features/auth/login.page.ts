@@ -37,7 +37,7 @@ import { safeNext } from './safe-next';
     }
     .brand {
       margin: 0;
-      font: 600 32px/1.2 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 32px/1.2 var(--font);
     }
     .card {
       box-sizing: border-box;
@@ -54,7 +54,7 @@ import { safeNext } from './safe-next';
       padding: 0 8px;
       border-radius: 10px;
       color: var(--pri);
-      font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 14px/1.4 var(--font);
       text-underline-offset: 3px;
     }
     .back:focus-visible {

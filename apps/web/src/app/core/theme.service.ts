@@ -3,13 +3,17 @@ import { computed, DOCUMENT, inject, Injectable, signal } from '@angular/core';
 export type ThemeChoice = 'system' | 'light' | 'dark';
 export const THEME_STORAGE_KEY = 'jaeng.theme';
 
-/** The browser bar colour per theme: Cream Ground and the dark ground (tokens.scss --bg). */
-export const THEME_COLOR = { light: '#FBF7F2', dark: '#23212B' } as const;
+/** The browser bar colour per theme: Cream Ground and the navy night ground (tokens.scss --bg). */
+export const THEME_COLOR = { light: '#FBF7F2', dark: '#0F1F44' } as const;
+
+/** What a device that never chose gets (plan 6b decision 2). */
+const DEFAULT_CHOICE: ThemeChoice = 'dark';
 
 const isChoice = (v: unknown): v is ThemeChoice => v === 'system' || v === 'light' || v === 'dark';
 
 /**
- * Light, dark or the system setting, kept on this device only (plan 6 decision 3). It sets
+ * Light, dark or the system setting, kept on this device only (plan 6 decision 3); dark until the
+ * device picks (plan 6b). It sets
  * `data-theme` on <html>, which tokens.scss, the sea and the street map already follow; the
  * pre-boot script in index.html applies the stored choice before the first paint.
  */
@@ -36,9 +40,9 @@ export class ThemeService {
     try {
       stored = localStorage.getItem(THEME_STORAGE_KEY);
     } catch {
-      // private mode: follow the system
+      // private mode: the default
     }
-    this.apply(isChoice(stored) ? stored : 'system');
+    this.apply(isChoice(stored) ? stored : DEFAULT_CHOICE);
   }
 
   set(c: ThemeChoice): void {

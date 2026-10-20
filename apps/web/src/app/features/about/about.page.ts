@@ -16,7 +16,7 @@ const CREDITS: { what: MessageKey; who: string; href: string }[] = [
   { what: 'about.creditAreas', who: 'OCHA COD-AB (HDX)', href: 'https://data.humdata.org/dataset/cod-ab-tha' },
   { what: 'about.creditEngine', who: 'MapLibre GL JS (BSD-3)', href: 'https://maplibre.org' },
   { what: 'about.creditIcons', who: 'Lucide (ISC)', href: 'https://lucide.dev' },
-  { what: 'about.creditFonts', who: 'Prompt · IBM Plex Sans Thai (OFL)', href: 'https://fonts.google.com' },
+  { what: 'about.creditFonts', who: 'Anuphan (OFL)', href: 'https://fonts.google.com' },
 ];
 
 /** `/about` (spec 3.11, handoff "/about"): what Jaeng is, its rules, emergency numbers, privacy, display, credits. */

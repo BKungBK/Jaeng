@@ -47,7 +47,7 @@
   background: var(--surf);
   color: var(--pri);
   box-shadow: var(--sh);
-  font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  font: 500 15px/1.4 var(--font);
   transform: translateY(calc(-100% - 24px));
 
   &:focus-visible {
@@ -65,7 +65,7 @@
 
   h1 {
     margin: 0;
-    font: 600 24px/1.2 'Prompt', sans-serif;
+    font: 600 24px/1.2 var(--font);
   }
 
   p {
@@ -255,7 +255,7 @@ ion-modal.detail-sheet::part(handle) {
 
 
 .title {
-  font: 500 15px/1.4 'Prompt', sans-serif;
+  font: 500 15px/1.4 var(--font);
   overflow-wrap: anywhere;
 }
 
@@ -301,7 +301,7 @@ ion-modal.detail-sheet::part(handle) {
   border-radius: 10px;
   background: none;
   color: var(--bg);
-  font: 600 14px/1.4 'IBM Plex Sans Thai', sans-serif;
+  font: 600 14px/1.4 var(--font);
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;

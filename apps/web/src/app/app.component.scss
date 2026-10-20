@@ -13,7 +13,7 @@
   border-radius: 14px;
   background: var(--ink);
   color: var(--bg);
-  font: 400 14px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font: 400 14px/1.5 var(--font);
   box-shadow: var(--sh);
 
   button {
@@ -22,7 +22,7 @@
     border: 0;
     background: none;
     color: var(--bg);
-    font: 600 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+    font: 600 14px/1.4 var(--font);
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor: pointer;

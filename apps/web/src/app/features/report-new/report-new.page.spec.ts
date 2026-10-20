@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -293,5 +294,15 @@ describe('ReportNewPage', () => {
     expect(title()).toBe('ถ่ายรูปปัญหา');
     root.querySelector<HTMLButtonElement>('button[aria-label="ปิด"]')!.click();
     expect(back.go).toHaveBeenCalledWith();
+  });
+});
+
+describe('ReportNewPage accessibility (plan 6)', () => {
+  afterEach(() => TestBed.inject(ReportDraftService).reset());
+  it('has one h1 and no unnamed button on every step', async () => {
+    const { root, toStep3 } = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    expectAccessiblePage(root);
+    await toStep3('road');
+    expectAccessiblePage(root);
   });
 });

@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -333,5 +334,11 @@ describe('MePage', () => {
       expect(svc.rename).not.toHaveBeenCalled();
       expect(root.querySelector('input')).toBeNull();
     });
+  });
+});
+
+describe('MePage accessibility (plan 6)', () => {
+  it('has one h1 and no unnamed button', async () => {
+    expectAccessiblePage((await setup({ reports: [report({ id: 'a' })] })).root);
   });
 });

@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RouteReuseStrategy, Router, provideRouter, withComponentInputBinding } from '@angular/router';
@@ -676,5 +677,14 @@ describe('MapPage plan 6: filters and search', () => {
     TestBed.resetTestingModule();
     const phone = await setup(undefined, { wide: false });
     expect(phone.root.querySelector('.brand app-search-box button[aria-label="ค้นหา"]')).not.toBeNull();
+  });
+});
+
+describe('MapPage accessibility (plan 6)', () => {
+  afterEach(() => vi.restoreAllMocks());
+  it('has one h1 and no unnamed button, wide and narrow', async () => {
+    expectAccessiblePage((await setup()).root);
+    TestBed.resetTestingModule();
+    expectAccessiblePage((await setup(undefined, { wide: false })).root);
   });
 });

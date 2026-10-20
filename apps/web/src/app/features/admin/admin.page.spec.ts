@@ -1,3 +1,4 @@
+import { expectAccessiblePage } from '../../a11y.testing';
 import { Component, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -85,5 +86,11 @@ describe('AdminPage', () => {
     await settle();
     expect(admin.counts).toHaveBeenCalledTimes(2);
     expect(root).toBeTruthy();
+  });
+});
+
+describe('AdminPage accessibility (plan 6)', () => {
+  it('has one h1 and no unnamed button', async () => {
+    expectAccessiblePage((await open('/admin')).root);
   });
 });

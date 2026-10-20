@@ -101,6 +101,12 @@ import { LevelShapeComponent } from './level-shape';
       color: var(--c);
       font-size: 14px;
     }
+    /* a dark rim keeps the shape (the cue that is not colour) at 3:1 on white glass: butter alone is 1.3:1 */
+    .chip ::ng-deep app-level-shape svg {
+      stroke: color-mix(in srgb, var(--c) 45%, #2b2a33);
+      stroke-width: 1;
+      paint-order: stroke;
+    }
     /* off: drained and struck through, so it reads without colour */
     .chip[aria-pressed='false'] {
       color: var(--ink2);

@@ -48,14 +48,14 @@
   color: var(--ink);
 }
 
-// desktop: the field is a soft well inside the side panel
+// desktop: the field sits inline in the side panel's search row, a faint well with no box line
 .box:not(.phone) .field {
   min-height: 44px;
   height: 44px;
   padding: 0 4px 0 12px;
-  border: 1px solid var(--glass-edge);
+  border: 1px solid transparent;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
 
   &:focus-within {
     border-color: var(--pri);

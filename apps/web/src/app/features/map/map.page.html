@@ -27,8 +27,7 @@
       <ul class="in-view">
         @for (p of inView(); track p.id) {
           <li>
-            <button type="button" (click)="select(p)">
-              <span class="dot" [style.--c]="level(p).color" aria-hidden="true"></span>
+            <button type="button" [style.--c]="level(p).color" (click)="select(p)">
               <app-level-shape class="shape" [level]="p.danger_level" />
               <span class="name">{{ p.title }}</span>
               <span class="facts">{{ 'map.inView.row' | t: { p: p.confirm_count, d: p.days_open } }}</span>

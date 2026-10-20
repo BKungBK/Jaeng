@@ -101,7 +101,12 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     LanguageToggleComponent,
     SearchBoxComponent,
   ],
-  host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
+  host: {
+    class: 'ion-page',
+    '[class.with-panel]': 'panelOpen()',
+    '[class.sheet-open]': '!wide() && !!id()',
+    '(document:keydown.escape)': 'onEscape()',
+  },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
@@ -281,8 +286,9 @@ export class MapPage {
     labelBaseMap(map, this.i18n.locale());
     this.stopWords = this.i18n.watch((l) => labelBaseMap(map, l));
     setupReportLayers(map);
-    // phones: start with the attribution folded to its info button so it does not sit under the hint card
-    if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
+    // start with the attribution folded to its info button at every width (plan 6b: a faint ⓘ, as in
+    // the comps); a press unfolds the credits
+    map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
     await Promise.all([this.startBeacons(map), this.startToy(map)]);
   }

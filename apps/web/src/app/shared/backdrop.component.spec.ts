@@ -104,7 +104,8 @@ describe('BackdropComponent', () => {
     TestBed.inject(ThemeService).set('light');
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).classList).toContain('light');
-    expect(BACKDROP_COLORS.dark).toEqual(['#0E1D40', '#2A2F6B', '#7C6BB0', '#F4B49A']);
+    // the comp's sea: navy field, a #24356E glow top-left, the dawn bottom-right (finish review)
+    expect(BACKDROP_COLORS.dark).toEqual(['#0E1D40', '#13264D', '#24356E', '#F4B49A']);
     expect(BACKDROP_COLORS.light).toEqual(['#F6F1FA', '#DCD6F2', '#F9D9CB', '#FFFFFF']);
   });
 });

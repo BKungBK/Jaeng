@@ -47,6 +47,34 @@
   }
 }
 
+// folded: a faint glass ⓘ, not MapLibre's solid black disc
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  min-height: 24px;
+  border-color: var(--glass-edge);
+  background: var(--glass-bg);
+  opacity: 0.8;
+}
+
+.maplibregl-ctrl-attrib-button {
+  opacity: 0.7;
+}
+
+@mixin light-icon {
+  .maplibregl-ctrl-attrib-button {
+    filter: invert(1);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include light-icon;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include light-icon;
+}
+
 .maplibregl-ctrl-attrib-button:focus-visible {
   outline: 3px solid var(--pri);
   outline-offset: 2px;

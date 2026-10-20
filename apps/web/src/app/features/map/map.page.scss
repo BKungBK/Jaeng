@@ -462,18 +462,17 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
     }
   }
 
-  .dot {
-    flex: none;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--c);
-  }
-
+  // one mark per row: the level's shape in its colour (with a rim for the light theme)
   .shape {
     flex: none;
-    color: var(--ink2);
-    font-size: 12px;
+    color: var(--c);
+    font-size: 13px;
+  }
+
+  .shape ::ng-deep svg {
+    stroke: color-mix(in srgb, var(--c) 45%, #2b2a33);
+    stroke-width: 1;
+    paint-order: stroke;
   }
 
   .name {
@@ -586,7 +585,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   position: absolute;
   z-index: 5;
   right: 20px;
-  bottom: 96px;
+  bottom: 102px;
   display: flex;
   flex-direction: column;
   width: 40px;
@@ -630,7 +629,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   position: absolute;
   z-index: 5;
   right: 20px;
-  bottom: 36px;
+  bottom: 42px; // the folded attribution ⓘ sits below
 }
 
 .tip {
@@ -696,6 +695,12 @@ $beside: calc(#{$panel} + 40px); // the panel and its two 20 px gutters
 }
 
 // ---- report detail: bottom sheet (< 820 px) ----
+// the band between the top bar + chips and the sheet's 64% edge is short: a tall beam would put its
+// head (the disc) under the search pill, so beams are capped while the sheet is open
+:host.sheet-open ::ng-deep .beacon .stand {
+  height: min(var(--h), 96px);
+}
+
 // the sheet's own ground is clear; its scrolling layer is the glass
 ion-modal.detail-sheet {
   --border-radius: 26px 26px 0 0;

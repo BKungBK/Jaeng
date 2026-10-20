@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inj
 import { ThemeService } from '../core/theme.service';
 import { BACKDROP_FRAGMENT, BACKDROP_VERTEX } from './backdrop.glsl';
 
-/** The four mesh colours per theme: night, indigo, lavender, dawn (light: their daytime pastels). */
+/** The four mesh colours per theme: night, deep navy, the top-left glow, dawn (light: daytime pastels).
+ *  Dark follows the approved comp's sea; the finish review found the first indigo/lavender pair too violet. */
 export const BACKDROP_COLORS = {
-  dark: ['#0E1D40', '#2A2F6B', '#7C6BB0', '#F4B49A'],
+  dark: ['#0E1D40', '#13264D', '#24356E', '#F4B49A'],
   light: ['#F6F1FA', '#DCD6F2', '#F9D9CB', '#FFFFFF'],
 } as const;
 
@@ -76,6 +77,14 @@ function compile(gl: Gl): { program: WebGLProgram; uniforms: Record<string, WebG
     :host.light {
       background: #f6f1fa;
     }
+    /* the grain at full resolution over the canvas and the fallback alike (the canvas is half size) */
+    :host::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--noise);
+      opacity: 0.05;
+    }
     /* the mock's sea: a lavender glow top-left, a peach dawn bottom-right, over the navy */
     .fallback {
       position: absolute;
@@ -90,13 +99,6 @@ function compile(gl: Gl): { program: WebGLProgram; uniforms: Record<string, WebG
         radial-gradient(80% 40% at 10% 0%, #dcd6f2, transparent 70%),
         radial-gradient(70% 35% at 90% 100%, rgba(249, 217, 203, 0.9), transparent 70%),
         linear-gradient(170deg, #f6f1fa, #fbf7f2 50%, #f6f1fa);
-    }
-    .fallback::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--noise);
-      opacity: 0.06;
     }
   `,
   host: { 'aria-hidden': 'true', '[class.light]': "theme.effective() === 'light'" },

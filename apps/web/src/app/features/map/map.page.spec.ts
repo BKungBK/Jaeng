@@ -535,6 +535,18 @@ describe('MapPage', () => {
     expect(root.querySelector('.dock')).not.toBeNull();
   });
 
+  it('marks the page while the phone sheet is open, so beams stay short enough to show their head', async () => {
+    const { fixture } = await setup(undefined, { wide: false });
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.classList).not.toContain('sheet-open');
+    fixture.componentRef.setInput('id', DETAIL.id);
+    fixture.detectChanges();
+    expect(host.classList).toContain('sheet-open');
+    fixture.componentRef.setInput('id', undefined);
+    fixture.detectChanges();
+    expect(host.classList).not.toContain('sheet-open');
+  });
+
   it('lists the top three reports in view and links to all', async () => {
     vi.useFakeTimers();
     const inBbox = vi.fn().mockResolvedValue({

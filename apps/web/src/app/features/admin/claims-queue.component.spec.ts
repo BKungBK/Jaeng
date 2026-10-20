@@ -76,7 +76,7 @@ describe('ClaimsQueueComponent', () => {
   });
 
   it('a 409 reloads the queue', async () => {
-    const err = new ApiError(409, 'invalid_state', 'รายการนี้ถูกจัดการไปแล้ว ลองโหลดใหม่นะ');
+    const err = new ApiError(409, 'invalid_state', 'รายการนี้ถูกจัดการไปแล้ว ลองโหลดใหม่นะ', 'en');
     const { admin, btn, settle, root } = await setup(undefined, { reviewClaim: vi.fn().mockRejectedValue(err) });
     btn('ยืนยันว่าแก้แล้ว').click();
     await settle();

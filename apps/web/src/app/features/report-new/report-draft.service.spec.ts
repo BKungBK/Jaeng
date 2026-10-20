@@ -36,7 +36,7 @@ function setup(opts: Opts = {}) {
   const api = {
     upload: vi.fn(async () => {
       const n = ++uploads;
-      if (opts.failUpload?.(n)) throw new ApiError(500, 'internal', 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ');
+      if (opts.failUpload?.(n)) throw new ApiError(500, 'internal', 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ', 'en');
       return { photo_id: `p${n}`, width: 1600, height: 1200 };
     }),
     post: vi.fn(async (path: string, _body?: unknown): Promise<unknown> => {
@@ -128,7 +128,7 @@ describe('ReportDraftService', () => {
 
   it('shows the 413 message on the photo that was too large', async () => {
     const s = setup();
-    s.api.upload.mockRejectedValueOnce(new ApiError(413, 'photo_too_large', 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)'));
+    s.api.upload.mockRejectedValueOnce(new ApiError(413, 'photo_too_large', 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)', 'en'));
     await s.draft.addFiles([photoFile('a.jpg')]);
     expect(s.draft.photos()[0]).toMatchObject({ state: 'error', errorTh: 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)' });
   });
@@ -240,7 +240,7 @@ describe('ReportDraftService', () => {
     await ready(s);
     s.api.post.mockImplementation(async (path: string) => {
       if (path === '/reports/check-duplicate') return { duplicates: [] };
-      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ');
+      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ', 'en');
     });
     const err = await s.draft.submit().catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
@@ -258,7 +258,7 @@ describe('ReportDraftService', () => {
     await ready(s, [photoFile('a.jpg'), photoFile('b.jpg')]);
     s.api.post.mockImplementation(async (path: string) => {
       if (path === '/reports/check-duplicate') return { duplicates: [] };
-      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ');
+      throw new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ', 'en');
     });
     await s.draft.submit().catch(() => undefined);
     expect(s.draft.photos().map((p) => p.state)).toEqual(['error', 'error']);
@@ -272,7 +272,7 @@ describe('ReportDraftService', () => {
   it('does the same when a merge answers invalid_photos', async () => {
     const s = setup();
     await ready(s);
-    s.api.post.mockRejectedValueOnce(new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ'));
+    s.api.post.mockRejectedValueOnce(new ApiError(400, 'invalid_photos', 'รูปนี้ใช้ไม่ได้แล้ว ลองเลือกรูปใหม่นะ', 'en'));
     await s.draft.merge('d1').catch(() => undefined);
     expect(s.draft.photos()[0].state).toBe('error');
   });

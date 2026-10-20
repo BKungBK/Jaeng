@@ -70,7 +70,7 @@ describe('FixClaimFormComponent', () => {
 
   it('a failed upload shows its message and sends nothing', async () => {
     const { svc, submit, settle, pick, root } = await setup({
-      uploadPhoto: vi.fn().mockRejectedValue(new ApiError(413, 'photo_too_large', 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)')),
+      uploadPhoto: vi.fn().mockRejectedValue(new ApiError(413, 'photo_too_large', 'รูปใหญ่เกินไป (ไม่เกิน 3 MB)', 'en')),
     });
     await pick();
     submit().click();
@@ -94,7 +94,7 @@ describe('FixClaimFormComponent', () => {
   });
 
   it('claim_pending shows the API message and asks the panel to reload', async () => {
-    const err = new ApiError(409, 'claim_pending', 'มีคนแจ้งว่าแก้แล้ว กำลังรอผู้ดูแลตรวจอยู่นะ');
+    const err = new ApiError(409, 'claim_pending', 'มีคนแจ้งว่าแก้แล้ว กำลังรอผู้ดูแลตรวจอยู่นะ', 'en');
     const { out, submit, settle } = await setup({ claimFix: vi.fn().mockRejectedValue(err) });
     submit().click();
     await settle();

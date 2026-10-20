@@ -156,7 +156,7 @@ describe('ReviewQueueComponent', () => {
   });
 
   it('a 409 shows the API words and loads the queue again', async () => {
-    const err = new ApiError(409, 'invalid_state', 'รายการนี้ถูกจัดการไปแล้ว ลองโหลดใหม่นะ');
+    const err = new ApiError(409, 'invalid_state', 'รายการนี้ถูกจัดการไปแล้ว ลองโหลดใหม่นะ', 'en');
     const { click, root, admin } = await setup(undefined, { approve: vi.fn().mockRejectedValue(err) });
     await click('อนุมัติ…');
     await click('อนุมัติ ขึ้นแผนที่');

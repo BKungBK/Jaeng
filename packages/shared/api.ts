@@ -63,6 +63,7 @@ export type ServerErrorCode = Exclude<ErrorCode, 'network'>;
 
 /** One wording for "something broke on our side", on both the API and the web app. */
 export const MSG_INTERNAL_TH = 'ระบบขัดข้อง ลองใหม่อีกครั้งนะ';
+export const MSG_INTERNAL_EN = 'Something went wrong. Please try again.';
 
 export type ApiErrorBody = { error: { code: ErrorCode; message_th: string; message_en: string } };
 

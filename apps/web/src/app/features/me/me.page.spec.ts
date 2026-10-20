@@ -179,7 +179,7 @@ describe('MePage', () => {
     });
 
     it('offers a retry that asks again', async () => {
-      const { root, svc, button, settle } = await setup({ reports: new ApiError(0, 'network', 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ') });
+      const { root, svc, button, settle } = await setup({ reports: new ApiError(0, 'network', 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้งนะ', 'en') });
       expect(root.querySelector('[role="status"]')?.textContent).toContain('โหลดเรื่องของคุณไม่สำเร็จ');
       expect(svc.reports).toHaveBeenCalledTimes(1);
       svc.reports.mockResolvedValue([report({ title: 'กลับมาแล้ว' })]);
@@ -281,7 +281,7 @@ describe('MePage', () => {
 
     it('shows the API message in an alert and keeps the old name on 422', async () => {
       const { button, type, settle, svc, auth, profile, root, input } = await setup({ name: 'พี่ปลา' });
-      svc.rename.mockRejectedValue(new ApiError(422, 'profanity', 'ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่นนะ'));
+      svc.rename.mockRejectedValue(new ApiError(422, 'profanity', 'ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่นนะ', 'en'));
       button('แก้ชื่อ')!.click();
       await settle();
       type('ชื่อไม่ดี');

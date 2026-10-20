@@ -95,7 +95,7 @@ describe('DuplicateCardComponent', () => {
 
   it('shows the API message and stays when the merge fails', async () => {
     const { fixture, root, buttons, draft, back } = await setup();
-    draft.merge.mockRejectedValueOnce(new ApiError(429, 'rate_limited', 'วันนี้แจ้งครบโควตาแล้ว พรุ่งนี้มาใหม่นะ'));
+    draft.merge.mockRejectedValueOnce(new ApiError(429, 'rate_limited', 'วันนี้แจ้งครบโควตาแล้ว พรุ่งนี้มาใหม่นะ', 'en'));
     buttons('ใช่ กดเจอเหมือนกันแทน')[0].click();
     await flush();
     await fixture.whenStable();

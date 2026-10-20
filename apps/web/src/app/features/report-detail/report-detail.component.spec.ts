@@ -299,7 +299,7 @@ describe('ReportDetailComponent', () => {
 
     it('shows the API message in the status line', async () => {
       const { svc, meToo, settle, root } = await setup();
-      svc.toggleConfirm.mockRejectedValue(new ApiError(409, 'report_resolved', 'เรื่องนี้ปิดไปแล้วนะ'));
+      svc.toggleConfirm.mockRejectedValue(new ApiError(409, 'report_resolved', 'เรื่องนี้ปิดไปแล้วนะ', 'en'));
       meToo()!.click();
       await settle();
       expect(root.querySelector('[role="status"]')?.textContent).toContain('เรื่องนี้ปิดไปแล้วนะ');

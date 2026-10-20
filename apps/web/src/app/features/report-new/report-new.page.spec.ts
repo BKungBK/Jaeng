@@ -218,7 +218,7 @@ describe('ReportNewPage', () => {
     await toStep3();
     api.post.mockImplementation(async (path: string) => {
       if (path === '/reports/check-duplicate') return { duplicates: [] };
-      throw new ApiError(429, 'rate_limited', 'วันนี้แจ้งครบ 5 เรื่องแล้ว พรุ่งนี้มาแจ้งต่อนะ');
+      throw new ApiError(429, 'rate_limited', 'วันนี้แจ้งครบ 5 เรื่องแล้ว พรุ่งนี้มาแจ้งต่อนะ', 'en');
     });
     button('ส่งเรื่อง')!.click();
     await settle();
@@ -234,7 +234,7 @@ describe('ReportNewPage', () => {
     api.post.mockImplementation(async (path: string) => {
       if (first) {
         first = false;
-        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ', 'en');
       }
       if (path === '/reports/check-duplicate') return { duplicates: [] };
       return { report: { id: 'new1' } };
@@ -255,7 +255,7 @@ describe('ReportNewPage', () => {
         first = false;
         session.set(null); // Supabase: SIGNED_OUT after the refresh failed
         TestBed.tick();
-        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ');
+        throw new ApiError(401, 'unauthorized', 'เข้าสู่ระบบก่อนนะ', 'en');
       }
       if (path === '/reports/check-duplicate') return { duplicates: [] };
       return { report: { id: 'new1' } };

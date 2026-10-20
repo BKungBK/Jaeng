@@ -7,8 +7,9 @@ import {
   type NewReportBody,
   type PhotoUploaded,
 } from '@jaeng/shared/report';
-import { MSG_INTERNAL_TH } from '@jaeng/shared/api';
 import { ApiError, ApiService } from '../../core/api.service';
+import { en } from '../../i18n/en';
+import { th } from '../../i18n/th';
 import { AuthService } from '../../core/auth.service';
 import { DeviceService, type LngLat } from '../../core/device.service';
 import { PHOTO_PIPELINE, PhotoTooLargeError } from './photo-tools';
@@ -39,7 +40,7 @@ export type SubmitResult = { kind: 'created'; id: string } | { kind: 'duplicates
 
 const emptyDetails = (): DraftDetails => ({ title: '', description: '', danger: null, tags: [], hideAuthor: false });
 
-const MSG_DRAFT_CLEARED = 'ร่างถูกล้างเพราะเปลี่ยนผู้ใช้ เริ่มใหม่ได้เลยนะ';
+const draftCleared = () => new ApiError(400, 'invalid_report', th.errors.draftCleared, en.errors.draftCleared);
 const MSG_PHOTOS_STALE = 'รูปนี้หมดอายุแล้ว กดลองใหม่หรือเอาออกแล้วเพิ่มรูปอีกครั้งนะ';
 
 const messageOf =(e: unknown): string =>
@@ -181,7 +182,7 @@ export class ReportDraftService {
   /** "ใช่ กดเจอเหมือนกันแทน": count me in on that report; the API attaches the first photo as a comment. */
   merge(targetId: string): Promise<{ id: string }> {
     return this.once(async () => {
-      if (this._photos().length === 0) throw new ApiError(400, 'invalid_report', MSG_DRAFT_CLEARED);
+      if (this._photos().length === 0) throw draftCleared();
       await this.api.post(`/reports/${encodeURIComponent(targetId)}/merge`, { photo_ids: this.readyIds() });
       return { id: targetId };
     });
@@ -235,8 +236,9 @@ export class ReportDraftService {
     const category = this._category();
     const location = this._location();
     const photoIds = this.readyIds();
-    if (this._photos().length === 0) throw new ApiError(400, 'invalid_report', MSG_DRAFT_CLEARED);
-    if (!category || !location || photoIds.length === 0) throw new ApiError(400, 'invalid_report', MSG_INTERNAL_TH);
+    if (this._photos().length === 0) throw draftCleared();
+    if (!category || !location || photoIds.length === 0)
+      throw new ApiError(400, 'invalid_report', th.errors.internal, en.errors.internal);
     const d = this.details();
     const body: NewReportBody = { category, lng: location.lng, lat: location.lat, photo_ids: photoIds };
     const title = d.title.trim();

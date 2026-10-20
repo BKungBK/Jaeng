@@ -22,8 +22,27 @@ describe('formatAgo', () => {
   });
 });
 
+describe('formatAgo in English', () => {
+  const now = Date.parse('2026-10-17T12:00:00Z');
+
+  it('says just now, minutes ago and yesterday', () => {
+    expect(formatAgo('2026-10-17T11:59:30Z', now, 'en')).toBe('just now');
+    expect(formatAgo('2026-10-17T11:55:00Z', now, 'en')).toBe('5 minutes ago');
+    expect(formatAgo('2026-10-16T11:00:00Z', now, 'en')).toBe('yesterday');
+  });
+
+  it('keeps Thai when asked for Thai', () => {
+    expect(formatAgo('2026-10-14T12:00:00Z', now, 'th')).toBe('3 วันที่แล้ว');
+  });
+});
+
 describe('formatDate', () => {
   it('uses the Buddhist year', () => {
     expect(formatDate('2026-10-17T00:00:00Z')).toContain('2569');
+  });
+
+  it('formats by locale', () => {
+    expect(formatDate('2026-10-17T00:00:00Z', 'th')).toBe('17 ต.ค. 2569');
+    expect(formatDate('2026-10-17T00:00:00Z', 'en')).toBe('17 Oct 2026');
   });
 });

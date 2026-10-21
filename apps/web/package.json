@@ -37,6 +37,7 @@
     "ionicons": "^8.1.0",
     "lucide": "1.59.0",
     "maplibre-gl": "5.24.0",
+    "motion": "14.5.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

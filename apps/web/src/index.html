@@ -21,6 +21,16 @@
     } catch (e) {}
   </script>
 
+  <!-- the first second, before Angular has started: the opening's night sky and a point of light where its lamp
+       will be (shared/intro.component.ts takes over from here and removes this) -->
+  <style>
+    #boot { position: fixed; inset: 0; z-index: 39999; background: linear-gradient(180deg, #060b22 0%, #101c47 55%, #232a63 100%); }
+    #boot i { position: absolute; left: 50%; top: calc(46% + 119px); width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff;
+      box-shadow: 0 0 0 1px rgba(244, 180, 154, 0.6), 0 0 18px 6px rgba(244, 180, 154, 0.75), 0 0 60px 18px rgba(244, 180, 154, 0.35);
+      animation: boot-breathe 1.2s ease-in-out infinite alternate; }
+    @keyframes boot-breathe { from { opacity: 0.55; transform: scale(0.8); } to { opacity: 1; transform: scale(1.15); } }
+  </style>
+
   <meta name="color-scheme" content="light dark" />
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
@@ -36,6 +46,8 @@
 </head>
 
 <body>
+  <div id="boot" aria-hidden="true"><i></i></div>
+  <script data-boot>setTimeout(function () { var b = document.getElementById('boot'); if (b) b.remove(); }, 15000);</script>
   <app-root></app-root>
 </body>
 

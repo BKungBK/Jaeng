@@ -18,7 +18,7 @@ export async function person(
     permissions: ['geolocation'],
     locale: 'th-TH',
   });
-  await context.addInitScript((key) => sessionStorage.setItem(key, '1'), INTRO_KEY);
+  await context.addInitScript((key) => sessionStorage.setItem(key, 'skip'), INTRO_KEY);
   return context;
 }
 

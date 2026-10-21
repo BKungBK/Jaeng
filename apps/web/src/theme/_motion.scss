@@ -16,6 +16,19 @@
   initial-value: 0;
 }
 
+// the opening's circle (shared/intro.component.ts): registered so the mask and the ring of light animate with it
+@property --iris {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: -70px;
+}
+
+// while the opening is up the app behind it is built but held: its entrance animations wait at their first
+// frame and play together as the opening's circle opens (the intro lives outside ion-app, so it is not held)
+html.intro-holding ion-app * {
+  animation-play-state: paused !important;
+}
+
 // a tick drawing itself: the path has pathLength 1
 @keyframes tick-draw {
   from {

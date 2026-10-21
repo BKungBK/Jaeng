@@ -21,6 +21,7 @@ import { IonModal } from '@ionic/angular';
 import { LEVELS } from '@jaeng/shared/levels';
 import { thumbPath } from '@jaeng/shared/report';
 import type { Place } from '@jaeng/shared/places';
+import { AppReadyService } from '../../core/app-ready.service';
 import { BACK_PRIORITY, BackButtonService } from '../../core/back-button.service';
 import { DeviceService } from '../../core/device.service';
 import { FilterState, type ReportFilter } from '../../core/filter-state.service';
@@ -122,6 +123,12 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
+  private appReady = inject(AppReadyService);
+  /** the stages the opening screen waits for (core/app-ready.service.ts): the toy map and beacons are set up, and
+   *  the first reports are on the map; then, once MapLibre has drawn it all, the app is ready */
+  private toyDone = false;
+  private dataDone = false;
+  private readyReported = false;
   private reports = inject(ReportsService);
   private statsSvc = inject(StatsService);
   private view = inject(MapViewService);
@@ -303,6 +310,7 @@ export class MapPage {
       return;
     }
     this.map = map;
+    this.appReady.step(0.3);
     this.flyPending(); // a deep link that loaded before the map did
     // dev builds expose the map for manual checks and E2E (window.__map)
     if (isDevMode()) (window as unknown as { __map: maplibregl.Map }).__map = map;
@@ -315,6 +323,7 @@ export class MapPage {
 
   /** Data first, decoration second: a missing toy asset must never cost the reports. */
   private async onLoad(map: maplibregl.Map) {
+    this.appReady.step(0.55);
     const tint = (theme: SeaTheme) => tintBaseMap(map, theme, SEA_HEX[theme].shallow);
     tint(currentSeaTheme());
     this.stopTheme = watchSeaTheme(tint);
@@ -327,6 +336,27 @@ export class MapPage {
     map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
     await Promise.all([this.startBeacons(map), this.startToy(map)]);
+    this.appReady.step(0.8);
+    this.toyDone = true;
+    this.reportReady(map);
+  }
+
+  /** Both the decoration and the first reports are in: once MapLibre has drawn them, the opening can go. */
+  private reportReady(map: maplibregl.Map) {
+    if (!this.toyDone || !this.dataDone || this.readyReported || this.destroyed) return;
+    this.readyReported = true;
+    this.appReady.step(0.95);
+    const done = () => requestAnimationFrame(() => requestAnimationFrame(() => this.appReady.done()));
+    if (typeof map.loaded !== 'function' || map.loaded()) {
+      done();
+      return;
+    }
+    const check = () => {
+      if (!map.loaded()) return;
+      map.off('render', check);
+      done();
+    };
+    map.on('render', check);
   }
 
   private async startBeacons(map: maplibregl.Map) {
@@ -487,6 +517,8 @@ export class MapPage {
     if (!result || this.destroyed) return;
     if ('error' in result) {
       this.showToast('map.toast.loadFailed', { label: 'common.retry', run: () => this.scheduleLoad(0) });
+      this.dataDone = true; // the opening goes on, the toast offers the retry
+      this.reportReady(map);
       return;
     }
     const props = result.data.features.map((f) => f.properties);
@@ -494,6 +526,8 @@ export class MapPage {
     this.inView.set(topReports(props, IN_VIEW));
     this.inViewCount.set(props.length);
     map.getSource<maplibregl.GeoJSONSource>(REPORT_SOURCE)?.setData(result.data);
+    this.dataDone = true;
+    this.reportReady(map);
   }
 
   /** Encouragement, not data: a failure hides the line, the old numbers stay until new ones come. */

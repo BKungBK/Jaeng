@@ -5,6 +5,7 @@ import { TPipe } from '../../i18n/t.pipe';
 import { EmergencyBoxComponent } from '../../shared/emergency-box.component';
 import { IconComponent } from '../../shared/icon.component';
 import { LanguageChoiceComponent } from '../../shared/language-choice.component';
+import { ServerLinkComponent } from '../../shared/server-link.component';
 import { ThemeChoiceComponent } from '../../shared/theme-choice.component';
 import { MapReturnService } from '../report-new/map-return.service';
 
@@ -24,7 +25,7 @@ const CREDITS: { what: MessageKey; who: string; href: string }[] = [
 @Component({
   selector: 'app-about',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BackdropComponent, TPipe, IconComponent, EmergencyBoxComponent, LanguageChoiceComponent, ThemeChoiceComponent],
+  imports: [BackdropComponent, TPipe, IconComponent, EmergencyBoxComponent, LanguageChoiceComponent, ServerLinkComponent, ThemeChoiceComponent],
   templateUrl: 'about.page.html',
   styleUrl: 'about.page.scss',
   host: { class: 'ion-page' },

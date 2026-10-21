@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import { en } from '../i18n/en';
 import { th } from '../i18n/th';
 import { I18nService } from './i18n.service';
+import { ServerConfigService } from './server-config.service';
 import { SupabaseService } from './supabase.service';
 
 export type Profile = { id: string; display_name: string; role: 'user' | 'admin'; locale: 'th' | 'en' };
@@ -38,6 +39,7 @@ function toAuthError(e: AuthErr): AuthError {
 export class AuthService {
   private supabase = inject(SupabaseService);
   private i18n = inject(I18nService);
+  private server = inject(ServerConfigService);
   private sessionSig = signal<Session | null>(null);
   private profileSig = signal<Profile | null>(null);
 
@@ -144,7 +146,7 @@ export class AuthService {
   async quickLogin(who: DemoWho): Promise<void> {
     let tokens: { access_token: string; refresh_token: string };
     try {
-      const res = await fetch('/api/dev/quick-login', {
+      const res = await fetch(this.server.apiUrl('/dev/quick-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ who }),

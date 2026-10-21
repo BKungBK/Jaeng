@@ -4,6 +4,7 @@ import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { ApiError } from '../../core/api.service';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
+import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
@@ -15,7 +16,7 @@ type LoadState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-claims-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, TPipe],
+  imports: [IconComponent, LevelShapeComponent, ServerUrlPipe, TPipe],
   template: `
     <p class="status" role="status">{{ i18n.say(message()) }}</p>
     @switch (state()) {
@@ -33,7 +34,7 @@ type LoadState = 'loading' | 'ready' | 'error';
             <div class="compare">
               <figure>
                 @if (c.report.photos[0]; as p) {
-                  <img [src]="p.url" [attr.alt]="'admin.claims.beforeAlt' | t" />
+                  <img [src]="p.url | serverUrl" [attr.alt]="'admin.claims.beforeAlt' | t" />
                 } @else {
                   <span class="tile"><app-icon [name]="icon(c.report.category)" [size]="36" /></span>
                 }
@@ -41,7 +42,7 @@ type LoadState = 'loading' | 'ready' | 'error';
               </figure>
               <figure>
                 @if (c.photo; as p) {
-                  <img [src]="p.url" [attr.alt]="'admin.claims.afterAlt' | t" />
+                  <img [src]="p.url | serverUrl" [attr.alt]="'admin.claims.afterAlt' | t" />
                 } @else {
                   <span class="none">{{ 'admin.claims.noAfter' | t }}</span>
                 }

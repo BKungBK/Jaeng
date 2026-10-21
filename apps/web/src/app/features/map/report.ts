@@ -3,6 +3,7 @@ import type { CategorySlug } from '@jaeng/shared/categories';
 import type { DangerLevel } from '@jaeng/shared/levels';
 import type { PublicStatus } from '@jaeng/shared/api';
 import type { FeatureCollection, Point } from 'geojson';
+import { publicPhotoUrl } from '../../core/server-config.service';
 
 export type { PublicStatus } from '@jaeng/shared/api';
 
@@ -42,5 +43,5 @@ export function toBbox(b: { west: number; south: number; east: number; north: nu
 }
 
 export function coverPhotoUrl(path: string): string {
-  return `${location.origin}/sb/storage/v1/object/public/photos-public/${path}`;
+  return publicPhotoUrl(path);
 }

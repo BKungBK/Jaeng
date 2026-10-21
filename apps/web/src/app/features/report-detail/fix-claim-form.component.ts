@@ -15,6 +15,7 @@ import type { FixClaimBody } from '@jaeng/shared/admin';
 import type { ReportSignal } from '@jaeng/shared/api';
 import { NOTE_MAX } from '@jaeng/shared/admin';
 import { ApiError } from '../../core/api.service';
+import { DeviceService } from '../../core/device.service';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
@@ -84,10 +85,10 @@ const STALE = new Set(['claim_pending', 'already_resolved', 'report_not_found'])
         </div>
       } @else {
         <div class="row">
-          <button type="button" class="btn" [disabled]="sending()" (click)="camera.click()">
+          <button type="button" class="btn" [disabled]="sending()" (click)="openCamera(camera)">
             <app-icon name="camera" [size]="18" />{{ 'fixForm.camera' | t }}
           </button>
-          <button type="button" class="btn" [disabled]="sending()" (click)="gallery.click()">
+          <button type="button" class="btn" [disabled]="sending()" (click)="openGallery(gallery)">
             <app-icon name="image" [size]="18" />{{ 'fixForm.gallery' | t }}
           </button>
         </div>
@@ -120,6 +121,7 @@ const STALE = new Set(['claim_pending', 'already_resolved', 'report_not_found'])
 })
 export class FixClaimFormComponent implements AfterViewInit {
   private svc = inject(ReportDetailService);
+  private device = inject(DeviceService);
   private heading = viewChild.required<ElementRef<HTMLElement>>('heading');
 
   readonly reportId = input.required<string>();
@@ -145,10 +147,25 @@ export class FixClaimFormComponent implements AfterViewInit {
     this.heading().nativeElement.focus({ preventScroll: false });
   }
 
+  /** The APK has its own camera and photo picker; the web clicks the hidden file input. */
+  protected async openCamera(fallback: HTMLInputElement) {
+    if (!this.device.native) return fallback.click();
+    this.setPhoto(await this.device.takePhoto());
+  }
+
+  protected async openGallery(fallback: HTMLInputElement) {
+    if (!this.device.native) return fallback.click();
+    this.setPhoto((await this.device.pickPhotos(1))[0] ?? null);
+  }
+
   protected picked(event: Event) {
     const input = event.target as HTMLInputElement;
     const f = input.files?.[0];
     input.value = '';
+    this.setPhoto(f ?? null);
+  }
+
+  private setPhoto(f: File | null) {
     if (!f) return;
     this.revoke();
     this.file.set(f);

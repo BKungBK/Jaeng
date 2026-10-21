@@ -27,7 +27,7 @@
             @for (p of r.photos; track p.path; let i = $index) {
               <li class="shot">
                 @if (p.url) {
-                  <img [src]="p.url" [attr.alt]="'photoStep.photoN' | t: { n: i + 1 }" [attr.width]="p.width" [attr.height]="p.height" />
+                  <img [src]="p.url | serverUrl" [attr.alt]="'photoStep.photoN' | t: { n: i + 1 }" [attr.width]="p.width" [attr.height]="p.height" />
                 } @else {
                   <span class="tile"><app-icon [name]="icon(r.category)" [size]="40" /></span>
                 }

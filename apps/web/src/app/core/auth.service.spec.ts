@@ -166,7 +166,7 @@ describe('AuthService', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
     await service.quickLogin('admin');
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/dev/quick-login');
+    expect(fetchMock.mock.calls[0][0]).toBe(`${location.origin}/api/dev/quick-login`);
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ who: 'admin' });
     expect(auth.setSession).toHaveBeenCalledWith({ access_token: 'A', refresh_token: 'R' });
   });

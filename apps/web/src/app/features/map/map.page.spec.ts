@@ -20,6 +20,9 @@ import { centerFor, MapPage } from './map.page';
 import { EMPTY_COLLECTION } from './report';
 import { ReportsService } from './reports.service';
 import { StatsService } from './stats.service';
+import { BackButtonService } from '../../core/back-button.service';
+import { DeviceService } from '../../core/device.service';
+import { th } from '../../i18n/th';
 import { MapViewService } from '../../core/map-view.service';
 import { I18nService } from '../../core/i18n.service';
 import { THAILAND_BOUNDS } from './map-factory';
@@ -143,7 +146,7 @@ function mockWide(wide: boolean, roomy = true) {
 
 async function setup(
   inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION),
-  opts: { wide?: boolean; roomy?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn> } = {},
+  opts: { wide?: boolean; roomy?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn>; device?: unknown } = {},
 ) {
   const stats = opts.stats ?? vi.fn().mockResolvedValue({ resolved_this_month: 3, open_count: 12 });
   mockWide(opts.wide ?? true, opts.roomy ?? true);
@@ -158,6 +161,7 @@ async function setup(
       { provide: ReportsService, useValue: { inBbox } },
       { provide: StatsService, useValue: { inBbox: stats } },
       { provide: ReportDetailService, useValue: detailSvc },
+      ...(opts.device ? [{ provide: DeviceService, useValue: opts.device }] : []),
       ...authStubs,
     ],
   });
@@ -213,6 +217,26 @@ describe('MapPage', () => {
     const labels = [...root.querySelectorAll('.controls button')].map((b) => b.getAttribute('aria-label'));
     expect(labels).toEqual(['ซูมเข้า', 'ซูมออก', 'ไปที่ตำแหน่งของฉัน', 'กลับไปดูทั้งประเทศ']);
     expect(root.querySelector('.dock')).toBeNull();
+  });
+
+  it('locate flies to the device position, asked through DeviceService (10 s)', async () => {
+    const device = { currentPosition: vi.fn().mockResolvedValue({ lng: 100.9, lat: 14.1 }) };
+    const { map, root, fixture } = await setup(undefined, { device });
+    root.querySelector<HTMLButtonElement>('button[aria-label="ไปที่ตำแหน่งของฉัน"]')!.click();
+    await vi.waitFor(() => expect(map.flyTo).toHaveBeenCalledWith(expect.objectContaining({ center: [100.9, 14.1], zoom: 14 })));
+    expect(device.currentPosition).toHaveBeenCalledWith(10000);
+    fixture.destroy();
+  });
+
+  it('locate says so, and stays put, when the position is not available', async () => {
+    const device = { currentPosition: vi.fn().mockResolvedValue(null) };
+    const { map, root, fixture } = await setup(undefined, { device });
+    root.querySelector<HTMLButtonElement>('button[aria-label="ไปที่ตำแหน่งของฉัน"]')!.click();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(root.textContent).toContain(th.map.toast.geoDenied);
+    });
+    expect(map.flyTo).not.toHaveBeenCalled();
   });
 
   it('phone: only locate floats; the dock has map, list, report and me', async () => {
@@ -307,6 +331,40 @@ describe('MapPage', () => {
     expect(root.querySelector('.peek')).toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('Android back closes the wide detail panel, and passes the button on when nothing is open (plan 7)', async () => {
+    const { fixture, navigate } = await setup(undefined, { wide: true });
+    const page = fixture.componentInstance;
+    const next = vi.fn();
+    page.onHardwareBack(next);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(navigate).not.toHaveBeenCalled();
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    page.onHardwareBack(next);
+    expect(navigate).toHaveBeenCalledWith(['/']);
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('on a phone the sheet, an Ionic overlay, takes the back button first: the page passes it on', async () => {
+    const { fixture } = await setup(undefined, { wide: false });
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    const next = vi.fn();
+    fixture.componentInstance.onHardwareBack(next);
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds the Android back button only while the page shows (plan 7)', async () => {
+    const release = vi.fn();
+    const on = vi.fn(() => release);
+    TestBed.configureTestingModule({ providers: [{ provide: BackButtonService, useValue: { on } }] });
+    const { fixture } = await setup(undefined, { wide: true });
+    fixture.componentInstance.ionViewDidEnter();
+    expect(on).toHaveBeenCalledWith(10, expect.any(Function));
+    fixture.componentInstance.ionViewWillLeave();
+    expect(release).toHaveBeenCalledTimes(1);
   });
 
   it('moves the map controls beside the open panel', async () => {

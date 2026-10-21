@@ -710,7 +710,7 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 **การเชื่อมต่อมือถือกับคอม:**
 
 - มือถือกับคอมต้องอยู่ Wi-Fi วงเดียวกัน แล้วแอปเรียก `http://<IP ของคอม>:8000` ซึ่งเป็น Caddy จุดเดียวกับเว็บ
-- WSL ต้องเปิด **mirrored networking** (`networkingMode=mirrored` ใน `%UserProfile%\.wslconfig`) เพื่อให้พอร์ต 8000 ใน WSL ออกไปที่ IP ของ Windows และต้องเปิด Windows Firewall ขาเข้าให้พอร์ต 8000 เฉพาะเครือข่าย Private
+- (**แก้ 2026-10-21 ตามแผน 7**) ไม่ใช้ mirrored networking: ลองแล้วทำให้ `127.0.0.1` ใน WSL ใช้ไม่ได้ และ Supabase CLI พัง ทางเข้าสำหรับมือถือคือ **Cloudflare quick tunnel** (`scripts/tunnel.sh`, https สาธารณะ, ไม่ต้องแก้ firewall, ข้อมูลตัวอย่างเท่านั้นตามหัวข้อ 9.2) ที่อยู่เปลี่ยนทุกครั้งที่เปิด จึงตั้งในแอปได้ ส่วนการเปิดพอร์ต 8000 ออก LAN เองยังทำได้ถ้าต้องการ
 - ใน Capacitor config ตั้ง `server.androidScheme = "http"` และอนุญาต cleartext (`android:usesCleartextTraffic`) เพราะเซิร์ฟเวอร์ใน LAN เป็น http
 - IP ของคอมเปลี่ยนได้ แอปจึงมีหน้า **ตั้งค่าเซิร์ฟเวอร์** (ใน `/me` และขึ้นเองถ้าเชื่อมต่อไม่ได้) ให้แก้ที่อยู่แล้วกด "ทดสอบ" ซึ่งเรียก `/api/health`
 - Supabase Auth: ตั้ง `additional_redirect_urls` ให้รวม IP ใน LAN การล็อกอินใช้ OTP 6 หลัก จึงไม่ต้องทำ deep link กลับเข้าแอป

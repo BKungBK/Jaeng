@@ -19,6 +19,8 @@ import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { LEVELS } from '@jaeng/shared/levels';
 import type { Place } from '@jaeng/shared/places';
+import { BACK_PRIORITY, BackButtonService } from '../../core/back-button.service';
+import { DeviceService } from '../../core/device.service';
 import { FilterState, type ReportFilter } from '../../core/filter-state.service';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
@@ -128,6 +130,9 @@ export class MapPage {
   private destroyed = false;
 
   private router = inject(Router);
+  private device = inject(DeviceService);
+  private backButton = inject(BackButtonService);
+  private releaseBack?: () => void;
   protected readonly i18n = inject(I18nService);
   /** The beacon last clicked here, so its own navigation is not treated as a link. */
   private clicked: ReportProps | null = null;
@@ -206,6 +211,7 @@ export class MapPage {
     afterNextRender(() => void this.start());
     destroyRef.onDestroy(() => {
       this.destroyed = true;
+      this.releaseBack?.();
       clearTimeout(this.loadTimer);
       clearTimeout(this.toastTimer);
       this.beacons?.destroy();
@@ -382,6 +388,24 @@ export class MapPage {
     if (role === 'handler' || SHEET_CLOSE_ROLES.has(role ?? '')) this.close();
   }
 
+  /** Ionic calls these as the page comes and goes in its stack; the Android back button is the page's only while it shows. */
+  ionViewDidEnter() {
+    this.releaseBack?.();
+    this.releaseBack = this.backButton.on(BACK_PRIORITY.panel, (next) => this.onHardwareBack(next));
+  }
+
+  ionViewWillLeave() {
+    this.releaseBack?.();
+    this.releaseBack = undefined;
+  }
+
+  /** The Android back button closes the wide detail panel. On a phone the report is a sheet, an Ionic
+   *  overlay: it takes the button first (priority 100) and its dismissal runs `close()` through `onSheetDismissed`. */
+  onHardwareBack(next: () => void): void {
+    if (this.wide() && this.id()) this.close();
+    else next();
+  }
+
   /** Close the panel or sheet; focus goes back to the report's disc once the URL is `/` again. */
   close() {
     const id = this.id();
@@ -490,16 +514,10 @@ export class MapPage {
     this.map?.zoomOut();
   }
 
-  locate() {
-    if (!('geolocation' in navigator)) {
-      this.showToast('map.toast.noGeo');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, ...FLY }),
-      () => this.showToast('map.toast.geoDenied'),
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
+  async locate() {
+    const here = await this.device.currentPosition(10000);
+    if (!here) return this.showToast('map.toast.geoDenied');
+    this.map?.flyTo({ center: [here.lng, here.lat], zoom: 14, ...FLY });
   }
 
   // template helpers

@@ -29,6 +29,7 @@ import { LoginPromptService } from '../auth/login-prompt.service';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
 import { coverPhotoUrl } from '../map/report';
+import { serverOrigin } from '../../core/server-config.service';
 import type { ReportDetail } from './report-detail';
 import { FixClaimFormComponent } from './fix-claim-form.component';
 import { FlagFormComponent } from './flag-form.component';
@@ -263,7 +264,7 @@ export class ReportDetailComponent {
   }
 
   protected async copyLink() {
-    const url = `${location.origin}/r/${this.reportId()}`;
+    const url = `${serverOrigin()}/r/${this.reportId()}`;
     try {
       await navigator.clipboard.writeText(url);
       this.message.set('detail.copied');

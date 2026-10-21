@@ -1,20 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import type { ReportSignal } from '@jaeng/shared/api';
 import { ApiError } from '../../core/api.service';
+import { DeviceService } from '../../core/device.service';
 import { FixClaimFormComponent } from './fix-claim-form.component';
 import { ReportDetailService } from './report-detail.service';
 
 const ID = '7b0c5a3e-1f7d-4c49-9a52-2b8f3d0c6e11';
 const claimed: ReportSignal = { id: ID, status: 'fix_claimed', confirm_count: 1, comment_count: 0 };
 
-async function setup(svcOver: Partial<Record<'claimFix' | 'uploadPhoto', ReturnType<typeof vi.fn>>> = {}) {
+async function setup(svcOver: Partial<Record<'claimFix' | 'uploadPhoto', ReturnType<typeof vi.fn>>> = {}, device?: unknown) {
   const svc = {
     claimFix: vi.fn().mockResolvedValue({ claim_id: 'c1', report: claimed }),
     uploadPhoto: vi.fn().mockResolvedValue('p1'),
     ...svcOver,
   };
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:x'), revokeObjectURL: vi.fn() }));
-  TestBed.configureTestingModule({ providers: [{ provide: ReportDetailService, useValue: svc }] });
+  TestBed.configureTestingModule({
+    providers: [{ provide: ReportDetailService, useValue: svc }, ...(device ? [{ provide: DeviceService, useValue: device }] : [])],
+  });
   const fixture = TestBed.createComponent(FixClaimFormComponent);
   fixture.componentRef.setInput('reportId', ID);
   const out = { done: vi.fn(), cancel: vi.fn(), stale: vi.fn() };
@@ -47,6 +50,28 @@ async function setup(svcOver: Partial<Record<'claimFix' | 'uploadPhoto', ReturnT
 
 describe('FixClaimFormComponent', () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it('in the app: the camera and the library are native, and a cancel changes nothing', async () => {
+    const shot = new File(['s'], 's.jpg', { type: 'image/jpeg' });
+    const device = {
+      native: true,
+      takePhoto: vi.fn().mockResolvedValueOnce(null).mockResolvedValue(shot),
+      pickPhotos: vi.fn().mockResolvedValue([shot]),
+    };
+    const { root, settle, submit, svc } = await setup({}, device);
+    const buttons = () => [...root.querySelectorAll<HTMLButtonElement>('.row button')];
+    buttons()[0].click(); // the camera, cancelled
+    await settle();
+    expect(root.querySelector('.preview img')).toBeNull();
+    buttons()[0].click(); // the camera again
+    await vi.waitFor(() => expect(device.takePhoto).toHaveBeenCalledTimes(2));
+    await settle();
+    expect(root.querySelector('.preview img')).not.toBeNull();
+    submit().click();
+    await settle();
+    expect(svc.uploadPhoto).toHaveBeenCalledWith(shot);
+    expect(device.pickPhotos).not.toHaveBeenCalled();
+  });
 
   it('sends an empty claim without a photo or a note', async () => {
     const { svc, out, submit, settle } = await setup();

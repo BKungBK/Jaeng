@@ -29,7 +29,7 @@ describe('ApiService', () => {
     const { service, fetchMock } = setup({ access: 'tok' }, jsonRes(200, { ok: 1 }));
     expect(await service.post('/x', { a: 1 })).toEqual({ ok: 1 });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/x');
+    expect(url).toBe(`${location.origin}/api/x`);
     expect(init.method).toBe('POST');
     expect(init.headers.Authorization).toBe('Bearer tok');
     expect(init.body).toBe('{"a":1}');
@@ -122,7 +122,7 @@ describe('ApiService', () => {
     const { service, fetchMock } = setup({ access: 'tok' }, jsonRes(200, { a: 1 }));
     expect(await service.get('/me/reports')).toEqual({ a: 1 });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/me/reports');
+    expect(url).toBe(`${location.origin}/api/me/reports`);
     expect(init.method).toBe('GET');
     expect(init.headers.Authorization).toBe('Bearer tok');
     expect(init.headers['Content-Type']).toBeUndefined();
@@ -133,7 +133,7 @@ describe('ApiService', () => {
     const { service, fetchMock } = setup({ access: 'tok' }, jsonRes(200, { ok: true }));
     expect(await service.patch('/me', { display_name: 'x' })).toEqual({ ok: true });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/me');
+    expect(url).toBe(`${location.origin}/api/me`);
     expect(init.method).toBe('PATCH');
     expect(init.headers['Content-Type']).toBe('application/json');
     expect(init.body).toBe('{"display_name":"x"}');
@@ -145,7 +145,7 @@ describe('ApiService', () => {
     form.set('file', new Blob(['x']), 'a.webp');
     expect(await service.upload('/photos', form)).toEqual({ photo_id: 'p' });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/photos');
+    expect(url).toBe(`${location.origin}/api/photos`);
     expect(init.method).toBe('POST');
     expect(init.body).toBe(form);
     expect(init.headers.Authorization).toBe('Bearer tok');

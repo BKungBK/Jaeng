@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -13,6 +14,7 @@ import {
   viewChild,
 } from '@angular/core';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
+import { BACK_PRIORITY, BackButtonService } from '../../core/back-button.service';
 import type { CategoryInfo } from '../../core/categories.service';
 import { I18nService, type Said } from '../../core/i18n.service';
 import type { MessageKey } from '../../i18n/keys';
@@ -65,6 +67,8 @@ export class ReportNewPage {
   private prompt = inject(LoginPromptService);
   private injector = inject(Injector);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private backButton = inject(BackButtonService);
+  private releaseBack?: () => void;
   protected readonly i18n = inject(I18nService);
 
   protected readonly step = signal<Step>(1);
@@ -100,6 +104,7 @@ export class ReportNewPage {
   private autoAdvanced = this.draft.photos().length > 0;
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.releaseBack?.());
     effect(() => {
       if (this.step() !== 1 || !this.draft.canContinueFromPhotos()) return;
       untracked(() => {
@@ -115,6 +120,20 @@ export class ReportNewPage {
   ionViewDidEnter() {
     const heading = this.view() === 'sent' ? '#rn-sent-title' : this.view() === 'duplicates' ? '#rn-dup-title' : '#rn-step-title';
     this.host.nativeElement.querySelector<HTMLElement>(heading)?.focus({ preventScroll: true });
+    // Android back steps through the flow (3 → 2 → 1 → map); Ionic's overlays (the login sheet) still come first
+    this.releaseBack?.();
+    this.releaseBack = this.backButton.on(BACK_PRIORITY.page, () => this.onHardwareBack());
+  }
+
+  ionViewWillLeave() {
+    this.releaseBack?.();
+    this.releaseBack = undefined;
+  }
+
+  /** The Android back button: the same as the page's own back arrow, except while a report is being sent. */
+  onHardwareBack(): void {
+    if (this.sending()) return;
+    this.backOrClose();
   }
 
   protected go(step: Step) {

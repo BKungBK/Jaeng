@@ -63,6 +63,13 @@ async function setup(opts: { bbox?: [number, number, number, number]; pages?: Li
 }
 
 describe('ListPage', () => {
+  it('closes back to the map with an x', async () => {
+    const { root } = await setup();
+    const close = root.querySelector('.head button.ctl')!;
+    expect(close.getAttribute('aria-label')).toBe('กลับไปแผนที่');
+    expect(close.querySelector('svg.icon-x')).not.toBeNull();
+  });
+
   it('sits on the shared backdrop', async () => {
     const { root } = await setup();
     expect(root.querySelector('app-backdrop')).not.toBeNull();

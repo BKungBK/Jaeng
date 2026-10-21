@@ -308,6 +308,7 @@ export const en: Messages = {
     exif: 'The pin is where the photo was taken. Move the map to put it on the spot.',
     device: 'The pin is where your device is. Move the map to put it on the spot.',
     fallback: "We couldn't find a location from the photo or device. Move and zoom the map to the spot.",
+    noDevice: "We couldn't find your device, or it's outside Thailand. Move the map yourself.",
     mapLabel: 'Pin map. Use the arrow keys to move it and + − to zoom.',
   },
   details: {

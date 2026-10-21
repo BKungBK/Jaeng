@@ -63,11 +63,27 @@
   top: 8px;
   right: 8px;
   display: grid;
-  gap: 8px;
+  gap: 4px;
+}
 
-  .ctl {
-    box-shadow: var(--sh);
-  }
+// "my location": bottom-right, above the folded credits button
+.locate {
+  position: absolute;
+  z-index: 1;
+  right: 8px;
+  bottom: 40px;
+}
+
+// over a busy street map the buttons need the dense glass to read
+.frame .ctl::before {
+  background: var(--glass-sheen), var(--glass-bg-dense);
+  backdrop-filter: blur(12px) var(--glass-dim);
+  -webkit-backdrop-filter: blur(12px) var(--glass-dim);
+}
+
+.frame .ctl:disabled {
+  cursor: progress;
+  opacity: 0.6;
 }
 
 .where {

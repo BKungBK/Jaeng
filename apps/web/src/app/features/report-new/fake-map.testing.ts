@@ -13,11 +13,19 @@ export function fakeMap(zoom = 5.2) {
       cam.center = { lng: o.center[0], lat: o.center[1] };
       cam.zoom = o.zoom;
     }),
+    flyTo: vi.fn((o: { center: [number, number]; zoom: number }) => {
+      cam.center = { lng: o.center[0], lat: o.center[1] };
+      cam.zoom = o.zoom;
+    }),
+    addSource: vi.fn(),
+    addLayer: vi.fn(),
     zoomIn: vi.fn(),
     zoomOut: vi.fn(),
     getStyle: () => ({ layers: [] }),
     setPaintProperty: vi.fn(),
     getCanvas: () => document.createElement('canvas'),
+    getContainer: () => document.createElement('div'),
+    getLayer: () => undefined,
     remove: vi.fn(),
   };
 }

@@ -119,6 +119,15 @@ export function setupToyLayers(map: MapLike, geo: ToyGeometry, sea = '#9FCFDD'):
   });
 }
 
+/** The pin map's version of the toy mask: only Thailand shows, the rest of the world is sea in the
+ *  colour of the tinted water. Added last, so it also covers the street map's names abroad. */
+export const THAI_MASK = 'thai-mask';
+
+export function addThaiMask(map: MapLike, mask: FeatureCollection, sea: string): void {
+  map.addSource(THAI_MASK, { type: 'geojson', data: mask });
+  map.addLayer({ id: THAI_MASK, type: 'fill', source: THAI_MASK, paint: { 'fill-color': sea, 'fill-opacity': 1 } });
+}
+
 /** Repaint the OpenFreeMap positron base in the cel palette for the theme; water takes the sea's
  *  shallow colour so the gap between the mask and the real coast reads as shallows. */
 export function tintBaseMap(map: MapLike, theme: SeaTheme, shallow: string): void {

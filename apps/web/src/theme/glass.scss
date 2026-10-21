@@ -127,8 +127,8 @@ ion-modal.login-sheet {
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%) var(--glass-dim);
   border: 1px solid var(--glass-rim);
   box-shadow: var(--glass-shadow);
-  transition: background-color 200ms var(--ease);
 
+  // a panel with a backdrop blur does not transition its tint (every frame would blur the map again)
   &:hover,
   &:focus-within {
     background-color: var(--glass-bg-hover);
@@ -168,12 +168,12 @@ ion-modal.login-sheet {
 }
 
 // panels rise into place once, on mount (core/motion.ts EASE). Only a `from` frame: with no animation
-// the panel is simply there.
+// the panel is simply there. No filter: a dozen glass panels would each re-blur the map behind them on
+// every frame of the entrance (motion budget, plan 8 Task 10).
 @keyframes rise {
   from {
     opacity: 0;
     transform: translateY(10px);
-    filter: blur(6px);
   }
 }
 

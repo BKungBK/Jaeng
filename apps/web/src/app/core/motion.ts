@@ -162,9 +162,9 @@ function pageOf(el: HTMLElement): HTMLElement {
 }
 
 /**
- * The page transition for ion-router-outlet: the new page rises 12 px out of a blur while the old one
- * fades. Back comes down from above instead. Ionic destroys the animation once it ends, so nothing
- * (no leftover filter) stays on the page.
+ * The page transition for ion-router-outlet: the new page rises 12 px while the old one fades. Back comes
+ * down from above instead. Transform and opacity only: a blur over the whole page would re-blur the map and
+ * every glass panel on each frame (motion budget, plan 8 Task 10). Ionic destroys the animation once it ends.
  */
 export const glassNav: AnimationBuilder = (_baseEl: unknown, opts: { enteringEl: HTMLElement; leavingEl?: HTMLElement; direction?: string }) => {
   const rise = opts.direction === 'back' ? -12 : 12;
@@ -172,8 +172,7 @@ export const glassNav: AnimationBuilder = (_baseEl: unknown, opts: { enteringEl:
     .addElement(pageOf(opts.enteringEl))
     .beforeRemoveClass('ion-page-invisible')
     .fromTo('opacity', 0, 1)
-    .fromTo('transform', `translateY(${rise}px) scale(0.985)`, 'translateY(0) scale(1)')
-    .fromTo('filter', 'blur(8px)', 'blur(0px)');
+    .fromTo('transform', `translateY(${rise}px) scale(0.985)`, 'translateY(0) scale(1)');
   const root = createAnimation().duration(ENTER_MS).easing(EASE).fill('both').addAnimation(entering);
   if (opts.leavingEl) {
     root.addAnimation(createAnimation().addElement(pageOf(opts.leavingEl)).duration(LEAVE_MS).fromTo('opacity', 1, 0));

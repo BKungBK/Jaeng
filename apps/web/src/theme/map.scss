@@ -131,8 +131,8 @@
     pointer-events: none;
     transform-origin: 50% 100%;
     transition: height 400ms cubic-bezier(0.3, 0.7, 0.2, 1);
-    // a new beacon grows up from its base (plan 6b)
-    animation: pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    // a new beacon grows up from its base (plan 6b); `backwards` only: it holds nothing once it has played
+    animation: pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   }
 
   .beam {
@@ -187,9 +187,8 @@
   }
 
   .disc {
-    transition:
-      box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      opacity 600ms var(--ease);
+    // markers never animate a shadow or a filter (up to ~150 of them repaint every frame): only opacity
+    transition: opacity 600ms var(--ease);
   }
 
   // the ring that leaves the disc once when a report is confirmed again (data-fx='bump'); at rest it is not drawn
@@ -381,7 +380,7 @@
     font: 600 18px/1 var(--font);
     font-variant-numeric: tabular-nums;
     cursor: pointer;
-    animation: pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 
     .sym {
       @include level-badge;

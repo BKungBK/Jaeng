@@ -39,6 +39,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/about/about.page').then((m) => m.AboutPage),
   },
   {
+    path: 'server',
+    loadComponent: () => import('./features/server/server.page').then((m) => m.ServerPage),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/auth/login.page').then((m) => m.LoginPage),
   },

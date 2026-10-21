@@ -259,6 +259,21 @@ export const en: Messages = {
     themeLight: 'Light',
     themeDark: 'Dark',
   },
+  server: {
+    title: 'Server settings',
+    lede: 'Enter the address of the computer running Jaeng, for example http://192.168.1.5:8000. The phone and the computer must be on the same Wi-Fi.',
+    label: 'Server address',
+    test: 'Test',
+    testing: 'Testing…',
+    saveFailed: "Couldn't save. Test the address again.",
+    result: {
+      ok: 'Connected. Found the Jaeng server.',
+      invalid: 'That address is not valid. Try something like http://192.168.1.5:8000',
+      unreachable: "Can't reach the server. Check that the computer is on, on the same Wi-Fi, and that the IP is right.",
+      notJaeng: 'Something answered at this address, but it is not a Jaeng server.',
+      unset: 'No server address is set yet.',
+    },
+  },
   load: {
     loading: 'Loading…',
     saving: 'Saving…',

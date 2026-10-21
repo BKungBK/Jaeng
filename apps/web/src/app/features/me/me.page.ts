@@ -19,6 +19,7 @@ import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { LanguageChoiceComponent } from '../../shared/language-choice.component';
+import { ServerLinkComponent } from '../../shared/server-link.component';
 import { ThemeChoiceComponent } from '../../shared/theme-choice.component';
 import { IconComponent } from '../../shared/icon.component';
 import { categoryIcon } from '../map/beacon';
@@ -38,7 +39,7 @@ type State = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-me',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BackdropComponent, IconComponent, LevelShapeComponent, NgTemplateOutlet, RouterLink, ServerUrlPipe, TPipe, LanguageChoiceComponent, ThemeChoiceComponent],
+  imports: [BackdropComponent, IconComponent, LevelShapeComponent, NgTemplateOutlet, RouterLink, ServerLinkComponent, ServerUrlPipe, TPipe, LanguageChoiceComponent, ThemeChoiceComponent],
   templateUrl: 'me.page.html',
   styleUrl: 'me.page.scss',
   host: { class: 'ion-page' },

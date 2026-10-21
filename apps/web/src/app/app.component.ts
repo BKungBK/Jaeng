@@ -1,8 +1,10 @@
 import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { AppUpdateService } from './core/app-update.service';
 import { CategoriesService } from './core/categories.service';
 import { I18nService } from './core/i18n.service';
+import { ServerConfigService } from './core/server-config.service';
 import { ThemeService } from './core/theme.service';
 import { glassNav } from './core/motion';
 import { TPipe } from './i18n/t.pipe';
@@ -27,5 +29,12 @@ export class AppComponent {
     inject(CategoriesService)
       .list()
       .catch(() => undefined);
+    // the APK cannot reach its server (wrong IP, computer off): say so on the settings page, not an empty map
+    const router = inject(Router);
+    void inject(ServerConfigService)
+      .startupProblem()
+      .then((reason) => {
+        if (reason && !router.url.startsWith('/server')) void router.navigate(['/server'], { queryParams: { reason }, replaceUrl: true });
+      });
   }
 }

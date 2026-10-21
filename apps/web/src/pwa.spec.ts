@@ -52,6 +52,17 @@ describe('app icon', () => {
   });
 });
 
+describe('service worker', () => {
+  it('stays off in the APK, where the page is local and the worker would cache a stale bundle', () => {
+    const main = readFileSync(resolve(web, 'src/main.ts'), 'utf8');
+    expect(main).toMatch(/enabled:[^,}]*platform\.isNative\(\)/);
+    const angular = JSON.parse(read('angular.json').toString('utf8'));
+    const android = angular.projects.app.architect.build.configurations.android;
+    expect(android.serviceWorker).toBe(false);
+    expect(android.outputPath.base).toBe('www-android');
+  });
+});
+
 describe('ngsw-config.json', () => {
   const cfg = JSON.parse(read('ngsw-config.json').toString('utf8'));
 

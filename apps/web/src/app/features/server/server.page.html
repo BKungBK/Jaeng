@@ -1,0 +1,49 @@
+<app-backdrop />
+<div class="scroller">
+  <main class="card glass">
+    <header class="head">
+      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
+        <app-icon name="chevronLeft" [size]="22" />
+      </button>
+      <h1 tabindex="-1">{{ 'server.title' | t }}</h1>
+    </header>
+
+    <p class="caption">{{ 'server.lede' | t }}</p>
+
+    <form class="edit" (submit)="$event.preventDefault(); test()">
+      <label class="field" for="server-input">{{ 'server.label' | t }}</label>
+      <input
+        id="server-input"
+        type="url"
+        inputmode="url"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="http://192.168.1.5:8000"
+        [attr.aria-describedby]="shown() ? 'server-result' : null"
+        [attr.aria-invalid]="shown() && shown() !== 'ok' ? 'true' : null"
+        [value]="value()"
+        (input)="onInput($event)"
+      />
+
+      <p id="server-result" class="result" [class.bad]="shown() !== 'ok'" role="status">
+        @if (resultKey(); as key) {
+          <app-icon [name]="shown() === 'ok' ? 'check' : 'triangleAlert'" [size]="18" />
+          {{ key | t }}
+        }
+      </p>
+      @if (failed()) {
+        <p class="result bad" role="alert">{{ 'server.saveFailed' | t }}</p>
+      }
+
+      <div class="pair">
+        <button type="submit" class="btn" [disabled]="testing() || !value().trim()" [attr.aria-busy]="testing()">
+          {{ (testing() ? 'server.testing' : 'server.test') | t }}
+        </button>
+        <button type="button" class="btn primary" [disabled]="!canSave()" [attr.aria-busy]="saving()" (click)="save()">
+          {{ (saving() ? 'load.saving' : 'load.save') | t }}
+        </button>
+      </div>
+    </form>
+  </main>
+</div>

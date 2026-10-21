@@ -82,6 +82,13 @@ describe('ServerPage', () => {
     expect(page.buttons()[0].disabled).toBe(true); // nothing to test yet
   });
 
+  it('drops the app\'s reason once the reader types another address', async () => {
+    const page = await setup({ address: 'http://old.example', reason: 'unreachable' });
+    expect(page.status()).toContain(th.server.result.unreachable);
+    await page.type('http://new.example');
+    expect(page.status()).toBe('');
+  });
+
   it('saves the tested address; a failed save is shown and nothing else changes', async () => {
     const page = await setup();
     page.buttons()[0].click();

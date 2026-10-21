@@ -63,7 +63,8 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   color: var(--ink);
   box-shadow: var(--glass-shadow);
   font: 500 15px/1.4 var(--font);
-  transform: translateY(calc(-100% - 24px));
+  // out of sight above the screen, status bar included (the page draws under it in the APK)
+  transform: translateY(calc(-100% - 24px - #{$safe-top}));
 
   &:focus-visible {
     transform: none;

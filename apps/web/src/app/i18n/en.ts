@@ -260,7 +260,7 @@ export const en: Messages = {
   },
   server: {
     title: 'Server settings',
-    lede: 'Enter the address of the computer running Jaeng, for example http://192.168.1.5:8000. The phone and the computer must be on the same Wi-Fi.',
+    lede: 'Enter the address of the Jaeng server, for example https://random-name.trycloudflare.com (from scripts/tunnel.sh), or http://192.168.1.5:8000 if you are on the same Wi-Fi as the computer.',
     label: 'Server address',
     test: 'Test',
     testing: 'Testing…',
@@ -268,7 +268,7 @@ export const en: Messages = {
     result: {
       ok: 'Connected. Found the Jaeng server.',
       invalid: 'That address is not valid. Try something like http://192.168.1.5:8000',
-      unreachable: "Can't reach the server. Check that the computer is on, on the same Wi-Fi, and that the IP is right.",
+      unreachable: "Can't reach the server. Check that the computer is on, the tunnel is still open (its address changes every time it restarts) and the address is right.",
       notJaeng: 'Something answered at this address, but it is not a Jaeng server.',
       unset: 'No server address is set yet.',
     },

@@ -44,6 +44,7 @@ export class ServerPage {
   protected readonly saving = signal(false);
   protected readonly result = signal<ServerCheck | null>(null);
   protected readonly failed = signal(false);
+  private readonly edited = signal(false);
 
   /** The reader may save only an address that has just passed the test. */
   protected readonly canSave = computed(() => {
@@ -53,6 +54,7 @@ export class ServerPage {
   protected readonly shown = computed<Shown | null>(() => {
     const r = this.result();
     if (r) return r.ok ? 'ok' : r.reason;
+    if (this.edited()) return null; // the app's reason belongs to the old address
     const why = this.reason();
     return why === 'unset' || why === 'unreachable' || why === 'notJaeng' || why === 'invalid' ? why : null;
   });
@@ -68,6 +70,7 @@ export class ServerPage {
 
   protected onInput(event: Event) {
     this.value.set((event.target as HTMLInputElement).value);
+    this.edited.set(true);
     this.result.set(null);
     this.failed.set(false);
   }

@@ -35,7 +35,9 @@ docker compose exec -T web npx cap sync android
 # Gradle includes the Capacitor plugins' native projects from ../node_modules, which lives in the web
 # container's volume (not on /mnt/d), so that volume is mounted next to the android folder. It runs as
 # root because Gradle writes build/ folders into those packages; /mnt/d ignores file owners.
-docker run --rm --dns 1.1.1.1 --dns 8.8.8.8 \
+# ANDROID_USER_HOME keeps the debug signing key in the Gradle volume: without it every build makes a new
+# key, and the phone refuses to update an app signed with another one (INSTALL_FAILED_UPDATE_INCOMPATIBLE).
+docker run --rm --dns 1.1.1.1 --dns 8.8.8.8 -e ANDROID_USER_HOME=/gradle/android-home \
   -v "$PWD/apps/web/android":/web/android -v "${COMPOSE_PROJECT_NAME:-jaeng}_web_node_modules":/web/node_modules \
   -v jaeng_gradle:/gradle -w /web/android \
   jaeng-android ./gradlew assembleDebug --no-daemon

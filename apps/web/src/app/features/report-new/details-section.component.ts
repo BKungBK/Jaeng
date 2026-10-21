@@ -15,6 +15,7 @@ import { I18nService } from '../../core/i18n.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { LevelShapeComponent } from '../map/level-shape';
 import { ReportDraftService, type DraftDetails } from './report-draft.service';
 
@@ -41,7 +42,7 @@ export class TagSuggestService {
 @Component({
   selector: 'app-details-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, TPipe],
+  imports: [IconComponent, LevelShapeComponent, TickComponent, TPipe],
   templateUrl: 'details-section.component.html',
   styleUrl: 'details-section.component.scss',
 })
@@ -56,6 +57,7 @@ export class DetailsSectionComponent {
   protected readonly max = { title: TITLE_MAX, description: DESCRIPTION_MAX, tags: TAGS_MAX, tag: TAG_MAX };
   protected readonly levels = LEVELS;
   protected readonly open = signal(false);
+  protected readonly hideFx = signal<'on' | 'off' | null>(null);
   protected readonly d = this.draft.details;
   protected readonly full = computed(() => this.d().tags.length >= TAGS_MAX);
   protected readonly suggestions = signal<string[]>([]);
@@ -83,7 +85,9 @@ export class DetailsSectionComponent {
   }
 
   protected setHide(event: Event) {
-    this.patch({ hideAuthor: (event.target as HTMLInputElement).checked });
+    const on = (event.target as HTMLInputElement).checked;
+    this.hideFx.set(on ? 'on' : 'off'); // which way the knob went: the stretch plays only after a flip, not on open
+    this.patch({ hideAuthor: on });
   }
 
   protected onTagInput(event: Event) {

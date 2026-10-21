@@ -37,6 +37,8 @@ type View = 'flow' | 'duplicates' | 'sent';
 const TITLES: Record<Step, MessageKey> = { 1: 'newReport.titlePhoto', 2: 'newReport.titleCategory', 3: 'newReport.titlePin' };
 /** Without EXIF or a device position the pin must be placed by hand, close enough to be useful. */
 export const PIN_MIN_ZOOM = 14;
+/** A tapped category waits this long on step 2 so its tick can be seen: "3 taps" stays 3 taps. */
+export const PICK_HOLD_MS = 220;
 
 /**
  * `/report`: photo → category → pin (spec 3.5, .impeccable/surfaces/pp-features-report-new-*.md).
@@ -72,6 +74,11 @@ export class ReportNewPage {
   protected readonly i18n = inject(I18nService);
 
   protected readonly step = signal<Step>(1);
+  /** the side a step came from: new content slides in from there (plan 8) */
+  protected readonly dir = signal<'fwd' | 'back'>('fwd');
+  /** the category tapped and still being shown for PICK_HOLD_MS */
+  protected readonly picking = signal<string | null>(null);
+  private pickTimer?: ReturnType<typeof setTimeout>;
   protected readonly view = signal<View>('flow');
   protected readonly candidates = signal<DuplicateCandidate[]>([]);
   protected readonly zoom = signal(0);
@@ -104,7 +111,10 @@ export class ReportNewPage {
   private autoAdvanced = this.draft.photos().length > 0;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.releaseBack?.());
+    inject(DestroyRef).onDestroy(() => {
+      this.releaseBack?.();
+      this.cancelPick();
+    });
     effect(() => {
       if (this.step() !== 1 || !this.draft.canContinueFromPhotos()) return;
       untracked(() => {
@@ -137,14 +147,18 @@ export class ReportNewPage {
   }
 
   protected go(step: Step) {
+    this.cancelPick();
     this.message.set(null);
+    this.dir.set(step >= this.step() ? 'fwd' : 'back');
     this.step.set(step);
     this.focusHeading('#rn-step-title');
   }
 
   protected backOrClose() {
+    this.cancelPick(); // a tap that is still being shown does not carry on after the reporter went back
     if (this.view() === 'sent') void this.back.go();
     else if (this.view() === 'duplicates') {
+      this.dir.set('back');
       this.view.set('flow');
       this.focusHeading('#rn-step-title');
     } else if (this.step() === 1) void this.back.go();
@@ -157,7 +171,23 @@ export class ReportNewPage {
       // the level starts at the category's usual one; the reporter can change it under "เพิ่มรายละเอียด"
       this.draft.details.update((d) => ({ ...d, danger: c.default_level }));
     }
-    this.go(3);
+    if (this.picking() !== null) {
+      // a second tap during the hold: it may change the choice, but the page still moves on only once
+      this.picking.set(c.slug);
+      return;
+    }
+    this.picking.set(c.slug);
+    this.pickTimer = setTimeout(() => {
+      this.pickTimer = undefined;
+      if (this.picking() === null || this.view() !== 'flow' || this.step() !== 2) return;
+      this.go(3); // clears `picking`
+    }, PICK_HOLD_MS);
+  }
+
+  private cancelPick() {
+    clearTimeout(this.pickTimer);
+    this.pickTimer = undefined;
+    this.picking.set(null);
   }
 
   protected async send() {

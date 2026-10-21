@@ -21,11 +21,11 @@
 @if (photos().length > 0) {
   <ul class="strip" [attr.aria-label]="'photoStep.chosen' | t">
     @for (p of photos(); track p.localId; let i = $index) {
-      <li class="tile" [class.err]="p.state === 'error'">
+      <li class="tile" #tile [class.err]="p.state === 'error'">
         <img [src]="p.previewUrl" [attr.alt]="'photoStep.photoN' | t: { n: i + 1 }" />
         @switch (p.state) {
           @case ('ready') {
-            <span class="ok"><app-icon name="check" [size]="16" /><span class="sr-only">{{ 'photoStep.ready' | t }}</span></span>
+            <span class="ok"><app-tick [size]="16" /><span class="sr-only">{{ 'photoStep.ready' | t }}</span></span>
           }
           @case ('error') {
             <div class="veil">
@@ -37,10 +37,16 @@
             </div>
           }
           @default {
-            <div class="veil busy"><p>{{ 'photoStep.uploading' | t }}</p></div>
+            <div class="veil busy">
+              <svg class="ring" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" opacity="0.25" />
+                <path d="M12 3a9 9 0 0 1 9 9" />
+              </svg>
+              <p>{{ 'photoStep.uploading' | t }}</p>
+            </div>
           }
         }
-        <button type="button" class="ctl remove" [attr.aria-label]="'photoStep.remove' | t: { n: i + 1 }" (click)="remove(p)">
+        <button type="button" class="ctl remove" [attr.aria-label]="'photoStep.remove' | t: { n: i + 1 }" (click)="remove(p, tile)">
           <app-icon name="x" [size]="20" />
         </button>
       </li>

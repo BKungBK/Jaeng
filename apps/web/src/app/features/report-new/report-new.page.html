@@ -33,13 +33,15 @@
       @default {
         @switch (step()) {
           @case (1) {
-            <app-photo-step (next)="go(2)" />
+            <div class="step" [attr.data-dir]="dir()"><app-photo-step (next)="go(2)" /></div>
           }
           @case (2) {
-            <app-category-step [selected]="draft.category()" (picked)="pickCategory($event)" />
+            <div class="step" [attr.data-dir]="dir()">
+              <app-category-step [selected]="draft.category()" [picking]="picking()" (picked)="pickCategory($event)" />
+            </div>
           }
           @case (3) {
-            <section class="pin-step">
+            <section class="pin-step step" [attr.data-dir]="dir()">
               <app-location-step (zoomChange)="zoom.set($event)" />
               <div class="send">
                 @if (needsZoom()) {

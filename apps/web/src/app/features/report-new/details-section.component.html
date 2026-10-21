@@ -95,9 +95,17 @@
     </div>
 
     <div class="field">
-      <label class="switch">
+      <label class="switch" [attr.data-fx]="hideFx()">
         <input type="checkbox" role="switch" aria-describedby="rn-hide-hint" [checked]="d().hideAuthor" (change)="setHide($event)" />
-        <span class="track" aria-hidden="true"></span>
+        <span class="track" aria-hidden="true">
+          <span class="knob">
+            @if (d().hideAuthor) {
+              <app-tick [size]="14" [play]="hideFx() === 'on'" />
+            } @else {
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12" /></svg>
+            }
+          </span>
+        </span>
         {{ 'details.hide' | t }}
       </label>
       <p id="rn-hide-hint" class="caption">{{ 'details.hideHint' | t }}</p>

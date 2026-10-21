@@ -2,22 +2,29 @@ import { ChangeDetectionStrategy, Component, inject, input, output, signal } fro
 import { CategoriesService, type CategoryInfo } from '../../core/categories.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { isIconName, type IconName } from '../map/icons';
 
 /** Step 2: eight big category buttons. A tap is the choice: the page moves on at once (no "Next"). */
 @Component({
   selector: 'app-category-step',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe],
+  imports: [IconComponent, TickComponent, TPipe],
   template: `
     @if (categories(); as list) {
       <div class="grid">
         @for (c of list; track c.slug) {
-          <button type="button" class="cat" [attr.aria-pressed]="c.slug === selected()" (click)="picked.emit(c)">
+          <button
+            type="button"
+            class="cat"
+            [class.picking]="c.slug === picking()"
+            [attr.aria-pressed]="c.slug === selected()"
+            (click)="picked.emit(c)"
+          >
             <app-icon [name]="icon(c)" [size]="32" />
             <span class="name">{{ service.labelOf(c) }}</span>
             @if (c.slug === selected()) {
-              <span class="tick" aria-hidden="true"><app-icon name="check" [size]="16" /></span>
+              <span class="tick" aria-hidden="true"><app-tick [size]="16" [play]="c.slug === picking()" /></span>
             }
           </button>
         }
@@ -37,6 +44,8 @@ import { isIconName, type IconName } from '../map/icons';
 export class CategoryStepComponent {
   protected readonly service = inject(CategoriesService);
   readonly selected = input<string | null>(null);
+  /** the card just tapped, while the page holds on this step: its tick draws and the card settles */
+  readonly picking = input<string | null>(null);
   readonly picked = output<CategoryInfo>();
 
   protected readonly categories = signal<CategoryInfo[] | null>(null);

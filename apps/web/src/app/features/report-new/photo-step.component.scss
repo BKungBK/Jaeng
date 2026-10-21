@@ -49,6 +49,14 @@
   overflow: hidden;
   border-radius: 12px;
   background: color-mix(in srgb, var(--ink) 10%, transparent);
+  // a chosen photo lands; a failed one also shakes (the settle keeps running, it is the same animation)
+  animation: settle var(--pop-dur) var(--pop) backwards;
+
+  &.err {
+    animation:
+      settle var(--pop-dur) var(--pop) backwards,
+      shake 280ms var(--ease);
+  }
 
   img {
     display: block;
@@ -69,6 +77,18 @@
   border-radius: 9px;
   background: #fff;
   color: flow.$slate;
+  animation: settle var(--pop-dur) var(--pop) backwards;
+}
+
+// working: a ring turning beside the words, gone as soon as the photo is ready or failed
+.ring {
+  animation: ring-spin 900ms linear infinite;
+}
+
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // a Cream veil over the picture while it works or after it failed: words, not a colour

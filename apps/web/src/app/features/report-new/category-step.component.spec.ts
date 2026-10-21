@@ -41,6 +41,16 @@ describe('CategoryStepComponent', () => {
     expect(picked).toHaveBeenCalledWith(CATEGORIES[6]);
   });
 
+  it('draws the tick on the card being picked, and shows an earlier choice already drawn', async () => {
+    const { fixture, root } = await setup(undefined, 'hazard');
+    expect(root.querySelector('button.cat[aria-pressed="true"] app-tick svg')).not.toBeNull();
+    expect(root.querySelector('app-tick svg.play')).toBeNull(); // chosen before this visit: no replay
+    fixture.componentRef.setInput('picking', 'hazard');
+    await fixture.whenStable();
+    expect(root.querySelector('button.cat[aria-pressed="true"] app-tick svg.play')).not.toBeNull();
+    expect(root.querySelector('button.cat.picking')).not.toBeNull();
+  });
+
   it('offers a retry when the list cannot load', async () => {
     const list = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(CATEGORIES);
     const { fixture, root } = await setup(list);

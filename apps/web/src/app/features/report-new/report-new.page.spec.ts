@@ -18,7 +18,7 @@ import { photoFile } from './gps-jpeg.testing';
 import { MapReturnService } from './map-return.service';
 import { PHOTO_PIPELINE, readGps } from './photo-tools';
 import { ReportDraftService } from './report-draft.service';
-import { ReportNewPage } from './report-new.page';
+import { PICK_HOLD_MS, ReportNewPage } from './report-new.page';
 
 const CANDIDATE: DuplicateCandidate = {
   id: 'd1',
@@ -84,6 +84,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
     await draft.addFiles([photoFile('a.jpg')]);
     await settle();
     root.querySelectorAll<HTMLButtonElement>('button.cat')[CATEGORIES.findIndex((c) => c.slug === slug)].click();
+    await new Promise((r) => setTimeout(r, PICK_HOLD_MS + 30)); // the tick is drawn before the page moves on
     await settle();
   };
   return { fixture, root, map, api, device, prompt, back, draft, settle, button, title, toStep3, session, backButton, release };
@@ -361,6 +362,82 @@ describe('ReportNewPage and the Android back button (plan 7)', () => {
     fixture.componentInstance.ionViewDidEnter();
     fixture.destroy();
     expect(release).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('ReportNewPage motion (plan 8)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.inject(ReportDraftService).reset();
+  });
+
+  /** on step 2 with real timers, then fake ones: the 220 ms hold is stepped by hand */
+  async function onStep2() {
+    const s = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    await s.draft.addFiles([photoFile('a.jpg')]);
+    await s.settle();
+    expect(s.title()).toBe('เป็นเรื่องอะไร');
+    vi.useFakeTimers();
+    const cat = (slug: string) => s.root.querySelectorAll<HTMLButtonElement>('button.cat')[CATEGORIES.findIndex((c) => c.slug === slug)];
+    const advance = (ms: number) => {
+      vi.advanceTimersByTime(ms);
+      s.fixture.detectChanges();
+    };
+    return { ...s, cat, advance };
+  }
+
+  it('picks a category at once but stays on step 2 for 220 ms so the tick can be seen', async () => {
+    const { cat, advance, draft, title, root, fixture } = await onStep2();
+    cat('hazard').click();
+    fixture.detectChanges();
+    expect(draft.category()).toBe('hazard');
+    expect(root.querySelector('button.cat[aria-pressed="true"] app-tick svg.play')).not.toBeNull();
+    advance(PICK_HOLD_MS - 1);
+    expect(title()).toBe('เป็นเรื่องอะไร');
+    advance(1);
+    expect(title()).toBe('ปักหมุดตรงไหน');
+  });
+
+  it('goes to step 3 once however often the card is tapped during the hold', async () => {
+    const { cat, advance, title, fixture, api } = await onStep2();
+    const go = vi.spyOn(fixture.componentInstance as unknown as { go(step: number): void }, 'go');
+    cat('road').click();
+    advance(50);
+    cat('road').click();
+    cat('hazard').click(); // another card during the hold takes over the choice, not a second jump
+    advance(PICK_HOLD_MS * 3);
+    expect(go.mock.calls.filter(([n]) => n === 3)).toHaveLength(1);
+    expect(title()).toBe('ปักหมุดตรงไหน');
+    expect(api.post).not.toHaveBeenCalledWith('/reports', expect.anything());
+  });
+
+  it('does not jump to step 3 after going back during the hold', async () => {
+    const { cat, advance, title, root, fixture } = await onStep2();
+    cat('road').click();
+    advance(100);
+    root.querySelector<HTMLButtonElement>('button[aria-label="ย้อนกลับ"]')!.click();
+    fixture.detectChanges();
+    expect(title()).toBe('ถ่ายรูปปัญหา');
+    advance(PICK_HOLD_MS * 3);
+    expect(title()).toBe('ถ่ายรูปปัญหา');
+  });
+
+  it('slides each step in from the side it was reached from', async () => {
+    const { cat, advance, root, fixture } = await onStep2();
+    const dir = () => root.querySelector('.step')?.getAttribute('data-dir');
+    expect(dir()).toBe('fwd'); // photo → category
+    cat('road').click();
+    advance(PICK_HOLD_MS);
+    expect(dir()).toBe('fwd');
+    root.querySelector<HTMLButtonElement>('button[aria-label="ย้อนกลับ"]')!.click();
+    fixture.detectChanges();
+    expect(dir()).toBe('back');
+  });
+
+  it('fills the progress segments from the left: done, half, empty', async () => {
+    const { root } = await setup();
+    const segs = [...root.querySelectorAll('.seg')];
+    expect(segs.map((s) => s.className.replace('seg', '').trim())).toEqual(['now', '', '']);
   });
 });
 

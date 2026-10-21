@@ -1,5 +1,9 @@
 @use 'flow';
 
+// The sent moment (~1.1 s): the disc lands, a ring draws round it (0–500 ms), the tick draws (250–530 ms),
+// a beam rises and fades with sparks (400–900 ms), then heading, lede and buttons float up (350/410/470 ms).
+// Everything has only a `from` frame or a delay with `backwards`, so with no animation the card is simply there.
+
 :host {
   display: grid;
   justify-items: center;
@@ -9,6 +13,7 @@
 }
 
 .disc {
+  position: relative;
   display: grid;
   place-items: center;
   width: 64px;
@@ -16,12 +21,69 @@
   border-radius: 50%;
   background: color-mix(in srgb, var(--pri) 18%, transparent);
   color: var(--pri);
+  animation: settle var(--pop-dur) var(--pop) backwards;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+
+  circle {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: ring-draw 500ms var(--ease) backwards;
+  }
+}
+
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+// the beam of the intro, small: it climbs out of the disc and goes out
+.beam {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 3px;
+  height: 56px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: linear-gradient(to top, var(--pri), transparent);
+  opacity: 0;
+  transform-origin: bottom;
+  animation: beam-rise 500ms var(--ease) 400ms backwards;
+  pointer-events: none;
+}
+
+@keyframes beam-rise {
+  from {
+    opacity: 0.9;
+    transform: scaleY(0);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scaleY(1);
+  }
+  to {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+}
+
+.check {
+  --tick-delay: 250ms;
 }
 
 h2 {
   margin: 4px 0 0;
   font: 600 24px/1.25 flow.$prompt;
   text-wrap: balance;
+  animation: rise 600ms var(--ease) 350ms backwards;
 
   &:focus {
     outline: none;
@@ -34,6 +96,7 @@ h2 {
   font-size: 16px;
   line-height: 1.6;
   text-wrap: pretty;
+  animation: rise 600ms var(--ease) 410ms backwards;
 }
 
 .actions {
@@ -42,4 +105,5 @@ h2 {
   width: 100%;
   max-width: 360px;
   margin-top: 12px;
+  animation: rise 600ms var(--ease) 470ms backwards;
 }

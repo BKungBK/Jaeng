@@ -48,6 +48,21 @@ describe('DetailsSectionComponent', () => {
     expect(draft.details().hideAuthor).toBe(true);
   });
 
+  it('moves the switch knob with a stretch that remembers which way it went', async () => {
+    const { fixture, root, open } = await setup();
+    await open();
+    const label = root.querySelector<HTMLLabelElement>('label.switch')!;
+    const sw = label.querySelector<HTMLInputElement>('input')!;
+    expect(label.getAttribute('data-fx')).toBeNull(); // opening the section plays nothing
+    sw.click();
+    await fixture.whenStable();
+    expect(label.getAttribute('data-fx')).toBe('on');
+    expect(label.querySelector('.knob svg')).not.toBeNull(); // a drawn ✓ / – in the knob, no glyph
+    sw.click();
+    await fixture.whenStable();
+    expect(label.getAttribute('data-fx')).toBe('off');
+  });
+
   it('counts the title and the description against their limits', async () => {
     const { fixture, root, open, draft } = await setup();
     await open();

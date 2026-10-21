@@ -34,7 +34,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       stroke-dashoffset: 0;
     }
     svg.play path {
-      animation: tick-draw 280ms var(--ease, cubic-bezier(0.2, 0.8, 0.2, 1)) backwards;
+      animation: tick-draw 280ms var(--ease, cubic-bezier(0.2, 0.8, 0.2, 1)) var(--tick-delay, 0ms) backwards;
     }
   `,
 })

@@ -3,14 +3,16 @@ import { PHOTOS_PER_REPORT_MAX } from '@jaeng/shared/report';
 import { DeviceService } from '../../core/device.service';
 import { I18nService } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
+import { leave } from '../../core/motion';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { ReportDraftService, type DraftPhoto } from './report-draft.service';
 
 /** Step 1: take or pick 1–4 photos. They upload at once; the step only shows how each one is doing. */
 @Component({
   selector: 'app-photo-step',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe],
+  imports: [IconComponent, TickComponent, TPipe],
   templateUrl: 'photo-step.component.html',
   styleUrl: 'photo-step.component.scss',
 })
@@ -51,8 +53,17 @@ export class PhotoStepComponent {
     if (files.length > 0) void this.draft.addFiles(files);
   }
 
-  protected remove(p: DraftPhoto) {
-    this.draft.remove(p.localId);
+  /** A removed photo fades away first, then the draft drops it (a second press while it leaves does nothing). */
+  private leaving = new Set<string>();
+  protected async remove(p: DraftPhoto, tile: HTMLElement) {
+    if (this.leaving.has(p.localId)) return;
+    this.leaving.add(p.localId);
+    try {
+      await leave(tile);
+      this.draft.remove(p.localId);
+    } finally {
+      this.leaving.delete(p.localId);
+    }
   }
 
   protected retry(p: DraftPhoto) {

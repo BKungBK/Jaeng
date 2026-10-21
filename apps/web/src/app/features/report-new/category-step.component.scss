@@ -30,10 +30,21 @@
   background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
   cursor: pointer;
-  transition: background-color 160ms ease-out;
+  transition:
+    background-color 160ms ease-out,
+    transform 120ms var(--ease);
+
+  &:active {
+    transform: scale(0.97);
+  }
 
   &:hover {
     background: color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  // just tapped: the card settles while its tick draws (the page waits for this, 220 ms)
+  &.picking {
+    animation: settle var(--pop-dur) var(--pop) backwards;
   }
 
   // chosen: a thicker Trust Blue edge, a tint and a tick, so it does not rest on colour alone
@@ -61,4 +72,8 @@
   border-radius: 9px;
   background: var(--pri);
   color: var(--onpri);
+}
+
+.picking .tick {
+  animation: settle var(--pop-dur) var(--pop) backwards;
 }

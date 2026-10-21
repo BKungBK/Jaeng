@@ -113,7 +113,13 @@ describe('PhotoStepComponent', () => {
     expect(tiles[1].textContent).toContain('กำลังอัปโหลด');
     expect(tiles[2].textContent).toContain('รูปใหญ่เกินไป (ไม่เกิน 3 MB)');
     expect(tiles[0].querySelector('img')?.getAttribute('src')).toBe('blob:p1');
-    tiles[2].querySelector<HTMLButtonElement>('button[aria-label="ลบรูปที่ 3"]')!.click();
+    expect(tiles[0].querySelector('.ok app-tick svg.play')).not.toBeNull();
+    expect(tiles[1].querySelector('.veil.busy .ring')).not.toBeNull();
+    const del = tiles[2].querySelector<HTMLButtonElement>('button[aria-label="ลบรูปที่ 3"]')!;
+    del.click();
+    del.click(); // a second press while the tile is leaving does nothing
+    await new Promise((r) => setTimeout(r, 0)); // the tile folds away first (at once in jsdom), then the draft drops it
+    expect(draft.remove).toHaveBeenCalledTimes(1);
     expect(draft.remove).toHaveBeenCalledWith('l3');
     button('ลองใหม่')!.click();
     expect(draft.retry).toHaveBeenCalledWith('l3');

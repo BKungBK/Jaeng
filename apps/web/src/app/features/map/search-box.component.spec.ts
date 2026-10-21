@@ -93,6 +93,29 @@ describe('SearchBoxComponent', () => {
     expect(fixture.nativeElement.classList).not.toContain('wide');
   });
 
+  it('on a phone the card goes back to the pill when focus leaves it, with no tap on the x', async () => {
+    const { fixture, root, input, type, settle, out } = await setup({ collapsed: true });
+    root.querySelector<HTMLButtonElement>('.search-pill')!.click();
+    await settle(10);
+    await type('เชียงใหม่');
+    input().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null })); // a tap on the map
+    await settle();
+    fixture.detectChanges();
+    expect(root.querySelector('.box.phone')).toBeNull();
+    expect(root.querySelector('.search-pill')).not.toBeNull();
+    expect(out.opened).toHaveBeenLastCalledWith(false);
+  });
+
+  it('moving focus to the x inside the card does not close it first', async () => {
+    const { root, input, settle } = await setup({ collapsed: true });
+    root.querySelector<HTMLButtonElement>('.search-pill')!.click();
+    await settle(10);
+    const x = root.querySelector<HTMLButtonElement>('.close')!;
+    input().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: x }));
+    await settle();
+    expect(root.querySelector('.box.phone')).not.toBeNull();
+  });
+
   it('empties the field from the x on a wide screen and keeps the caret in it', async () => {
     const { root, input, type, settle } = await setup();
     expect(root.querySelector('.clear')).toBeNull();

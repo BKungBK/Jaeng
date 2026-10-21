@@ -5,7 +5,13 @@
   </button>
 } @else {
   <!-- phones: the card is glass like the bar it replaces, a little denser once answers hang from it -->
-  <div class="box" [class.phone]="collapsed()" [class.glass]="collapsed()" [class.dense]="collapsed() && expanded()">
+  <div
+    class="box"
+    [class.phone]="collapsed()"
+    [class.glass]="collapsed()"
+    [class.dense]="collapsed() && expanded()"
+    (focusout)="onFocusOut($event)"
+  >
     <div class="field">
       <app-icon name="search" [size]="20" />
       <input

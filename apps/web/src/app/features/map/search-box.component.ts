@@ -92,11 +92,20 @@ export class SearchBoxComponent {
     setTimeout(() => this.field()?.focus());
   }
 
-  protected closeCard() {
+  protected closeCard(refocus = true) {
     this.reset();
     this.cardOpen.set(false);
     this.opened.emit(false);
-    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.search-pill')?.focus());
+    if (refocus) setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.search-pill')?.focus());
+  }
+
+  /** Phones: focus left the card (a tap on the map, the keyboard put away): it goes back to being the pill, no
+   *  second tap on the x. Moving between the card's own parts (the field, the x) does not count. */
+  protected onFocusOut(e: FocusEvent) {
+    if (!this.collapsed() || !this.cardOpen()) return;
+    const to = e.relatedTarget as Node | null;
+    if (to && (e.currentTarget as HTMLElement).contains(to)) return;
+    this.closeCard(false); // not back to the pill's focus: the reader has moved on
   }
 
   /** Empties the field and keeps the caret in it, ready for the next word. */

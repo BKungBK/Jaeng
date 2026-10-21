@@ -123,9 +123,25 @@
   }
 }
 
+// the focus ring on a phone: a thin line in the accent, not the thick orange frame that made the opened card a
+// different thing from the bar it came from
 .box.phone .field:focus-within {
   border-radius: 23px;
-  box-shadow: inset 0 0 0 2px var(--pri);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pri) 70%, transparent);
+}
+
+// the card is focused the whole time it is open: the "raised under the pointer or focus" tint of other glass would
+// make it lighter than the bar; it keeps the bar's tint (and the denser one once answers hang from it)
+.box.phone.glass,
+.box.phone.glass:hover,
+.box.phone.glass:focus-within {
+  background-color: var(--glass-bg);
+}
+
+.box.phone.glass.dense,
+.box.phone.glass.dense:hover,
+.box.phone.glass.dense:focus-within {
+  background-color: var(--glass-bg-dense);
 }
 
 .ctl {

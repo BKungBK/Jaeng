@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { afterNextRender, Component, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { AppUpdateService } from './core/app-update.service';
+import { BackButtonService } from './core/back-button.service';
 import { CategoriesService } from './core/categories.service';
 import { I18nService } from './core/i18n.service';
 import { ServerConfigService } from './core/server-config.service';
@@ -21,7 +22,15 @@ export class AppComponent {
   /** every page change: the new page rises out of a blur (core/motion.ts) */
   protected readonly glassNav = glassNav;
 
+  private outlet = viewChild(IonRouterOutlet);
+
   constructor() {
+    // the Android back button leaves the app once the router has nothing to pop (a no-op on the web)
+    const back = inject(BackButtonService);
+    afterNextRender(() => {
+      const outlet = this.outlet();
+      if (outlet) back.startExitOnRoot(outlet);
+    });
     // created at boot so <html lang>, the title and the theme are right from the first paint
     inject(I18nService);
     inject(ThemeService);

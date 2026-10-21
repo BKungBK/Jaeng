@@ -20,6 +20,7 @@ import { centerFor, MapPage } from './map.page';
 import { EMPTY_COLLECTION } from './report';
 import { ReportsService } from './reports.service';
 import { StatsService } from './stats.service';
+import { BackButtonService } from '../../core/back-button.service';
 import { DeviceService } from '../../core/device.service';
 import { th } from '../../i18n/th';
 import { MapViewService } from '../../core/map-view.service';
@@ -330,6 +331,40 @@ describe('MapPage', () => {
     expect(root.querySelector('.peek')).toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('Android back closes the wide detail panel, and passes the button on when nothing is open (plan 7)', async () => {
+    const { fixture, navigate } = await setup(undefined, { wide: true });
+    const page = fixture.componentInstance;
+    const next = vi.fn();
+    page.onHardwareBack(next);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(navigate).not.toHaveBeenCalled();
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    page.onHardwareBack(next);
+    expect(navigate).toHaveBeenCalledWith(['/']);
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('on a phone the sheet, an Ionic overlay, takes the back button first: the page passes it on', async () => {
+    const { fixture } = await setup(undefined, { wide: false });
+    fixture.componentRef.setInput('id', DETAIL.id);
+    await settle(fixture);
+    const next = vi.fn();
+    fixture.componentInstance.onHardwareBack(next);
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds the Android back button only while the page shows (plan 7)', async () => {
+    const release = vi.fn();
+    const on = vi.fn(() => release);
+    TestBed.configureTestingModule({ providers: [{ provide: BackButtonService, useValue: { on } }] });
+    const { fixture } = await setup(undefined, { wide: true });
+    fixture.componentInstance.ionViewDidEnter();
+    expect(on).toHaveBeenCalledWith(10, expect.any(Function));
+    fixture.componentInstance.ionViewWillLeave();
+    expect(release).toHaveBeenCalledTimes(1);
   });
 
   it('moves the map controls beside the open panel', async () => {

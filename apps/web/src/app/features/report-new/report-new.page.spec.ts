@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
 import { ApiError, ApiService } from '../../core/api.service';
+import { BackButtonService } from '../../core/back-button.service';
 import { CategoriesService } from '../../core/categories.service';
 import { DeviceService } from '../../core/device.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
@@ -48,9 +49,12 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
   const prompt = { ask: vi.fn().mockResolvedValue(true) };
   const session = signal<{ user: { id: string } } | null>({ user: { id: 'user-a' } });
   const back = { go: vi.fn().mockResolvedValue(undefined) };
+  const release = vi.fn();
+  const backButton = { on: vi.fn(() => release) };
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
+      { provide: BackButtonService, useValue: backButton },
       { provide: ApiService, useValue: api },
       { provide: DeviceService, useValue: device },
       provideCategories(),
@@ -82,7 +86,7 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
     root.querySelectorAll<HTMLButtonElement>('button.cat')[CATEGORIES.findIndex((c) => c.slug === slug)].click();
     await settle();
   };
-  return { fixture, root, map, api, device, prompt, back, draft, settle, button, title, toStep3, session };
+  return { fixture, root, map, api, device, prompt, back, draft, settle, button, title, toStep3, session, backButton, release };
 }
 
 describe('ReportNewPage', () => {
@@ -300,6 +304,63 @@ describe('ReportNewPage', () => {
     expect(title()).toBe('ถ่ายรูปปัญหา');
     root.querySelector<HTMLButtonElement>('button[aria-label="ปิด"]')!.click();
     expect(back.go).toHaveBeenCalledWith();
+  });
+});
+
+describe('ReportNewPage and the Android back button (plan 7)', () => {
+  afterEach(() => TestBed.inject(ReportDraftService).reset());
+
+  it('steps back 3 → 2 → 1 → map and keeps the draft all the way', async () => {
+    const { fixture, toStep3, settle, title, back, draft } = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    await toStep3();
+    expect(title()).toBe('ปักหมุดตรงไหน');
+    fixture.componentInstance.onHardwareBack();
+    await settle();
+    expect(title()).toBe('เป็นเรื่องอะไร');
+    fixture.componentInstance.onHardwareBack();
+    await settle();
+    expect(title()).toBe('ถ่ายรูปปัญหา');
+    expect(back.go).not.toHaveBeenCalled();
+    fixture.componentInstance.onHardwareBack();
+    expect(back.go).toHaveBeenCalledTimes(1);
+    expect(draft.photos()).toHaveLength(1);
+    expect(draft.category()).toBe('road');
+  });
+
+  it('from the duplicate card it returns to the flow, not to the map', async () => {
+    const { fixture, toStep3, button, settle, root, back } = await setup({ position: { lng: 100.6, lat: 13.8 }, duplicates: [CANDIDATE] });
+    await toStep3();
+    button('ส่งเรื่อง')!.click();
+    await settle();
+    expect(root.querySelector('h2')?.textContent?.trim()).toBe('เรื่องนี้ใช่ไหม?');
+    fixture.componentInstance.onHardwareBack();
+    await settle();
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('ปักหมุดตรงไหน');
+    expect(back.go).not.toHaveBeenCalled();
+  });
+
+  it('does nothing while the report is being sent', async () => {
+    const { fixture, toStep3, button, settle, api, back, title } = await setup({ position: { lng: 100.6, lat: 13.8 } });
+    await toStep3();
+    api.post.mockImplementation(() => new Promise(() => {})); // the send never answers
+    button('ส่งเรื่อง')!.click();
+    await settle();
+    fixture.componentInstance.onHardwareBack();
+    await settle();
+    expect(title()).toBe('ปักหมุดตรงไหน');
+    expect(back.go).not.toHaveBeenCalled();
+  });
+
+  it('holds the button only while the page shows', async () => {
+    const { fixture, backButton, release } = await setup();
+    expect(backButton.on).not.toHaveBeenCalled();
+    fixture.componentInstance.ionViewDidEnter();
+    expect(backButton.on).toHaveBeenCalledWith(50, expect.any(Function));
+    fixture.componentInstance.ionViewWillLeave();
+    expect(release).toHaveBeenCalledTimes(1);
+    fixture.componentInstance.ionViewDidEnter();
+    fixture.destroy();
+    expect(release).toHaveBeenCalledTimes(2);
   });
 });
 

@@ -14,7 +14,7 @@
   }
   @case ('ready') {
     @if (detail(); as d) {
-      <div class="gallery" [style.--c]="level(d).color">
+      <div class="gallery" [class.no-photo]="!d.photos.length" [style.--c]="level(d).color">
         @if (d.photos.length) {
           <ul class="strip" [class.single]="d.photos.length === 1" [attr.aria-label]="'detail.photos' | t">
             @for (p of d.photos; track p.path; let i = $index) {

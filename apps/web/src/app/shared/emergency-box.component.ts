@@ -49,20 +49,22 @@ import { IconComponent } from './icon.component';
       place-items: center;
       min-width: 56px;
       min-height: 44px;
-      padding: 0 10px;
+      padding: 0 6px;
       border-radius: 12px;
-      background: #fff;
+      background: transparent; /* plain links, not white pills inside the card (finish review) */
       color: #2b2a33;
-      font: 600 16px/1 var(--font);
+      font: 600 18px/1 var(--font);
       font-variant-numeric: tabular-nums;
       text-decoration: underline;
-      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+      transition: background-color 160ms ease-out;
     }
     a:hover {
-      background: color-mix(in srgb, var(--s3) 10%, #fff);
+      background: color-mix(in srgb, var(--s3) 18%, transparent);
     }
     a:focus-visible {
-      outline: 3px solid var(--pri);
+      outline: 3px solid #2b2a33;
       outline-offset: 2px;
     }
     .numbers {

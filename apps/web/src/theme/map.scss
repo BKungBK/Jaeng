@@ -51,6 +51,7 @@
 .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
   min-height: 24px;
   border-color: var(--glass-edge);
+  border-radius: 999px; // a circle, like every other floating control
   background: var(--glass-bg);
   opacity: 0.8;
 }

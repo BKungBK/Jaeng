@@ -88,6 +88,13 @@ textarea {
   }
 }
 
+// no photo (plan 6b finish review): a small category tile, not a 180 px block of colour on the glass
+.gallery.no-photo .tile {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+}
+
 .strip {
   display: flex;
   gap: 8px;

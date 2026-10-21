@@ -701,6 +701,18 @@ $beside: calc(#{$panel} + 40px); // the panel and its two 20 px gutters
   height: min(var(--h), 96px);
 }
 
+// the summary pill and locate would show through the sheet's glass: they step away like the dock
+:host.sheet-open .summary.glass,
+:host.sheet-open .controls:not(.glass) {
+  visibility: hidden;
+}
+
+// the panel or sheet already shows the title: the selected beacon drops its label
+:host.sheet-open ::ng-deep .beacon:has(.disc.selected) .lbl,
+:host.with-panel ::ng-deep .beacon:has(.disc.selected) .lbl {
+  display: none;
+}
+
 // the sheet's own ground is clear; its scrolling layer is the glass
 ion-modal.detail-sheet {
   --border-radius: 26px 26px 0 0;

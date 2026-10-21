@@ -93,9 +93,15 @@
   }
 }
 
-// the field starts after the brand mark, where the pill's icon was (measured: 53 px in from the card's edge)
+// the field starts after the brand mark, where the pill's icon was (measured: 53 px in from the card's edge); the
+// card is 46 px tall like the bar (its 1 px rim included)
 .box.phone .field {
-  padding-left: 53px;
+  min-height: 44px;
+  padding-left: 52px;
+
+  input {
+    height: 40px;
+  }
 }
 
 .field {

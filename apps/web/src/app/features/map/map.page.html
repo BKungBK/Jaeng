@@ -59,7 +59,10 @@
 
   <app-report-fab class="fab" [class.beside]="panelOpen()" style="--i: 4" />
 } @else {
-  <header class="bar glass" [class.searching]="searching()" style="--i: 0">
+  <header class="bar" [class.searching]="searching()" style="--i: 0">
+    <!-- the bar's glass is a layer beside its contents, not the bar itself: the search card that opens in the bar's
+         place is glass too, and a glass element inside a glass element cannot blur the map behind it -->
+    <span class="bar-glass glass" aria-hidden="true"></span>
     <ng-container *ngTemplateOutlet="mark" />
     <app-search-box [collapsed]="true" (place)="flyToPlace($event)" (report)="openReport($event)" (opened)="searching.set($event)" />
   </header>

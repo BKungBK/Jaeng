@@ -140,26 +140,34 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   border-radius: 23px;
 
   app-search-box {
+    position: relative;
+    z-index: 1;
     flex: 1;
+  }
+
+  > .mark {
+    position: relative;
+    z-index: 1;
   }
 }
 
-// while the search card is open the bar gives up its glass (a blurred parent would trap the
-// card's own blur and its fixed position) and everything but the card steps aside
-.bar.searching {
-  background: none;
-  border-color: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+// the bar's glass: a layer behind its contents
+.bar-glass {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: 23px;
+  pointer-events: none;
+}
 
-  &::after {
+// while the search card is open it takes the bar's place (same box, same glass) and the bar's own layer steps
+// aside, so the two are never stacked; the brand mark stays where it was, above the card: the bar opens in place
+.bar.searching {
+  .bar-glass {
     visibility: hidden;
   }
 
-  // the brand mark stays where it was, above the card that takes the bar's place: the bar opens in place
   > .mark {
-    position: relative;
     z-index: 9;
   }
 }

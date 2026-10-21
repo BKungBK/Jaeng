@@ -25,6 +25,12 @@ docker compose exec -T web npx ng build --configuration android
 # the address the app starts with, next to index.html (the app reads it when the reader has saved none)
 printf '{"server":"%s"}\n' "$server" > apps/web/www-android/server.json
 
+# the launcher icon and splash are generated from apps/web/resources (drawn by
+# apps/web/scripts/build-app-icons.mjs) and committed; redo them only when the drawings are newer
+if [ apps/web/resources/icon-only.png -nt apps/web/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png ]; then
+  docker compose exec -T web npx @capacitor/assets generate --android
+fi
+
 docker compose exec -T web npx cap sync android
 
 # Gradle includes the Capacitor plugins' native projects from ../node_modules, which lives in the web

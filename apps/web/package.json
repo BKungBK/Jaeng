@@ -45,6 +45,7 @@
     "@angular/cli": "22.1.8",
     "@angular/compiler-cli": "22.1.7",
     "@angular/language-service": "22.1.7",
+    "@capacitor/assets": "3.0.5",
     "@capacitor/cli": "8.5.3",
     "@ionic/angular-toolkit": "^13.0.0",
     "@types/earcut": "3.0.0",

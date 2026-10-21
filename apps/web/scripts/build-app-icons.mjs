@@ -2,7 +2,7 @@
 // a cream ground, a soft yellow light beam rising from the pin, and a white disc ringed in Trust Blue
 // at its top. Everything sits inside the central 80% so the maskable icon survives any mask.
 // Run in the web container: docker compose exec -T web node scripts/build-app-icons.mjs
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
 
@@ -40,27 +40,37 @@ function mix(a, b, p) {
   return a.map((c, i) => c * p + b[i] * (1 - p));
 }
 
-function draw(size, k) {
+/** The drawing at `size` px. `frac` is how much of the side the 512-unit design takes (the rest is ground);
+ *  `ss` the supersampling per axis. */
+function draw(size, k, { frac = 1, ss = SS } = {}) {
   const png = new PNG({ width: size, height: size });
-  const unit = 512 / size;
+  const unit = 512 / (size * frac);
+  const origin = 256 - (size / 2) * unit; // design units at pixel 0
   for (let py = 0; py < size; py++) {
     for (let px = 0; px < size; px++) {
       const acc = [0, 0, 0];
-      for (let sy = 0; sy < SS; sy++) {
-        for (let sx = 0; sx < SS; sx++) {
-          const c = shade((px + (sx + 0.5) / SS) * unit, (py + (sy + 0.5) / SS) * unit, k);
+      for (let sy = 0; sy < ss; sy++) {
+        for (let sx = 0; sx < ss; sx++) {
+          const c = shade(origin + (px + (sx + 0.5) / ss) * unit, origin + (py + (sy + 0.5) / ss) * unit, k);
           acc[0] += c[0];
           acc[1] += c[1];
           acc[2] += c[2];
         }
       }
       const i = (size * py + px) * 4;
-      png.data[i] = Math.round(acc[0] / SS / SS);
-      png.data[i + 1] = Math.round(acc[1] / SS / SS);
-      png.data[i + 2] = Math.round(acc[2] / SS / SS);
+      png.data[i] = Math.round(acc[0] / ss / ss);
+      png.data[i + 1] = Math.round(acc[1] / ss / ss);
+      png.data[i + 2] = Math.round(acc[2] / ss / ss);
       png.data[i + 3] = 255;
     }
   }
+  return PNG.sync.write(png);
+}
+
+/** A flat colour, for the adaptive icon's background layer. */
+function flat(size, [r, g, b]) {
+  const png = new PNG({ width: size, height: size });
+  for (let i = 0; i < size * size * 4; i += 4) png.data.set([r, g, b, 255], i);
   return PNG.sync.write(png);
 }
 
@@ -71,4 +81,19 @@ for (const [name, size, k] of [
 ]) {
   writeFileSync(OUT + name, draw(size, k));
   console.log('wrote', name);
+}
+
+// The Android launcher and splash (plan 7) are generated from these by @capacitor/assets (build-apk.sh).
+// The adaptive icon shows only the middle 61% of its foreground (66 of 108 dp), so the foreground is
+// drawn small on the same cream as its background layer; the splash is the icon at 30% on cream.
+const RES = fileURLToPath(new URL('../resources/', import.meta.url));
+mkdirSync(RES, { recursive: true });
+for (const [name, data] of [
+  ['icon-only.png', draw(1024, 1)],
+  ['icon-foreground.png', draw(1024, 0.6)],
+  ['icon-background.png', flat(1024, CREAM)],
+  ['splash.png', draw(2732, 1, { frac: 0.3, ss: 2 })],
+]) {
+  writeFileSync(RES + name, data);
+  console.log('wrote resources/' + name);
 }

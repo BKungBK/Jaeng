@@ -52,6 +52,29 @@ describe('app icon', () => {
   });
 });
 
+describe('Android launcher resources (plan 7)', () => {
+  const size = (file: string) => {
+    const png = PNG.sync.read(read(file));
+    return `${png.width}x${png.height}`;
+  };
+
+  it('has the icon layers and the splash for @capacitor/assets at their sizes', () => {
+    expect(size('resources/icon-only.png')).toBe('1024x1024');
+    expect(size('resources/icon-foreground.png')).toBe('1024x1024');
+    expect(size('resources/icon-background.png')).toBe('1024x1024');
+    expect(size('resources/splash.png')).toBe('2732x2732');
+  });
+
+  it('draws the splash as the icon on cream: cream at the corner, the white disc in the middle', () => {
+    const png = PNG.sync.read(read('resources/splash.png'));
+    const px = (x: number, y: number) => [...png.data.subarray((png.width * y + x) * 4, (png.width * y + x) * 4 + 3)];
+    expect(px(0, 0)).toEqual([0xfb, 0xf7, 0xf2]);
+    // the disc centre is at design (256, 186): 30% of the side, 256 units = the middle
+    const scale = (2732 * 0.3) / 512;
+    expect(px(1366, Math.round(1366 + (186 - 256) * scale))).toEqual([0xff, 0xff, 0xff]);
+  });
+});
+
 describe('service worker', () => {
   it('stays off in the APK, where the page is local and the worker would cache a stale bundle', () => {
     const main = readFileSync(resolve(web, 'src/main.ts'), 'utf8');

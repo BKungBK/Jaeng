@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal } from '@angular/core';
 import { DangerLevel, LEVELS } from '@jaeng/shared/levels';
 import { FilterState } from '../../core/filter-state.service';
 import { I18nService } from '../../core/i18n.service';
@@ -15,35 +15,39 @@ import { LevelShapeComponent } from './level-shape';
   imports: [LevelShapeComponent, TPipe, IconComponent, FiltersPanelComponent],
   template: `
     <div class="chips">
-      <div class="levels" role="group" [attr.aria-label]="'map.filterGroup' | t">
-        @for (l of levelsInfo; track l.level) {
-          <button
-            type="button"
-            class="chip"
-            [style.--c]="l.color"
-            [class.back]="backOn() === l.level"
-            [attr.aria-pressed]="filters.levels().includes(l.level)"
-            (click)="toggle(l.level)"
-          >
-            <app-level-shape [level]="l.level" />
-            <span class="lbl">{{ i18n.levelName(l.level) }}</span>
-          </button>
-        }
-      </div>
-      @let n = filters.extraCount();
-      <button
-        type="button"
-        class="more"
-        aria-haspopup="dialog"
-        [attr.aria-expanded]="panelOpen()"
-        [attr.aria-label]="n ? ('filters.buttonOn' | t: { n }) : ('filters.button' | t)"
-        (click)="panelOpen.set(!panelOpen())"
-      >
-        <app-icon name="slidersHorizontal" [size]="20" />
-        @if (n) {
-          <span class="count" aria-hidden="true">{{ n }}</span>
-        }
-      </button>
+      @if (part() !== 'more') {
+        <div class="levels" role="group" [attr.aria-label]="'map.filterGroup' | t">
+          @for (l of levelsInfo; track l.level) {
+            <button
+              type="button"
+              class="chip"
+              [style.--c]="l.color"
+              [class.back]="backOn() === l.level"
+              [attr.aria-pressed]="filters.levels().includes(l.level)"
+              (click)="toggle(l.level)"
+            >
+              <app-level-shape [level]="l.level" />
+              <span class="lbl">{{ i18n.levelName(l.level) }}</span>
+            </button>
+          }
+        </div>
+      }
+      @if (part() !== 'chips') {
+        @let n = filters.extraCount();
+        <button
+          type="button"
+          class="more"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="panelOpen()"
+          [attr.aria-label]="n ? ('filters.buttonOn' | t: { n }) : ('filters.button' | t)"
+          (click)="panelOpen.set(!panelOpen())"
+        >
+          <app-icon name="slidersHorizontal" [size]="20" />
+          @if (n) {
+            <span class="count" aria-hidden="true">{{ n }}</span>
+          }
+        </button>
+      }
     </div>
     @if (panelOpen()) {
       <app-filters-panel (closed)="closePanel()" />
@@ -229,30 +233,39 @@ import { LevelShapeComponent } from './level-shape';
         right: -3px;
       }
     }
-    /* narrow phones: the chips share the row evenly; a longer language that does not fit slides sideways */
+    /* narrow phones: the chips share the row evenly and never scroll sideways: a language whose words do not
+       fit in one row lets the last chip drop to a second row */
     @media (max-width: 419px) {
       .levels {
         display: flex;
         flex: 1;
         min-width: 0;
-        flex-wrap: nowrap;
-        gap: 5px;
-        padding: 0 3px; /* room for the focus ring at both ends */
-        overflow-x: auto;
-        scrollbar-width: none;
-        overscroll-behavior-x: contain;
-      }
-      .levels::-webkit-scrollbar {
-        display: none;
+        flex-wrap: wrap;
+        gap: 0 5px;
       }
       .levels .chip {
         flex: 1 1 auto;
+      }
+    }
+    @media (max-width: 379px) {
+      .chip {
+        padding: 0 8px;
+      }
+    }
+    /* English words are wider than Thai: a size down keeps the four in one row (measured: 333 px of a 343 px row) */
+    @media (max-width: 419px) {
+      .levels:lang(en) .chip {
+        padding: 0 8px;
+        font-size: 12px;
       }
     }
   `,
   host: { '[class.open]': 'panelOpen()', '(document:pointerdown)': 'onPressAnywhere($event)' },
 })
 export class FilterBarComponent {
+  /** a page may seat the two halves apart: 'chips' is the four level chips, 'more' the more-filters button
+   *  (and its panel), 'all' both in one row */
+  readonly part = input<'all' | 'chips' | 'more'>('all');
   protected readonly filters = inject(FilterState);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly panelOpen = signal(false);

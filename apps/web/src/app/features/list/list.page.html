@@ -1,17 +1,19 @@
 <app-backdrop />
-<div class="scroller">
-  <main class="card glass">
+<div class="scroller" #scroller (scroll)="measure()">
+  <main class="card glass" #card>
     <header class="head">
       <div class="titles">
         <h1 tabindex="-1">{{ 'list.title' | t }}</h1>
         <p class="caption caption-count">{{ (whole() ? 'list.country' : 'list.inView') | t: { n: count() } }}</p>
       </div>
+      <!-- the more-filters button stands beside the close x, so the four chips have the whole row -->
+      <app-filter-bar part="more" />
       <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
         <app-icon name="x" [size]="22" />
       </button>
     </header>
 
-    <app-filter-bar />
+    <app-filter-bar part="chips" />
 
     <div class="sorts">
       <p class="caption" id="list-sort-label">{{ 'list.sortBy' | t }}</p>
@@ -118,3 +120,11 @@
     }
   </main>
 </div>
+
+<!-- the page has no scroll bar: while there is more below, a glass pill says so and takes you down a screen -->
+@if (moreBelow()) {
+  <button type="button" class="cue glass dense" [attr.aria-label]="'list.scrollMore' | t" (click)="scrollDown()">
+    <app-icon name="chevronDown" [size]="20" />
+    <span aria-hidden="true">{{ 'list.scrollMore' | t }}</span>
+  </button>
+}

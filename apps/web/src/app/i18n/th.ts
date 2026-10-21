@@ -119,6 +119,7 @@ export const th = {
     wholeCountry: 'ดูทั้งประเทศ',
     failed: 'โหลดรายการไม่สำเร็จ',
     more: 'ดูเพิ่มอีก',
+    scrollMore: 'เลื่อนดูเพิ่ม',
     unitM: 'ม.',
     unitKm: 'กม.',
   },

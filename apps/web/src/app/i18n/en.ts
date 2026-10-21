@@ -120,6 +120,7 @@ export const en: Messages = {
     wholeCountry: 'Show all of Thailand',
     failed: "Couldn't load the list.",
     more: 'Show more',
+    scrollMore: 'Scroll for more',
     unitM: 'm',
     unitKm: 'km',
   },

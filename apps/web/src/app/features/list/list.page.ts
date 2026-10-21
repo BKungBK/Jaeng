@@ -1,5 +1,18 @@
 import { BackdropComponent } from '../../shared/backdrop.component';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, signal, untracked } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { THAILAND_BBOX } from '@jaeng/shared/report';
 import { DeviceService, type LngLat } from '../../core/device.service';
@@ -96,10 +109,45 @@ export class ListPage {
         if (this.rows().length <= LIST_PAGE) void this.load(0, true);
       }, LIST_LIVE_DEBOUNCE_MS);
     });
-    inject(DestroyRef).onDestroy(() => {
+    const destroyRef = inject(DestroyRef);
+    const injector = inject(Injector);
+    // rows arrive or go: look again once they are drawn
+    effect(() => {
+      this.rows();
+      this.state();
+      this.loadingMore();
+      this.filters.showResolved();
+      afterNextRender(() => this.measure(), { injector });
+    });
+    // the phone turns, a font loads: the page's height changes without any of the above
+    afterNextRender(() => {
+      if (typeof ResizeObserver === 'undefined') return;
+      const watch = new ResizeObserver(() => this.measure());
+      const s = this.scroller()?.nativeElement;
+      const c = this.card()?.nativeElement;
+      if (s) watch.observe(s);
+      if (c) watch.observe(c);
+      destroyRef.onDestroy(() => watch.disconnect());
+    });
+    destroyRef.onDestroy(() => {
       stop();
       clearTimeout(this.liveTimer);
     });
+  }
+
+  /** more of the page lies below the fold: shows the "scroll for more" pill (the page itself has no scroll bar) */
+  protected readonly moreBelow = signal(false);
+  private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
+  private readonly card = viewChild<ElementRef<HTMLElement>>('card');
+
+  protected measure() {
+    const el = this.scroller()?.nativeElement;
+    if (el) this.moreBelow.set(el.scrollHeight - el.scrollTop - el.clientHeight > 24);
+  }
+
+  protected scrollDown() {
+    const el = this.scroller()?.nativeElement;
+    el?.scrollBy({ top: Math.round(el.clientHeight * 0.8), behavior: 'smooth' });
   }
 
   ionViewDidEnter() {

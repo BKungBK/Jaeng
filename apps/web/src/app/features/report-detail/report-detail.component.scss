@@ -64,6 +64,35 @@ textarea {
   right: 20px;
 }
 
+// the loaded report, and a new one replacing the old: the content comes in as a fade (the glass stays put)
+.ready {
+  display: grid;
+  gap: 12px;
+  animation: ready-in 240ms var(--ease) backwards;
+}
+
+@keyframes ready-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// skeleton lines under the grey picture while the report loads
+.lines {
+  display: grid;
+  gap: 10px;
+
+  i {
+    display: block;
+    height: 16px;
+    border-radius: 8px;
+
+    &.short {
+      width: 60%;
+    }
+  }
+}
+
 // ---- gallery ----
 .gallery {
   --c: var(--line);
@@ -78,7 +107,7 @@ textarea {
   background: color-mix(in srgb, var(--c) 45%, #fff);
   color: $slate;
 
-  &.wait {
+  &.wait:not(.skel) {
     background: var(--bg);
   }
 }
@@ -118,8 +147,14 @@ textarea {
   height: 180px;
   overflow: hidden;
   border-radius: 12px;
+  // the shimmer waits behind the picture and stops once it has arrived
   background: var(--bg);
   scroll-snap-align: start;
+
+  &:not(:has(img[data-loaded])) {
+    background: linear-gradient(100deg, var(--bg) 30%, color-mix(in srgb, var(--ink) 9%, var(--bg)) 50%, var(--bg) 70%) 150% 0 / 300% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
 
   .single & {
     flex-basis: 100%;
@@ -392,6 +427,12 @@ h2 {
 
 .status {
   color: var(--ink);
+
+  app-tick {
+    margin-right: 6px;
+    vertical-align: -3px;
+    color: var(--pri);
+  }
 }
 
 .retry {
@@ -460,6 +501,30 @@ h3 {
   margin-top: 8px;
 }
 
+// a comment that arrives while the report is open (ours, or live from someone else): it slides in from
+// below and its ground glows for a moment. Padding and the negative margin cancel, so nothing moves.
+li.fresh {
+  margin: -6px -8px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  animation:
+    comment-in 380ms var(--ease) backwards,
+    comment-glow 1200ms ease-out;
+}
+
+@keyframes comment-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes comment-glow {
+  from {
+    background-color: color-mix(in srgb, var(--pri) 14%, transparent);
+  }
+}
+
 .badge {
   padding: 0 8px;
   border: 1px solid var(--line);
@@ -518,6 +583,28 @@ h3 {
     color: var(--ink2);
     font-size: 13px;
     font-variant-numeric: tabular-nums;
+  }
+
+  // sent: the plane leaves to the upper right and a new one comes back from the lower left; the counter settles
+  &[data-fx='sent'] {
+    .send app-icon {
+      animation: send-fly 520ms var(--ease);
+    }
+
+    .count {
+      animation: settle var(--pop-dur) var(--pop) backwards;
+    }
+  }
+}
+
+@keyframes send-fly {
+  40% {
+    opacity: 0;
+    transform: translate(12px, -12px);
+  }
+  41% {
+    opacity: 0;
+    transform: translate(-12px, 12px);
   }
 }
 

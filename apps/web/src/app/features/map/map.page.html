@@ -112,9 +112,9 @@
 
 <!-- the report detail: a right panel from 820 px, a bottom sheet that still lets the map pan below -->
 @if (wide()) {
-  @if (id(); as rid) {
+  @if (panelId(); as rid) {
     <!-- the glass stays put while its inner layer scrolls, so the grain covers the whole panel -->
-    <aside class="panel glass dense" role="dialog" aria-labelledby="report-detail-title">
+    <aside #panelEl class="panel glass dense" [class.leaving]="panelLeaving() !== null" role="dialog" aria-labelledby="report-detail-title">
       <div class="panel-scroll">
         <app-report-detail
           [reportId]="rid"

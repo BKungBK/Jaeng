@@ -4,22 +4,26 @@
 
 @switch (state()) {
   @case ('loading') {
-    <div class="gallery"><div class="tile wait"></div></div>
-    <p class="note">{{ 'detail.loading' | t }}</p>
+    <!-- skeleton shapes for the eye; the words stay for the screen reader, and are the dialog's name meanwhile -->
+    <div class="gallery"><div class="tile wait skel"></div></div>
+    <div class="lines" aria-hidden="true"><i class="skel"></i><i class="skel short"></i><i class="skel"></i></div>
+    <p class="note sr-only" id="report-detail-title" role="status">{{ 'detail.loading' | t }}</p>
   }
   @case ('error') {
     <div class="gallery"><div class="tile wait"></div></div>
-    <p class="note" role="status">{{ i18n.say(message()) }}</p>
+    <p class="note" id="report-detail-title" role="status">{{ i18n.say(message()) }}</p>
     <button type="button" class="btn retry" (click)="retry()">{{ 'common.tryAgain' | t }}</button>
   }
   @case ('ready') {
     @if (detail(); as d) {
+     <div class="ready">
       <div class="gallery" [class.no-photo]="!d.photos.length" [style.--c]="level(d).color">
         @if (d.photos.length) {
           <ul class="strip" [class.single]="d.photos.length === 1" [attr.aria-label]="'detail.photos' | t">
             @for (p of d.photos; track p.path; let i = $index) {
               <li class="shot">
                 <img
+                  appFadeIn
                   [src]="photoUrl(p.path)"
                   [attr.alt]="'detail.photoAlt' | t: { kind: kind(p.kind), n: i + 1 }"
                   [attr.width]="p.width"
@@ -120,14 +124,14 @@
           </button>
         </div>
       }
-      <p class="status" role="status">{{ i18n.say(message()) }}</p>
+      <p class="status" role="status">@if (thanks()) {<app-tick [size]="18" />}{{ i18n.say(message()) }}</p>
 
       <section class="comments" aria-labelledby="report-comments-title">
         <h3 id="report-comments-title">{{ 'detail.comments' | t: { n: d.comment_count } }}</h3>
         @if (comments().length) {
           <ul>
             @for (c of comments(); track c.id) {
-              <li>
+              <li [class.fresh]="isFresh(c.id)">
                 <p class="who">
                   <strong>{{ c.author_name ?? ('common.anonymous' | t) }}</strong>
                   @if (c.by_reporter) {
@@ -153,7 +157,7 @@
         }
 
         @if (auth.signedIn()) {
-          <form class="composer" (submit)="$event.preventDefault(); send()">
+          <form class="composer" [attr.data-fx]="sentFx() ? 'sent' : null" (submit)="$event.preventDefault(); send()">
             <textarea
               rows="3"
               [attr.aria-label]="'detail.write' | t"
@@ -178,6 +182,7 @@
           </button>
         }
       </section>
+     </div>
     }
   }
 }

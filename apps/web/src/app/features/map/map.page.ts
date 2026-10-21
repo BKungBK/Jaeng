@@ -4,6 +4,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  InjectionToken,
   afterNextRender,
   computed,
   effect,
@@ -26,7 +27,7 @@ import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { MapViewService } from '../../core/map-view.service';
-import { FIT, FLY } from '../../core/motion';
+import { FIT, FLY, leave, unleave } from '../../core/motion';
 import type { MessageKey } from '../../i18n/keys';
 import { LanguageToggleComponent } from '../../shared/language-toggle.component';
 import { RealtimeService } from '../../core/realtime.service';
@@ -66,6 +67,13 @@ const IN_VIEW = 3;
  *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
 const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
 const TOAST_MS = 3200;
+/** The wide panel slides out 16 px sideways while it fades (plan 8). */
+const PANEL_LEAVE_MS = 200;
+/** How the wide panel leaves (an injection point so a test can hold the exit open). */
+export const PANEL_EXIT = new InjectionToken<(el: HTMLElement, ms: number, to: { x?: number; y?: number }) => Promise<void>>('PANEL_EXIT', {
+  providedIn: 'root',
+  factory: () => leave,
+});
 /** A toast with a button stays long enough to reach the button. */
 const ACTION_TOAST_MS = 8000;
 
@@ -161,6 +169,15 @@ export class MapPage {
   /** the side panel's top reports of the loaded view, and how many the view holds */
   readonly inView = signal<ReportProps[]>([]);
   readonly inViewCount = signal(0);
+  /** The id of the wide panel while it plays its way out (the URL is already `/`), else null. */
+  readonly panelLeaving = signal<string | null>(null);
+  private panelEl = viewChild<ElementRef<HTMLElement>>('panelEl');
+  private exitPanel = inject(PANEL_EXIT);
+  /** The wide panel keeps its report while it leaves; a report opened meanwhile takes the same panel over. */
+  protected readonly panelId = linkedSignal<{ id: string | undefined; leaving: string | null }, string | undefined>({
+    source: () => ({ id: this.id(), leaving: this.panelLeaving() }),
+    computation: (s, prev) => s.id ?? (s.leaving ? prev?.value : undefined),
+  });
   /** The sheet keeps showing its report while it slides away after the URL went back to `/`. */
   protected readonly sheetId = linkedSignal<string | undefined, string | undefined>({
     source: this.id,
@@ -229,6 +246,12 @@ export class MapPage {
     this.fromClick = !!id && this.clicked?.id === id;
     this.pendingFly = null;
     if (id !== this.closing) this.closing = undefined;
+    // another report was opened while the panel was still leaving: it stays, shown again at once
+    if (id && this.panelLeaving()) {
+      this.panelLeaving.set(null);
+      const el = this.panelEl()?.nativeElement;
+      if (el) unleave(el);
+    }
   }
 
   /** The panel loaded its report (`loaded`). */
@@ -413,11 +436,25 @@ export class MapPage {
     this.closing = id;
     this.clicked = null; // Back to /r/:id later is a link, not this click
     this.beacons?.setSelected(null);
-    void this.router.navigate(['/']).then(() => {
+    void this.leavePanel(id);
+    void this.router.navigate(['/']).then((ok) => {
       if (this.destroyed) return;
+      if (!ok) {
+        this.closing = undefined; // the navigation did not happen: the report is still open and can be closed again
+        return;
+      }
       if (this.beacons?.focus(id)) return;
       this.map?.getCanvas().focus();
     });
+  }
+
+  /** The wide panel plays its exit while the URL is already back at `/`; the sheet has Ionic's own. */
+  private async leavePanel(id: string) {
+    const el = this.panelEl()?.nativeElement;
+    if (!this.wide() || !el) return;
+    this.panelLeaving.set(id);
+    await this.exitPanel(el, PANEL_LEAVE_MS, { x: 16 });
+    if (this.panelLeaving() === id) this.panelLeaving.set(null); // done: the panel is gone with the id
   }
 
   scheduleLoad(delay = LOAD_DEBOUNCE_MS) {

@@ -164,6 +164,21 @@ describe('ReportDetailComponent', () => {
     expect(out.loaded).toHaveBeenCalledWith(expect.objectContaining({ id: ID, lng: 100.5 }));
   });
 
+  it('names the dialog while it loads (a skeleton for the eye, the words for the screen reader) and fades the content in', async () => {
+    const first = deferred<ReportDetail | null>();
+    const { fixture, root, svc, settle } = await setup();
+    svc.get.mockReturnValue(first.promise);
+    fixture.componentRef.setInput('reportId', 'other');
+    fixture.detectChanges();
+    expect(root.querySelector('#report-detail-title')?.textContent).toContain('กำลังเปิดเรื่องนี้');
+    expect(root.querySelectorAll('.skel').length).toBeGreaterThan(0);
+    first.resolve(detail({ id: 'other', title: 'เรื่องใหม่' }));
+    await settle();
+    expect(root.querySelector('#report-detail-title')?.textContent?.trim()).toBe('เรื่องใหม่');
+    expect(root.querySelectorAll('#report-detail-title')).toHaveLength(1);
+    expect(root.querySelector('.ready')).not.toBeNull();
+  });
+
   it('shows the level with its shape, the category, the status and the age', async () => {
     const { root } = await setup();
     const tags = root.querySelector('.tags')!;
@@ -445,6 +460,20 @@ describe('ReportDetailComponent', () => {
       expect(items[1].textContent).toContain('ฝากแจ้งเขตด้วยนะ');
       expect(root.querySelector<HTMLTextAreaElement>('.composer textarea')!.value).toBe('');
       expect(out.changed).toHaveBeenCalledWith(sig({ comment_count: 2 }));
+    });
+
+    it('only a comment that arrives after the report opened comes in with a motion', async () => {
+      const { root, fixture, svc, settle } = await setup();
+      expect(root.querySelectorAll('.comments li.fresh')).toHaveLength(0); // the ones already there just are
+      svc.addComment.mockResolvedValue({ comment: comment({ id: 'c9', body: 'ใหม่' }), report: sig({ comment_count: 2 }) });
+      typeInto(root, 'ใหม่');
+      fixture.detectChanges();
+      sendBtn(root).click();
+      await settle();
+      const items = root.querySelectorAll('.comments li');
+      expect(items[0].classList.contains('fresh')).toBe(false);
+      expect(items[1].classList.contains('fresh')).toBe(true);
+      expect(root.querySelector('.composer')?.getAttribute('data-fx')).toBe('sent'); // the send icon flies, the counter settles
     });
 
     it('does not show the same comment twice', async () => {

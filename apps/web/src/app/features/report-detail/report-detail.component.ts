@@ -24,6 +24,7 @@ import { RealtimeService } from '../../core/realtime.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { burst } from '../../core/motion';
 import { EmergencyBoxComponent } from '../../shared/emergency-box.component';
+import { FadeInDirective } from '../../shared/fade-in.directive';
 import { IconComponent } from '../../shared/icon.component';
 import { RollComponent } from '../../shared/roll.component';
 import { TickComponent } from '../../shared/tick.component';
@@ -56,7 +57,7 @@ type OpenForm = { kind: 'fix' } | { kind: 'flag'; type: FlagTarget; id: string }
   templateUrl: 'report-detail.component.html',
   styleUrls: ['report-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe, EmergencyBoxComponent, RollComponent, TickComponent],
+  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe, EmergencyBoxComponent, RollComponent, TickComponent, FadeInDirective],
 })
 export class ReportDetailComponent {
   private svc = inject(ReportDetailService);
@@ -97,6 +98,19 @@ export class ReportDetailComponent {
     const n = this.draft().length;
     return this.draft().trim().length > 0 && n <= COMMENT_MAX && !this.sending();
   });
+  /** "thanks": the line after a fix claim or a content report went in gets a drawn tick */
+  protected readonly thanks = computed(() => {
+    const m = this.message();
+    return m === 'detail.fixSent' || m === 'detail.flagSent';
+  });
+  /** a comment was just sent: the send icon flies off and the counter settles */
+  protected readonly sentFx = signal(false);
+  private sentTimer?: ReturnType<typeof setTimeout>;
+  /** The comments that were there when the report opened: only later ones arrive with a motion. */
+  private baseline = new Set<string>();
+  private baselined = false;
+
+  protected isFresh = (id: string) => this.baselined && !this.baseline.has(id);
 
   /** Bumped on every load so a slow answer for a previous report is dropped. */
   private seq = 0;
@@ -113,6 +127,7 @@ export class ReportDetailComponent {
     inject(DestroyRef).onDestroy(() => {
       stop();
       clearTimeout(this.liveTimer);
+      clearTimeout(this.sentTimer);
     });
     effect(() => {
       const id = this.reportId();
@@ -134,6 +149,8 @@ export class ReportDetailComponent {
     this.state.set('loading');
     this.detail.set(null);
     this.comments.set([]);
+    this.baseline = new Set();
+    this.baselined = false;
     this.confirmed.set(false);
     this.fx.set(null);
     this.message.set(null);
@@ -169,12 +186,15 @@ export class ReportDetailComponent {
     try {
       const list = await this.svc.comments(id);
       if (seq !== this.seq) return;
+      if (!this.baselined) this.baseline = new Set(list.map((c) => c.id));
       this.comments.update((have) => {
         const ids = new Set(list.map((c) => c.id));
         return [...list, ...have.filter((c) => !ids.has(c.id))];
       });
     } catch {
       // the report is still worth showing without its comments
+    } finally {
+      if (seq === this.seq) this.baselined = true;
     }
   }
 
@@ -266,6 +286,9 @@ export class ReportDetailComponent {
       this.comments.update((list) => (list.some((c) => c.id === res.comment.id) ? list : [...list, res.comment]));
       this.draft.set('');
       this.apply(res.report);
+      this.sentFx.set(true);
+      clearTimeout(this.sentTimer);
+      this.sentTimer = setTimeout(() => this.sentFx.set(false), 700);
     } catch (e) {
       if (seq === this.seq) this.message.set({ error: e });
     } finally {

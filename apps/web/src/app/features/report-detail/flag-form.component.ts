@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { FLAG_REASONS, NOTE_MAX, type FlagBody, type FlagReason, type FlagTarget } from '@jaeng/shared/admin';
 import { I18nService, type Said } from '../../core/i18n.service';
+import { collapse } from '../../core/motion';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { TickComponent } from '../../shared/tick.component';
@@ -25,7 +26,7 @@ import { ReportDetailService } from './report-detail.service';
   imports: [IconComponent, TickComponent, TPipe],
   styleUrls: ['inline-form.scss', 'flag-form.component.scss'],
   template: `
-    <form (submit)="$event.preventDefault(); submit()">
+    <form #form (submit)="$event.preventDefault(); submit()">
       <h3 #heading tabindex="-1" [id]="headingId">{{ (target().type === 'report' ? 'flagForm.report' : 'flagForm.comment') | t }}</h3>
       <p class="lede">{{ 'flagForm.lede' | t }}</p>
       <div class="reasons" role="radiogroup" [attr.aria-labelledby]="headingId">
@@ -72,6 +73,7 @@ export class FlagFormComponent implements AfterViewInit {
   private static seq = 0;
   private svc = inject(ReportDetailService);
   private heading = viewChild.required<ElementRef<HTMLElement>>('heading');
+  private form = viewChild.required<ElementRef<HTMLElement>>('form');
 
   readonly target = input.required<{ type: FlagTarget; id: string }>();
   readonly done = output<void>();
@@ -102,6 +104,7 @@ export class FlagFormComponent implements AfterViewInit {
       const note = this.note().trim();
       if (note) body.note = note;
       await this.svc.flag(body);
+      await collapse(this.form().nativeElement); // the form folds away, then the thanks takes its place
       this.done.emit();
     } catch (e) {
       this.error.set({ error: e });

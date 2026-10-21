@@ -58,10 +58,21 @@ export function burst(host: HTMLElement, opts: { count?: number; radius?: number
   }
 }
 
-/** An element leaving: fades and drops 6 px (faster than it came in), then resolves. Remove it afterwards. */
-export async function leave(el: HTMLElement, ms = 180): Promise<void> {
+/**
+ * An element leaving: fades and drops 6 px (faster than it came in), then resolves. Remove it afterwards.
+ * `to` says where it goes instead (a panel slides 16 px sideways). The animation is committed to the
+ * element's style when it ends, so a caller that keeps the element must call `unleave`.
+ */
+export async function leave(el: HTMLElement, ms = 180, to: { x?: number; y?: number } = { y: 6 }): Promise<void> {
   if (!canAnimate(el)) return;
-  await animate(el, { opacity: [1, 0], y: [0, 6] }, { duration: ms / 1000, ease: 'easeIn' }).finished;
+  await animate(el, { opacity: [1, 0], x: [0, to.x ?? 0], y: [0, to.y ?? 0] }, { duration: ms / 1000, ease: 'easeIn' }).finished;
+}
+
+/** Undo a `leave` that was interrupted (the element stays and shows again): stops it and clears what it left. */
+export function unleave(el: HTMLElement): void {
+  if (typeof el.getAnimations === 'function') for (const a of el.getAnimations()) a.cancel();
+  el.style.opacity = '';
+  el.style.transform = '';
 }
 
 /** A row folding away: height, margins and padding go to 0 as it fades, so what is below slides up. */

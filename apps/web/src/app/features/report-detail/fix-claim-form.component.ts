@@ -16,6 +16,7 @@ import type { ReportSignal } from '@jaeng/shared/api';
 import { NOTE_MAX } from '@jaeng/shared/admin';
 import { ApiError } from '../../core/api.service';
 import { DeviceService } from '../../core/device.service';
+import { collapse } from '../../core/motion';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
@@ -72,7 +73,7 @@ const STALE = new Set(['claim_pending', 'already_resolved', 'report_not_found'])
     }
   `,
   template: `
-    <form (submit)="$event.preventDefault(); submit()">
+    <form #form (submit)="$event.preventDefault(); submit()">
       <h3 #heading tabindex="-1">{{ 'fixForm.title' | t }}</h3>
       <p class="lede">{{ 'fixForm.lede' | t }}</p>
 
@@ -123,6 +124,7 @@ export class FixClaimFormComponent implements AfterViewInit {
   private svc = inject(ReportDetailService);
   private device = inject(DeviceService);
   private heading = viewChild.required<ElementRef<HTMLElement>>('heading');
+  private form = viewChild.required<ElementRef<HTMLElement>>('form');
 
   readonly reportId = input.required<string>();
   readonly done = output<ReportSignal>();
@@ -195,6 +197,7 @@ export class FixClaimFormComponent implements AfterViewInit {
       const note = this.note().trim();
       if (note) body.note = note;
       const res = await this.svc.claimFix(this.reportId(), body);
+      await collapse(this.form().nativeElement); // the form folds away, then the thanks takes its place
       this.done.emit(res.report);
     } catch (e) {
       if (e instanceof ApiError && STALE.has(e.code)) {

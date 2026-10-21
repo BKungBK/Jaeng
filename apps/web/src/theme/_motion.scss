@@ -94,6 +94,31 @@
   pointer-events: none;
 }
 
+// a picture arriving (shared/fade-in.directive.ts): out of a blur, once it has loaded
+img[appFadeIn] {
+  opacity: 0;
+  filter: blur(8px);
+  transition:
+    opacity 420ms var(--ease),
+    filter 420ms var(--ease);
+
+  &[data-loaded] {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+// a placeholder waiting for its content: a soft band sweeping over the shape. It loops only while the
+// thing it stands for is not there; whoever shows it removes it (or `[data-still]`) when the content arrives.
+.skel {
+  background: linear-gradient(100deg, var(--bg) 30%, color-mix(in srgb, var(--ink) 9%, var(--bg)) 50%, var(--bg) 70%) 150% 0 / 300% 100%;
+  animation: shimmer 1.4s linear infinite;
+
+  &[data-still] {
+    animation: none;
+  }
+}
+
 // view transitions (core/motion.ts viewTransition): the old look stays, the new one fades in over it,
 // or, for a theme switch from a button, grows as a circle from that button
 ::view-transition-old(root),

@@ -16,7 +16,7 @@ import { By } from '@angular/platform-browser';
 import { NavigationEnd, NavigationStart } from '@angular/router';
 import { Subject } from 'rxjs';
 import { MAP_FACTORY } from './map-factory';
-import { centerFor, MapPage } from './map.page';
+import { centerFor, MapPage, PANEL_EXIT } from './map.page';
 import { EMPTY_COLLECTION } from './report';
 import { ReportsService } from './reports.service';
 import { StatsService } from './stats.service';
@@ -146,7 +146,7 @@ function mockWide(wide: boolean, roomy = true) {
 
 async function setup(
   inBbox = vi.fn().mockResolvedValue(EMPTY_COLLECTION),
-  opts: { wide?: boolean; roomy?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn>; device?: unknown } = {},
+  opts: { wide?: boolean; roomy?: boolean; detail?: unknown; stats?: ReturnType<typeof vi.fn>; device?: unknown; exit?: () => Promise<void> } = {},
 ) {
   const stats = opts.stats ?? vi.fn().mockResolvedValue({ resolved_this_month: 3, open_count: 12 });
   mockWide(opts.wide ?? true, opts.roomy ?? true);
@@ -162,6 +162,8 @@ async function setup(
       { provide: StatsService, useValue: { inBbox: stats } },
       { provide: ReportDetailService, useValue: detailSvc },
       ...(opts.device ? [{ provide: DeviceService, useValue: opts.device }] : []),
+      // the wide panel's exit is over at once, unless a test holds it open
+      { provide: PANEL_EXIT, useValue: opts.exit ?? (async () => undefined) },
       ...authStubs,
     ],
   });
@@ -331,6 +333,54 @@ describe('MapPage', () => {
     expect(root.querySelector('.peek')).toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  /** a panel on screen for r1 whose exit (`leave`) stays pending until `finish()` */
+  async function leavingPanel() {
+    let finish!: () => void;
+    const s = await setup(undefined, { wide: true, exit: () => new Promise<void>((r) => (finish = r)) });
+    s.fixture.componentRef.setInput('id', 'r1');
+    await settle(s.fixture);
+    s.fixture.componentInstance.close();
+    return { ...s, finish: () => finish() };
+  }
+
+  it('wide: the panel plays its exit; it stays on screen until the exit is over (plan 8)', async () => {
+    const { fixture, root, finish, navigate } = await leavingPanel();
+    const page = fixture.componentInstance;
+    expect(navigate).toHaveBeenCalledWith(['/']);
+    expect(page.panelLeaving()).toBe('r1');
+    fixture.componentRef.setInput('id', undefined); // the URL is back at /
+    await settle(fixture);
+    expect(root.querySelector('aside.panel.leaving')).not.toBeNull();
+    finish();
+    await settle(fixture);
+    expect(page.panelLeaving()).toBeNull();
+    expect(root.querySelector('aside.panel')).toBeNull();
+  });
+
+  it('wide: opening another report while the panel leaves shows it at once, on one panel', async () => {
+    const { fixture, root } = await leavingPanel();
+    fixture.componentRef.setInput('id', undefined);
+    await settle(fixture);
+    fixture.componentRef.setInput('id', 'r2');
+    await settle(fixture);
+    expect(fixture.componentInstance.panelLeaving()).toBeNull();
+    expect(root.querySelectorAll('aside.panel')).toHaveLength(1);
+    expect(root.querySelector('aside.panel.leaving')).toBeNull();
+  });
+
+  it('can close again when the navigation to / did not happen', async () => {
+    const { fixture, navigate } = await setup(undefined, { wide: true });
+    fixture.componentRef.setInput('id', 'r1');
+    await settle(fixture);
+    navigate.mockResolvedValue(false);
+    const page = fixture.componentInstance;
+    page.close();
+    await Promise.resolve();
+    await Promise.resolve();
+    page.close();
+    expect(navigate).toHaveBeenCalledTimes(2);
   });
 
   it('Android back closes the wide detail panel, and passes the button on when nothing is open (plan 7)', async () => {

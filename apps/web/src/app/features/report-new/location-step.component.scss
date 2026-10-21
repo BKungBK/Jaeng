@@ -42,7 +42,7 @@
   }
 
   ::ng-deep svg {
-    fill: var(--surf);
+    fill: var(--warm-surf); // opaque: --surf is a translucent card inside glass
   }
 }
 
@@ -54,7 +54,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--ink);
-  box-shadow: 0 0 0 2px var(--surf);
+  box-shadow: 0 0 0 2px var(--warm-surf);
 }
 
 .zoom {

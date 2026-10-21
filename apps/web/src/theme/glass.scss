@@ -1,37 +1,82 @@
-// The one material of plan 6b: frosted, grain-textured glass. Every floating panel uses the
-// global .glass class; nothing else writes its own backdrop-filter for a panel. Values from the
-// map surface brief's direction contract and .impeccable/mocks/decision/fused-*.html.
+// The one material (plan 6b; restyled in plan 8): frosted warm-gray glass. Every floating panel uses the
+// global .glass class; nothing else writes its own backdrop-filter for a panel.
+//
+// Premium frosted glass in muted beige and taupe: translucent warm-gray panels, strong backdrop blur,
+// soft layered shadows, thin low-opacity edges, and a fine film grain that lives INSIDE the glass only
+// (the .glass::after layer), never over the map or the page. No gloss, no neon: the sheen is a faint
+// top-down light, not a highlight.
+//
+// Which surface takes which tier (DESIGN.md "Glass tiers"):
+//   .glass          float: controls that sit over the map (search bar, chips, summary pill, dock, menu
+//                   capsule, control column, side panel, locate button)
+//   .glass.card     page: the cards of /list, /me, /about, /admin, /report, /login, /server, on the backdrop
+//   .glass.dense    read: running text over the map (report detail, tooltip, toast, attribution)
+//   --glass-wash    inset: rows, inputs and chips INSIDE a panel: an ink wash, never a second blur
 
 :root {
-  // light theme: white frosted glass
-  --glass-bg: rgba(255, 255, 255, 0.58);
-  --glass-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12) 60%);
-  --glass-edge: rgba(255, 255, 255, 0.75);
-  --glass-shadow: 0 16px 36px -20px rgba(40, 40, 80, 0.45);
+  // light theme: translucent greige over the toy map and the pale backdrop
+  // not opaque, not clear: you read the map through it, softly (about 6 in 10 is glass)
+  --glass-bg: rgba(204, 193, 180, 0.58);
+  --glass-bg-card: rgba(210, 200, 188, 0.66);
   // panels of running text (report detail, sheet, toast): denser, so ink keeps 4.5:1 over bright toy land
-  --glass-bg-dense: rgba(255, 255, 255, 0.84);
+  --glass-bg-dense: rgba(221, 212, 200, 0.74);
+  // a faint light from above for depth, not a gloss
+  --glass-sheen: linear-gradient(180deg, rgba(255, 252, 247, 0.16), rgba(255, 252, 247, 0) 42%);
+  // thin and low: a hairline of light, also the divider colour inside panels
+  --glass-edge: rgba(255, 252, 246, 0.55);
+  // a hairline of light on top, an outline of shade, a close soft shadow, a long soft one
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(84, 70, 56, 0.06), 0 2px 6px rgba(84, 70, 56, 0.08),
+    0 22px 44px -22px rgba(84, 70, 56, 0.38);
+  // inside a panel: rows, inputs, chips (no blur of their own, a blur inside a blur cannot reach the map)
+  --glass-wash: color-mix(in srgb, var(--ink) 6%, transparent);
+  // what --bg and --surf become INSIDE glass: lighter, translucent cards on the panel (an inset, a raised one)
+  --glass-inset: rgba(255, 255, 255, 0.2);
+  --glass-raised: rgba(255, 255, 255, 0.34);
+  // the opaque warm tones for overlays that open over glass (popovers, menus, sheets: a blur cannot be
+  // nested, so they are solid): an inset, a raised paper, a hairline
+  --warm-bg: #e5dfd4;
+  --warm-surf: #f1ece4;
+  --warm-line: rgba(84, 70, 56, 0.16);
 
   // what the glass does to the map behind it, after the blur (dark: dims it, see below)
   --glass-dim: brightness(1);
+  --glass-blur: 28px;
 
-  // both themes
-  --glass-blur: 24px;
-  --dawn: linear-gradient(135deg, #ffe3c4 0%, #f4b49a 45%, #c9a0dc 100%);
-  --dawn-ink: #2a1f3a;
+  // the grain: warm dark specks in light, light specks in dark; only inside .glass
+  --glass-grain: var(--noise-warm);
+  --glass-grain-opacity: 0.26;
+  --glass-grain-blend: multiply;
+
+  // the accent (the brand mark, the report control, a primary action): sand into clay, matte
+  --dawn: linear-gradient(135deg, #efd8bf 0%, #dcae92 52%, #bb9c94 100%);
+  --dawn-ink: #2e231c;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --noise-warm: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .24 0 0 0 0 .19 0 0 0 0 .14 0 0 0 .75 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --font: 'Anuphan', system-ui, sans-serif;
   // native controls (checkboxes, scrollbars) follow the app's theme, not the OS one
   color-scheme: light;
 }
 
 @mixin dark-glass {
-  --glass-bg: rgba(16, 26, 54, 0.45);
-  --glass-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 60%);
-  --glass-edge: rgba(255, 255, 255, 0.13);
-  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 16px 36px -20px rgba(3, 8, 25, 0.9);
-  --glass-bg-dense: rgba(16, 26, 54, 0.8);
+  // warm charcoal-taupe, not blue: it sits over the night as a different material
+  --glass-bg: rgba(64, 55, 48, 0.6);
+  --glass-bg-card: rgba(62, 54, 48, 0.66);
+  --glass-bg-dense: rgba(52, 45, 40, 0.74);
+  --glass-sheen: linear-gradient(180deg, rgba(255, 240, 224, 0.07), rgba(255, 240, 224, 0) 42%);
+  --glass-edge: rgba(255, 240, 224, 0.18);
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 240, 224, 0.12), 0 2px 6px rgba(0, 0, 0, 0.25), 0 22px 44px -20px rgba(0, 0, 0, 0.7);
+  --glass-inset: rgba(255, 240, 224, 0.035);
+  --glass-raised: rgba(255, 240, 224, 0.065);
   // the toy land is bright pastel: dimmed behind the glass, ink keeps 4.5:1 over it too
-  --glass-dim: brightness(0.55);
+  --glass-dim: brightness(0.46);
+  --glass-grain: var(--noise);
+  --glass-grain-opacity: 0.2;
+  --glass-grain-blend: overlay;
+  --warm-bg: #2b2724;
+  --warm-surf: #38322d;
+  --warm-line: rgba(255, 240, 224, 0.14);
   color-scheme: dark;
 }
 
@@ -46,30 +91,56 @@
   @include dark-glass;
 }
 
+// Everything inside glass reads the page tokens as lighter, translucent cards on the panel: an inset
+// (--bg), a raised one (--surf) and a hairline (--line), so no navy or white card sits inside a taupe
+// panel. The page itself keeps its tokens.
+.glass,
+ion-modal.detail-sheet {
+  --bg: var(--glass-inset);
+  --surf: var(--glass-raised);
+  --line: var(--warm-line);
+}
+
+// The overlays that open over glass (Ionic popovers and sheets render outside the page, a blur cannot be
+// nested) are solid, in the same warm tones.
+app-filters-panel,
+ion-popover.account-menu,
+ion-popover.report-menu,
+ion-modal.login-sheet {
+  --bg: var(--warm-bg);
+  --surf: var(--warm-surf);
+  --line: var(--warm-line);
+}
+
 .glass {
   position: relative;
   isolation: isolate;
   background: var(--glass-sheen), var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  // strong blur, a touch of saturation only: the map stays muted behind it
+  backdrop-filter: blur(var(--glass-blur)) saturate(115%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%) var(--glass-dim);
   border: 1px solid var(--glass-edge);
   box-shadow: var(--glass-shadow);
+}
+
+.glass.card {
+  background: var(--glass-sheen), var(--glass-bg-card);
 }
 
 .glass.dense {
   background: var(--glass-sheen), var(--glass-bg-dense);
 }
 
-// the grain: sits under the panel's content, clipped to its corners
+// the grain: sits under the panel's content, clipped to its corners, and only here
 .glass::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: var(--noise);
-  opacity: 0.15;
-  mix-blend-mode: overlay;
+  background: var(--glass-grain);
+  opacity: var(--glass-grain-opacity);
+  mix-blend-mode: var(--glass-grain-blend);
   pointer-events: none;
 }
 

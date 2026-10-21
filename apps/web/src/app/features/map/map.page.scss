@@ -12,33 +12,20 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   background: var(--sea);
 }
 
-// a peach dawn glow from the bottom-right corner and a breath of grain over the map, under the panels
-:host::before,
-:host::after {
+// a faint warm dawn glow from the bottom-right corner, under the panels. No grain over the map (plan 8):
+// the film grain lives inside the glass only.
+:host::before {
   content: '';
   position: absolute;
   z-index: 1;
   inset: 0;
   pointer-events: none;
-}
-
-:host::before {
-  background: radial-gradient(45% 40% at 90% 100%, rgba(244, 180, 154, 0.16), transparent 70%);
+  background: radial-gradient(45% 40% at 90% 100%, rgba(232, 190, 160, 0.14), transparent 70%);
   mix-blend-mode: screen;
 }
 
-:host::after {
-  background: var(--noise);
-  opacity: 0.05;
-}
-
-:host-context([data-theme='light'])::before,
-:host-context([data-theme='light'])::after {
+:host-context([data-theme='light'])::before {
   opacity: 0.5;
-}
-
-:host-context([data-theme='light'])::after {
-  opacity: 0.025;
 }
 
 .map {
@@ -255,7 +242,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   border: 1px solid var(--glass-edge);
   border-radius: 16px;
   // inside the pill's glass a second blur cannot reach the map, so this one is nearly opaque
-  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  background: var(--glass-bg-dense);
   color: var(--ink);
   box-shadow: var(--glass-shadow);
   font: 400 13px/1.5 var(--font);
@@ -731,10 +718,25 @@ ion-modal.detail-sheet::part(handle) {
 // see the map past that wrapper, which left sharp streets under the text. The ground is also denser
 // than the side panel's (88% of the night/cream ground): a sheet is read at length, on a small screen.
 ion-modal.detail-sheet::part(content) {
+  position: relative;
+  isolation: isolate;
   border-top: 1px solid var(--glass-edge);
-  background: var(--glass-sheen), color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(140%) var(--glass-dim);
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(140%) var(--glass-dim);
+  background: var(--glass-sheen), var(--glass-bg-dense);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(115%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(115%) var(--glass-dim);
+}
+
+// the same grain as every other glass, inside the sheet only
+ion-modal.detail-sheet::part(content)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--glass-grain);
+  opacity: var(--glass-grain-opacity);
+  mix-blend-mode: var(--glass-grain-blend);
+  pointer-events: none;
 }
 
 .sheet-scroll {
@@ -797,7 +799,7 @@ ion-modal.detail-sheet::part(content) {
   padding: 8px 16px;
   border-radius: 16px;
   // a denser glass than the panels: a toast is read in passing, over anything
-  background: var(--glass-sheen), color-mix(in srgb, var(--bg) 85%, transparent);
+  background: var(--glass-sheen), var(--glass-bg-dense);
   color: var(--ink);
   font-size: 14px;
 

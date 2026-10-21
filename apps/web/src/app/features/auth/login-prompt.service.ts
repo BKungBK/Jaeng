@@ -39,7 +39,7 @@ import { LoginFormComponent } from './login-form.component';
       --max-height: calc(100% - 24px - env(safe-area-inset-top, 0px));
       --border-radius: 24px 24px 0 0;
       --background: var(--surf);
-      --box-shadow: var(--sh);
+      --box-shadow: var(--glass-shadow);
       --backdrop-opacity: 0.32;
       align-items: flex-end;
     }

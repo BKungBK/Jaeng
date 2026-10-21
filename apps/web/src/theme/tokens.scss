@@ -17,8 +17,8 @@
 :root {
   --bg: #fbf7f2;
   --surf: #ffffff;
-  --ink: #2b2a33;
-  --ink2: #6b6878;
+  --ink: #2d2a26; // plan 8: warm ink and warm secondary ink, to sit on the greige glass
+  --ink2: #544d44;
   --pri: #a6522f; // plan 6b: the dawn's dark tone (was Trust Blue): one accent family in both themes
   --onpri: #ffffff;
   --line: #e8e0d5;
@@ -33,17 +33,17 @@
   --s3: #e57373;
   --sh: 0 8px 28px rgba(60, 50, 40, 0.18);
   --ion-background-color-rgb: 251, 247, 242;
-  --ion-text-color-rgb: 43, 42, 51;
+  --ion-text-color-rgb: 45, 42, 38;
   @include ion-steps;
 }
 
 @mixin dark-tokens {
   --bg: #0f1f44;
   --surf: #1b2a52;
-  --ink: #f3eff7;
-  --ink2: #b9b5cc;
+  --ink: #f2ede6;
+  --ink2: #dad1c5;
   --pri: #f4b49a;
-  --onpri: #2a1f3a;
+  --onpri: #2e231c;
   --line: #2f3d66;
   --land: #383444;
   --block: #403b4e;
@@ -51,7 +51,7 @@
   --water: #34506b;
   --sea: #1f5a6e;
   --ion-background-color-rgb: 15, 31, 68;
-  --ion-text-color-rgb: 243, 239, 247;
+  --ion-text-color-rgb: 242, 237, 230;
   @include ion-steps;
 }
 

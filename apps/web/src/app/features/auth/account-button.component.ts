@@ -71,7 +71,7 @@ export function initialOf(name: string): string {
     ion-popover.account-menu {
       --width: 240px;
       --background: var(--surf);
-      --box-shadow: var(--sh);
+      --box-shadow: var(--glass-shadow);
       --backdrop-opacity: 0;
       --offset-x: -8px; /* the 8 px gap the floating elements keep (DESIGN.md Layout) */
     }

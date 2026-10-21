@@ -34,7 +34,7 @@ export type ReportMenuRole = 'copy' | 'flag' | 'hide';
     ion-popover.report-menu {
       --width: 248px;
       --background: var(--surf);
-      --box-shadow: var(--sh);
+      --box-shadow: var(--glass-shadow);
       --backdrop-opacity: 0;
     }
     ion-popover.report-menu::part(content) {

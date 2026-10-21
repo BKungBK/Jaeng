@@ -45,7 +45,7 @@ import { LoginPromptService } from '../auth/login-prompt.service';
       color: var(--dawn-ink);
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.35),
-        0 12px 30px -10px rgba(244, 180, 154, 0.65);
+        0 12px 30px -10px rgba(160, 112, 86, 0.42);
       font: 600 15px/1 var(--font);
       cursor: pointer;
       transition:
@@ -58,7 +58,7 @@ import { LoginPromptService } from '../auth/login-prompt.service';
       border-radius: 50%;
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-        0 8px 22px -6px rgba(244, 180, 154, 0.75);
+        0 8px 22px -6px rgba(160, 112, 86, 0.48);
     }
     .fab:hover {
       filter: brightness(1.06) saturate(1.05);

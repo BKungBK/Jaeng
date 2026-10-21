@@ -77,14 +77,7 @@ function compile(gl: Gl): { program: WebGLProgram; uniforms: Record<string, WebG
     :host.light {
       background: #f6f1fa;
     }
-    /* the grain at full resolution over the canvas and the fallback alike (the canvas is half size) */
-    :host::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--noise);
-      opacity: 0.05;
-    }
+    /* no grain here (plan 8): the film grain lives inside the glass panels only, not across the screen */
     /* the mock's sea: a lavender glow top-left, a peach dawn bottom-right, over the navy */
     .fallback {
       position: absolute;

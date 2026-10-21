@@ -44,7 +44,8 @@ textarea {
   padding: 0;
   border: 1px solid var(--glass-edge);
   border-radius: 50%;
-  background: var(--glass-bg-dense);
+  // over a photo the tint must be firm: the thin glass of the panels would let a bright picture through
+  background: color-mix(in srgb, var(--warm-surf) 80%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: var(--ink);
@@ -52,7 +53,7 @@ textarea {
   transition: background-color 160ms ease-out;
 
   &:hover {
-    background: color-mix(in srgb, var(--ink) 14%, var(--glass-bg-dense));
+    background: color-mix(in srgb, var(--ink) 14%, color-mix(in srgb, var(--warm-surf) 80%, transparent));
   }
 }
 

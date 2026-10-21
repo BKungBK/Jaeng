@@ -10,9 +10,9 @@ colors:
   night-accent: "#F4B49A"
   on-night-accent: "#2E231C"
   night-ink-wash: "rgba(242, 237, 230, 0.06)"
-  glass-night: "rgba(64, 55, 48, 0.6)"
-  glass-night-card: "rgba(62, 54, 48, 0.66)"
-  glass-night-dense: "rgba(52, 45, 40, 0.74)"
+  glass-night: "rgba(255, 245, 235, 0.08)"
+  glass-night-card: "rgba(255, 245, 235, 0.1)"
+  glass-night-dense: "rgba(255, 245, 235, 0.12)"
   glass-edge-night: "rgba(255, 240, 224, 0.18)"
   dawn-sand: "#EFD8BF"
   dawn-clay: "#DCAE92"
@@ -27,9 +27,9 @@ colors:
   warm-ink: "#2D2A26"
   muted-ink: "#544D44"
   sand-line: "#E8E0D5"
-  glass-day: "rgba(204, 193, 180, 0.58)"
-  glass-day-card: "rgba(210, 200, 188, 0.66)"
-  glass-day-dense: "rgba(221, 212, 200, 0.74)"
+  glass-day: "rgba(255, 245, 235, 0.08)"
+  glass-day-card: "rgba(255, 245, 235, 0.1)"
+  glass-day-dense: "rgba(255, 245, 235, 0.16)"
   glass-edge-day: "rgba(255, 252, 246, 0.55)"
   backdrop-day: "#F6F1FA"
   backdrop-day-lilac: "#DCD6F2"
@@ -315,7 +315,7 @@ The glass is quiet so the map can speak. Panels are small and few (the owner ask
 Confirmed anti-references (PRODUCT.md): a neon gaming look and a cold government form. The owner's reference poster is a style reference only; its artwork is never copied or stored.
 
 **Key Characteristics:**
-- One material: warm-gray frosted glass (28px blur, 115% saturation, a 1px edge at 14–50% light, a faint top-down sheen that is light and never a gloss, a close and a long soft shadow, fractal-noise grain inside the panel only) for every floating surface, in three tiers: float, card and dense.
+- One material: nearly clear warm-white frosted glass (8–16% warm white, 18px blur, 115% saturation, a 1px rim at 14% light, a barely-there top-down sheen, one soft deep shadow `0 8px 32px rgba(0,0,0,.18)`, fractal-noise grain inside the panel only) for every floating surface, in three tiers: float, card and dense. The blur does the work, not the tint. Panels rise 3–5 points of alpha under the pointer and change no colour.
 - Night-into-dawn ground: dark theme by default; pages other than the map stand on a slow shader backdrop (navy mesh with a dawn corner, CSS gradient fallback). No grain over the page or the map.
 - One warm accent, the dawn gradient (sand, clay, mauve-taupe: matte, never glossy or neon), used on four things only.
 - Cel-shaded toy Thailand that fades out between zoom 6 and 8 into a calm street map; only Thailand is ever shown, everything else is an animated sea.
@@ -347,7 +347,7 @@ A navy night ground under translucent glass, one warm dawn gradient for the few 
 
 ### Neutral
 - **Night set** (default): Night Ground (page ground, browser bar, Ionic background), Night Surface (glass-toned beacon and cluster discs, label pills, popovers), Night Ink (all text on glass), Night Muted Ink (secondary text, inactive tabs, meta lines, off chips), Night Line (dividers on solid surfaces).
-- **Glass tints** (warm charcoal-taupe at night, greige by day, never blue and never white): Glass Night under floating controls, Glass Night Card under the pages' cards, Glass Night Dense under running text, Glass Edge Night as the 1px edge and the hairlines between grouped controls. Light: Glass Day, Glass Day Card, Glass Day Dense, Glass Edge Day.
+- **Glass tints** (warm white `255,245,235` at 8%, 10% and 12–16%, in both themes, never blue): Glass Night under floating controls, Glass Night Card under the pages' cards, Glass Night Dense under running text, Glass Edge Night as the hairlines between grouped controls inside a panel (the panel's own rim is `--glass-rim`, white at 14%). Light: Glass Day, Glass Day Card, Glass Day Dense (16%, the densest), Glass Edge Day.
 - **Warm tones inside glass** (`--warm-bg`, `--warm-surf`, `--warm-line`): inside any glass panel and on the opaque overlays that open over it (account menu, ⋯ menu, login sheet, report sheet, more-filters card) the page tokens `--bg`, `--surf` and `--line` are read as a warm inset, a warm raised paper and a warm hairline, so no navy or white card ever sits in a taupe panel. Inside glass they are lighter translucent cards (night inset 3.5% and raised 6.5% warm white; day inset 20% and raised 34% white); on the opaque overlays they are solid (night `#2B2724`, `#38322D`; day `#E5DFD4`, `#F1ECE4`).
 - **Ink washes**: anything set inside a glass panel (secondary buttons, fields, rows, segmented tracks, chips in the side panel) takes the theme ink at 5–14% over transparent instead of a second glass (Night Ink Wash is the 6% resting value; hover 10–12%, chosen 14%).
 - **Warm ink**: text is a warm near-black by day (`#2D2A26`, secondary `#544D44`) and a warm off-white at night (`#F2EDE6`, secondary `#DAD1C5`), so it belongs to the glass; every pair is tested at 4.5:1 over the brightest backdrop a tier can sit on (`theme/glass.spec.ts`).
@@ -415,18 +415,17 @@ A full-bleed map with a handful of glass pieces at its edges; no app bars. Phone
 
 Two depth systems that never mix. The UI is glass: depth comes from the blur, the light edge and one long soft shadow, not from stacked cards. The toy map has physical depth from stacked soil layers offset downward (8 / 16 / 24px at zoom 6) that flatten to zero by zoom 8.
 
-In the dark theme the glass also dims what is behind it to 46% brightness, and its shadow gains a 1px inner top highlight; in the light theme the glass leaves brightness alone. Over the map page sits a faint warm dawn glow from the bottom-right corner (screen blend). There is no grain over the map or the page: the film grain is the `.glass::after` layer, light specks in the dark theme (overlay, 20%) and warm dark specks in the light theme (multiply, 26%), clipped to the panel's corners and under its content.
+In the dark theme the glass also dims what is behind it to 24% brightness (the tint is nearly clear, so the dim is what keeps ink at 4.5:1 over the pastel land); in the light theme the glass leaves brightness alone. Over the map page sits a faint warm dawn glow from the bottom-right corner (screen blend). There is no grain over the map or the page: the film grain is the `.glass::after` layer, light specks in the dark theme (overlay, 20%) and warm dark specks in the light theme (multiply, 26%), clipped to the panel's corners and under its content.
 
 ### Glass tiers (which surface takes which)
-- **Float** (`.glass`, 60% night / 58% day): controls that sit over the map: the phone top bar and search pill, the level chips, the summary pill, the locate button, the dock, the desktop side panel, the menu capsule and the control column. The map shows through; the dim and the blur keep ink readable.
-- **Card** (`.glass.card`, 66% both): the cards of `/list`, `/me`, `/about`, `/admin`, `/report`, `/login` and `/server`, which stand on the smooth backdrop. Denser than float because they carry forms and lists, and the grain reads best over a smooth ground.
-- **Dense** (`.glass.dense`, 74%): running text over the map: the report detail panel and the phone's report sheet, the hover tooltip, the toast, the attribution strip, hint bubbles.
+- **Float** (`.glass`, 8%, 13% on hover): controls that sit over the map: the phone top bar and search pill, the level chips, the summary pill, the locate button, the dock, the desktop side panel, the menu capsule and the control column. The map shows through; the dim and the blur keep ink readable.
+- **Card** (`.glass.card`, 10%, 15% on hover): the cards of `/list`, `/me`, `/about`, `/admin`, `/report`, `/login` and `/server`, which stand on the smooth backdrop. Denser than float because they carry forms and lists, and the grain reads best over a smooth ground.
+- **Dense** (`.glass.dense`, 12% night / 16% day, no hover change): running text over the map: the report detail panel and the phone's report sheet, the hover tooltip, the toast, the attribution strip, hint bubbles.
 - **Solid warm** (`--warm-surf`, opaque): popovers and menus that open over glass (account, ⋯, more-filters card, login sheet), because a blur cannot be nested.
 - **Wash** (`--glass-wash`): everything set inside a panel: fields, rows, chips, segmented tracks.
 
 ### Shadow Vocabulary
-- **Glass, night** (`box-shadow: inset 0 1px 0 rgba(255,240,224,.12), 0 2px 6px rgba(0,0,0,.25), 0 22px 44px -20px rgba(0,0,0,.7)`): every glass panel in the dark theme.
-- **Glass, day** (`box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 0 0 1px rgba(84,70,56,.06), 0 2px 6px rgba(84,70,56,.08), 0 22px 44px -22px rgba(84,70,56,.38)`): the same in the light theme: a hairline of light on top, an outline of shade, a close soft shadow, a long soft one.
+- **Glass** (`box-shadow: 0 8px 32px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.08)`): every glass panel in both themes: one soft deep shadow and a hairline of light on top.
 - **Dawn lift** (`box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 12px 30px -10px rgba(160,112,86,.42)`): the report pill; the round + uses `inset 0 0 0 1px rgba(255,255,255,.4), 0 8px 22px -6px rgba(160,112,86,.48)`, a page's primary button the -14px variant.
 - **Pill** (`box-shadow: 0 2px 8px rgba(0,0,0,.15)`): beacon short labels and the cluster's critical pill.
 - **Glow** (`box-shadow: 0 0 0 6px color-mix(in srgb, <level> 30%, transparent), 0 0 28px <level>`): beacon and cluster discs only.
@@ -435,13 +434,13 @@ In the dark theme the glass also dims what is behind it to 46% brightness, and i
 ### Named Rules
 **The Grain Stays Inside Rule.** The film grain is part of the glass, never of the screen: no noise layer over the map, the backdrop or a page, only `.glass::after` (and the report sheet's own part). It stays subtle and visible, never a pattern.
 
-**The Muted Material Rule.** No neon, no gloss, no excess transparency: saturation stays at 115%, the sheen is a faint light from above, no tier is below 58% opaque or above 74%, and the accent gradient is sand to clay to mauve-taupe.
+**The Muted Material Rule.** No neon, no gloss: saturation stays at 115%, the sheen is a faint light from above, no tier is above 20% tint (the blur, not the tint, does the work), and the accent gradient is sand to clay to mauve-taupe. Anything that must read over a bright picture rather than over the blurred scene (the detail photo's buttons, hint bubbles inside a glass pill) is a warm solid instead of thin glass.
 
-**The One Material Rule.** Every floating surface takes its look from the glass tokens (`--glass-bg`, `-bg-card`, `-bg-dense`, `-sheen`, `-edge`, `-blur`, `-shadow`, `-dim`, `-grain`, `--warm-*`) through the `.glass` class; the few that cannot carry the class (the sheet's scrolling layer, the attribution strip, chips) apply the same tokens, never new values.
+**The One Material Rule.** Every floating surface takes its look from the glass tokens (`--glass-bg`, `-bg-card`, `-bg-dense`, `-bg-hover`, `-sheen`, `-rim`, `-edge`, `-blur`, `-shadow`, `-dim`, `-grain`, `--warm-*`) through the `.glass` class; the few that cannot carry the class (the sheet's scrolling layer, the attribution strip, chips) apply the same tokens, never new values.
 
 **The No Glass In Glass Rule.** A second blur inside a glass panel sees only the panel. Anything set inside glass uses an ink wash and no backdrop filter; hint bubbles inside a glass pill go near-opaque instead.
 
-**The Dense For Reading Rule.** A panel of running text (report detail, sheet, tooltip) uses dense glass so ink keeps 4.5:1 over the brightest toy land; in the dark theme the backdrop dimming does the rest.
+**The Dense For Reading Rule.** A panel of running text (report detail, sheet, tooltip) uses dense glass, the highest tint of the three, so ink keeps 4.5:1 over the brightest toy land; in the dark theme the backdrop dimming does the rest.
 
 **The Two Lights Rule.** Only beacons glow, and only the dawn casts a warm shadow. No other element gets a coloured shadow.
 

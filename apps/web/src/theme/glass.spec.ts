@@ -31,6 +31,14 @@ const rgba = (block: string, name: string): [number, number, number, number] => 
   if (!m) throw new Error(`no --${name} in the block`);
   return [+m[1], +m[2], +m[3], +m[4]];
 };
+/** a tier's tint: the dark block only restates what differs, so a missing one is the light value */
+const tint = (block: string, name: string): [number, number, number, number] => {
+  try {
+    return rgba(block, name);
+  } catch {
+    return rgba(lightGlass, name);
+  }
+};
 const colour = (block: string, name: string): Rgb => {
   const m = block.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
   if (!m) throw new Error(`no --${name} in the block`);
@@ -65,7 +73,7 @@ describe('glass (plan 8: warm frosted glass, grain only inside it)', () => {
       const fails: string[] = [];
       for (const tier of ['glass-bg', 'glass-bg-card', 'glass-bg-dense']) {
         for (const [name, back] of BACKS[theme]) {
-          const panel = over(rgba(g, tier), back);
+          const panel = over(tint(g, tier), back);
           for (const [label, text] of [
             ['ink', ink],
             ['ink2', ink2],
@@ -95,7 +103,7 @@ describe('glass (plan 8: warm frosted glass, grain only inside it)', () => {
       const fails: string[] = [];
       for (const tier of ['glass-bg', 'glass-bg-card', 'glass-bg-dense']) {
         for (const [name, back] of BACKS[theme]) {
-          const panel = over(rgba(g, tier), back);
+          const panel = over(tint(g, tier), back);
           for (const card of ['glass-inset', 'glass-raised']) {
             const c = over(rgba(g, card), panel);
             if (ratio(ink, c) < 4.5) fails.push(`${card} on ${tier} over ${name}: ink ${ratio(ink, c).toFixed(2)}`);
@@ -107,21 +115,38 @@ describe('glass (plan 8: warm frosted glass, grain only inside it)', () => {
       expect(fails).toEqual([]);
     });
 
-    it(`${theme}: neither too solid nor too clear: float and card between 55% and 70%, dense at most 85%, each denser than the last`, () => {
-      const [a, b, c] = ['glass-bg', 'glass-bg-card', 'glass-bg-dense'].map((n) => rgba(g, n)[3]);
-      expect(a).toBeGreaterThanOrEqual(0.55);
-      expect(b).toBeGreaterThan(a);
-      expect(b).toBeLessThanOrEqual(0.7);
-      expect(c).toBeGreaterThan(b);
-      expect(c).toBeLessThanOrEqual(0.85);
+    it(`${theme}: nearly clear (the blur does the work): float 6–10%, card up to 12%, dense up to 20%, never thinner than the last; hover a little denser, not another colour`, () => {
+      const [a, b, c] = ['glass-bg', 'glass-bg-card', 'glass-bg-dense'].map((n) => tint(g, n)[3]);
+      expect(a).toBeGreaterThanOrEqual(0.06);
+      expect(a).toBeLessThanOrEqual(0.1);
+      expect(b).toBeGreaterThanOrEqual(a);
+      expect(b).toBeLessThanOrEqual(0.12);
+      expect(c).toBeGreaterThanOrEqual(b);
+      expect(c).toBeLessThanOrEqual(0.2);
+      const [ha, hb] = ['glass-bg-hover', 'glass-bg-card-hover'].map((n) => tint(g, n));
+      expect(ha[3]).toBeGreaterThan(a);
+      expect(ha[3]).toBeLessThanOrEqual(0.15);
+      expect(hb[3]).toBeGreaterThan(b);
+      expect(hb[3]).toBeLessThanOrEqual(0.15);
+      expect(ha.slice(0, 3)).toEqual(tint(g, 'glass-bg').slice(0, 3));
     });
   }
 
-  it('is warm gray, not white and not blue: the light glass leans red over blue, the dark one too', () => {
+  it('is warm white, not blue: red over blue in the tint of every tier, a blur of 16–20 px, the rim a thin light line', () => {
     for (const g of [lightGlass, darkGlass]) {
-      const [r, , b] = rgba(g, 'glass-bg');
-      expect(r).toBeGreaterThan(b);
+      for (const tier of ['glass-bg', 'glass-bg-card', 'glass-bg-dense']) {
+        const [r, , b] = tint(g, tier);
+        expect(r).toBeGreaterThan(b);
+      }
     }
+    const blur = +lightGlass.match(/--glass-blur:\s*(\d+)px/)![1];
+    expect(blur).toBeGreaterThanOrEqual(16);
+    expect(blur).toBeLessThanOrEqual(20);
+    const rim = rgba(lightGlass, 'glass-rim');
+    expect(rim[3]).toBeGreaterThanOrEqual(0.12);
+    expect(rim[3]).toBeLessThanOrEqual(0.16);
+    expect(glass).toMatch(/\.glass\s*\{[^}]*border:\s*1px solid var\(--glass-rim\)/s);
+    expect(glass).toMatch(/--glass-shadow:\s*0 8px 32px rgba\(0, 0, 0, 0\.18\)/);
   });
 
   it('keeps the grain inside the glass: the .glass layer has it, the page and the map do not', () => {

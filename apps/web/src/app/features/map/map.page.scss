@@ -242,7 +242,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   border: 1px solid var(--glass-edge);
   border-radius: 16px;
   // inside the pill's glass a second blur cannot reach the map, so this one is nearly opaque
-  background: var(--glass-bg-dense);
+  background: var(--warm-surf);
   color: var(--ink);
   box-shadow: var(--glass-shadow);
   font: 400 13px/1.5 var(--font);
@@ -336,7 +336,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   width: 340px;
   max-height: calc(100% - 40px - #{$safe-top});
   padding: 8px;
-  border-radius: 22px;
+  border-radius: 28px; // the outer container of the scene: 26–30 px; the panels inside it 18–22
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;

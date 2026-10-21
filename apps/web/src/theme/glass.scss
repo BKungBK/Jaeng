@@ -16,18 +16,22 @@
 :root {
   // light theme: translucent greige over the toy map and the pale backdrop
   // not opaque, not clear: you read the map through it, softly (about 6 in 10 is glass)
-  --glass-bg: rgba(204, 193, 180, 0.58);
-  --glass-bg-card: rgba(210, 200, 188, 0.66);
-  // panels of running text (report detail, sheet, toast): denser, so ink keeps 4.5:1 over bright toy land
-  --glass-bg-dense: rgba(221, 212, 200, 0.74);
+  // (owner's reference glass, plan 8: very low alpha warm white; the blur, not the tint, does the work)
+  --glass-bg: rgba(255, 245, 235, 0.08);
+  --glass-bg-card: rgba(255, 245, 235, 0.1);
+  // panels of running text (report detail, sheet, toast): the densest tier, still glass
+  --glass-bg-dense: rgba(255, 245, 235, 0.16);
+  // a touch more alpha under the pointer (a panel is "raised", its colour does not change)
+  --glass-bg-hover: rgba(255, 245, 235, 0.13);
+  --glass-bg-card-hover: rgba(255, 245, 235, 0.15);
   // a faint light from above for depth, not a gloss
-  --glass-sheen: linear-gradient(180deg, rgba(255, 252, 247, 0.16), rgba(255, 252, 247, 0) 42%);
-  // thin and low: a hairline of light, also the divider colour inside panels
+  --glass-sheen: linear-gradient(180deg, rgba(255, 252, 247, 0.06), rgba(255, 252, 247, 0) 42%);
+  // the panel's own 1px rim: thin and low
+  --glass-rim: rgba(255, 255, 255, 0.14);
+  // the lines INSIDE panels (dividers, outlines of rows and tracks): stronger than the rim so they read
   --glass-edge: rgba(255, 252, 246, 0.55);
-  // a hairline of light on top, an outline of shade, a close soft shadow, a long soft one
-  --glass-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 0 1px rgba(84, 70, 56, 0.06), 0 2px 6px rgba(84, 70, 56, 0.08),
-    0 22px 44px -22px rgba(84, 70, 56, 0.38);
+  // one soft deep shadow and a hairline of light on top
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   // inside a panel: rows, inputs, chips (no blur of their own, a blur inside a blur cannot reach the map)
   --glass-wash: color-mix(in srgb, var(--ink) 6%, transparent);
   // what --bg and --surf become INSIDE glass: lighter, translucent cards on the panel (an inset, a raised one)
@@ -41,7 +45,7 @@
 
   // what the glass does to the map behind it, after the blur (dark: dims it, see below)
   --glass-dim: brightness(1);
-  --glass-blur: 28px;
+  --glass-blur: 18px;
 
   // the grain: warm dark specks in light, light specks in dark; only inside .glass
   --glass-grain: var(--noise-warm);
@@ -60,17 +64,18 @@
 
 @mixin dark-glass {
   // warm charcoal-taupe, not blue: it sits over the night as a different material
-  --glass-bg: rgba(64, 55, 48, 0.6);
-  --glass-bg-card: rgba(62, 54, 48, 0.66);
-  --glass-bg-dense: rgba(52, 45, 40, 0.74);
-  --glass-sheen: linear-gradient(180deg, rgba(255, 240, 224, 0.07), rgba(255, 240, 224, 0) 42%);
+  // the same warm white, so the glass is one material in both themes; the dim below keeps it dark at night
+  --glass-bg-hover: rgba(255, 245, 235, 0.13);
+  --glass-bg-card-hover: rgba(255, 245, 235, 0.15);
+  --glass-sheen: linear-gradient(180deg, rgba(255, 240, 224, 0.04), rgba(255, 240, 224, 0) 42%);
   --glass-edge: rgba(255, 240, 224, 0.18);
-  --glass-shadow:
-    inset 0 1px 0 rgba(255, 240, 224, 0.12), 0 2px 6px rgba(0, 0, 0, 0.25), 0 22px 44px -20px rgba(0, 0, 0, 0.7);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --glass-inset: rgba(255, 240, 224, 0.035);
   --glass-raised: rgba(255, 240, 224, 0.065);
-  // the toy land is bright pastel: dimmed behind the glass, ink keeps 4.5:1 over it too
-  --glass-dim: brightness(0.46);
+  // running text a little thinner than by day: the warm white would lift the dimmed land towards the ink
+  --glass-bg-dense: rgba(255, 245, 235, 0.12);
+  // the toy land is bright pastel: dimmed hard behind the glass (the tint is nearly clear), ink keeps 4.5:1 over it
+  --glass-dim: brightness(0.24);
   --glass-grain: var(--noise);
   --glass-grain-opacity: 0.2;
   --glass-grain-blend: overlay;
@@ -115,20 +120,38 @@ ion-modal.login-sheet {
 .glass {
   position: relative;
   isolation: isolate;
-  background: var(--glass-sheen), var(--glass-bg);
-  // strong blur, a touch of saturation only: the map stays muted behind it
+  background-color: var(--glass-bg);
+  background-image: var(--glass-sheen);
+  // a blur and a touch of saturation only: the map stays muted behind it
   backdrop-filter: blur(var(--glass-blur)) saturate(115%) var(--glass-dim);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%) var(--glass-dim);
-  border: 1px solid var(--glass-edge);
+  border: 1px solid var(--glass-rim);
   box-shadow: var(--glass-shadow);
+  transition: background-color 200ms var(--ease);
+
+  &:hover,
+  &:focus-within {
+    background-color: var(--glass-bg-hover);
+  }
 }
 
 .glass.card {
-  background: var(--glass-sheen), var(--glass-bg-card);
+  // the pages' cards stand on the smooth night backdrop, which is dark already: no dimming (the map's
+  // bright land is what the dim is for)
+  --glass-dim: brightness(1);
+  background-color: var(--glass-bg-card);
+
+  &:hover,
+  &:focus-within {
+    background-color: var(--glass-bg-card-hover);
+  }
 }
 
-.glass.dense {
-  background: var(--glass-sheen), var(--glass-bg-dense);
+// running text keeps one density whatever the pointer does
+.glass.dense,
+.glass.dense:hover,
+.glass.dense:focus-within {
+  background-color: var(--glass-bg-dense);
 }
 
 // the grain: sits under the panel's content, clipped to its corners, and only here

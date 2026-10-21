@@ -14,20 +14,22 @@ import { LevelShapeComponent } from './level-shape';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LevelShapeComponent, TPipe, IconComponent, FiltersPanelComponent],
   template: `
-    <div class="chips" role="group" [attr.aria-label]="'map.filterGroup' | t">
-      @for (l of levelsInfo; track l.level) {
-        <button
-          type="button"
-          class="chip"
-          [style.--c]="l.color"
-          [class.back]="backOn() === l.level"
-          [attr.aria-pressed]="filters.levels().includes(l.level)"
-          (click)="toggle(l.level)"
-        >
-          <app-level-shape [level]="l.level" />
-          <span class="lbl">{{ i18n.levelName(l.level) }}</span>
-        </button>
-      }
+    <div class="chips">
+      <div class="levels" role="group" [attr.aria-label]="'map.filterGroup' | t">
+        @for (l of levelsInfo; track l.level) {
+          <button
+            type="button"
+            class="chip"
+            [style.--c]="l.color"
+            [class.back]="backOn() === l.level"
+            [attr.aria-pressed]="filters.levels().includes(l.level)"
+            (click)="toggle(l.level)"
+          >
+            <app-level-shape [level]="l.level" />
+            <span class="lbl">{{ i18n.levelName(l.level) }}</span>
+          </button>
+        }
+      </div>
       @let n = filters.extraCount();
       <button
         type="button"
@@ -53,6 +55,10 @@ import { LevelShapeComponent } from './level-shape';
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+    }
+    /* the level group only matters on narrow phones, where it scrolls; elsewhere its chips are items of .chips */
+    .levels {
+      display: contents;
     }
     .chip,
     .more {
@@ -197,25 +203,32 @@ import { LevelShapeComponent } from './level-shape';
         font-size: 15px;
       }
     }
-    /* narrow phones: one row that scrolls sideways */
+    /* phones: the chips keep room around their words; when the four do not fit beside the "more" button the
+       chips slide sideways (the last one peeks out to say so) and the button stays put at the end */
+    @media (max-width: 819px) {
+      .chip {
+        padding: 0 13px;
+        gap: 6px;
+      }
+    }
     @media (max-width: 419px) {
       .chips {
         flex-wrap: nowrap;
-        gap: 3px;
+        gap: 4px;
+      }
+      .levels {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        flex-wrap: nowrap;
+        gap: 6px;
         padding: 0 3px; /* room for the focus ring at both ends */
         overflow-x: auto;
         scrollbar-width: none;
+        overscroll-behavior-x: contain;
       }
-      .chips::-webkit-scrollbar {
+      .levels::-webkit-scrollbar {
         display: none;
-      }
-      /* 13 px type, and the five still fit a 375 px phone in one row (measured) */
-      .chip {
-        padding: 0 8px;
-        gap: 4px;
-      }
-      .chip app-level-shape {
-        font-size: 14px;
       }
     }
   `,

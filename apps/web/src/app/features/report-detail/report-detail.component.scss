@@ -7,7 +7,10 @@ $prompt: var(--font);
 
 :host {
   position: relative;
-  display: grid;
+  // a flex column, not a grid: the close button below sticks to the top of the scrolling sheet or panel, and a
+  // sticky item only moves inside its container's whole height when that container is a flex box
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   padding: 12px 12px calc(20px + env(safe-area-inset-bottom, 0px));
   color: var(--ink);
@@ -57,11 +60,16 @@ textarea {
   }
 }
 
+// the close button stays at the top right while the report scrolls under it, so a long report is never left
+// without a way out and nothing is cut across it. It takes no room: its margins cancel its height and the 12 px
+// gap, so the picture starts where it always did, and it rests 8 px in from the picture's corner.
 .close {
-  position: absolute;
-  z-index: 1;
-  top: 20px;
-  right: 20px;
+  position: sticky;
+  z-index: 2;
+  top: 12px;
+  flex: none;
+  align-self: flex-end;
+  margin: 8px 8px -64px 0;
 }
 
 // the loaded report, and a new one replacing the old: the content comes in as a fade (the glass stays put)

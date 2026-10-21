@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
 import { PHOTOS_PER_REPORT_MAX } from '@jaeng/shared/report';
+import { DeviceService } from '../../core/device.service';
 import { I18nService } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
@@ -15,6 +16,7 @@ import { ReportDraftService, type DraftPhoto } from './report-draft.service';
 })
 export class PhotoStepComponent {
   protected readonly draft = inject(ReportDraftService);
+  private device = inject(DeviceService);
   protected readonly i18n = inject(I18nService);
   readonly next = output<void>();
 
@@ -28,6 +30,19 @@ export class PhotoStepComponent {
     if (photos.some((p) => p.state !== 'ready')) return this.i18n.t('photoStep.whyUploading');
     return '';
   });
+
+  /** The APK has its own camera and photo picker; the web clicks the hidden file input. */
+  protected async openCamera(fallback: HTMLInputElement) {
+    if (!this.device.native) return fallback.click();
+    const file = await this.device.takePhoto();
+    if (file) void this.draft.addFiles([file]);
+  }
+
+  protected async openGallery(fallback: HTMLInputElement) {
+    if (!this.device.native) return fallback.click();
+    const files = await this.device.pickPhotos(this.max - this.photos().length);
+    if (files.length > 0) void this.draft.addFiles(files);
+  }
 
   protected picked(event: Event) {
     const input = event.target as HTMLInputElement;

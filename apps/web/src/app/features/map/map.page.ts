@@ -19,6 +19,7 @@ import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { LEVELS } from '@jaeng/shared/levels';
 import type { Place } from '@jaeng/shared/places';
+import { DeviceService } from '../../core/device.service';
 import { FilterState, type ReportFilter } from '../../core/filter-state.service';
 import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
@@ -128,6 +129,7 @@ export class MapPage {
   private destroyed = false;
 
   private router = inject(Router);
+  private device = inject(DeviceService);
   protected readonly i18n = inject(I18nService);
   /** The beacon last clicked here, so its own navigation is not treated as a link. */
   private clicked: ReportProps | null = null;
@@ -490,16 +492,10 @@ export class MapPage {
     this.map?.zoomOut();
   }
 
-  locate() {
-    if (!('geolocation' in navigator)) {
-      this.showToast('map.toast.noGeo');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, ...FLY }),
-      () => this.showToast('map.toast.geoDenied'),
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
+  async locate() {
+    const here = await this.device.currentPosition(10000);
+    if (!here) return this.showToast('map.toast.geoDenied');
+    this.map?.flyTo({ center: [here.lng, here.lat], zoom: 14, ...FLY });
   }
 
   // template helpers

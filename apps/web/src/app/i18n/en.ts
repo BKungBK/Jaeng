@@ -75,7 +75,6 @@ export const en: Messages = {
       missing: "We couldn't find this report, or it isn't public yet.",
       beaconsFailed: "The map didn't fully load. Try refreshing the page.",
       loadFailed: "Couldn't load the reports.",
-      noGeo: "This device can't find your location. Try zooming there yourself.",
       geoDenied: 'Please allow location access, then try again.',
     },
   },

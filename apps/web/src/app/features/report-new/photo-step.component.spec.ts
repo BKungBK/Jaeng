@@ -1,5 +1,6 @@
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { DeviceService } from '../../core/device.service';
 import { PhotoStepComponent } from './photo-step.component';
 import { ReportDraftService, type DraftPhoto } from './report-draft.service';
 
@@ -46,6 +47,48 @@ describe('PhotoStepComponent', () => {
     expect(camera.multiple).toBe(false);
     const gallery = root.querySelector<HTMLInputElement>('input[type="file"][multiple]')!;
     expect(gallery.accept).toBe('image/*');
+  });
+
+  describe('in the app', () => {
+    const file = (n: string) => new File([n], `${n}.jpg`, { type: 'image/jpeg' });
+    const device = (over: Record<string, unknown> = {}) => ({
+      native: true,
+      takePhoto: vi.fn().mockResolvedValue(file('cam')),
+      pickPhotos: vi.fn().mockResolvedValue([file('a'), file('b')]),
+      ...over,
+    });
+    async function inApp(d: ReturnType<typeof device>, initial: DraftPhoto[] = []) {
+      TestBed.configureTestingModule({ providers: [{ provide: DeviceService, useValue: d }] });
+      return setup(initial);
+    }
+
+    it('the camera button uses the native camera, not the file input', async () => {
+      const d = device();
+      const { root, draft, button } = await inApp(d);
+      const input = root.querySelector<HTMLInputElement>('input[capture]')!;
+      const click = vi.spyOn(input, 'click');
+      button('ถ่ายรูป')!.click();
+      await vi.waitFor(() => expect(draft.addFiles).toHaveBeenCalledTimes(1));
+      expect(draft.addFiles.mock.calls[0][0]).toHaveLength(1);
+      expect(click).not.toHaveBeenCalled();
+    });
+
+    it('a cancelled camera adds nothing', async () => {
+      const d = device({ takePhoto: vi.fn().mockResolvedValue(null) });
+      const { draft, button } = await inApp(d);
+      button('ถ่ายรูป')!.click();
+      await vi.waitFor(() => expect(d.takePhoto).toHaveBeenCalled());
+      await Promise.resolve();
+      expect(draft.addFiles).not.toHaveBeenCalled();
+    });
+
+    it('the library picks only as many photos as there is room for', async () => {
+      const d = device();
+      const { draft, button } = await inApp(d, [photo(1, 'ready'), photo(2, 'ready')]);
+      button('เลือกจากคลัง')!.click();
+      await vi.waitFor(() => expect(draft.addFiles).toHaveBeenCalledTimes(1));
+      expect(d.pickPhotos).toHaveBeenCalledWith(2);
+    });
   });
 
   it('keeps "ไปต่อ" disabled without a photo', async () => {

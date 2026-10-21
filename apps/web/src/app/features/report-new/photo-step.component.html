@@ -2,11 +2,11 @@
 
 @if (!full()) {
   <div class="add">
-    <button type="button" class="btn primary big" (click)="camera.click()">
+    <button type="button" class="btn primary big" (click)="openCamera(camera)">
       <app-icon name="camera" [size]="22" />
       {{ 'fixForm.camera' | t }}
     </button>
-    <button type="button" class="btn big" (click)="gallery.click()">
+    <button type="button" class="btn big" (click)="openGallery(gallery)">
       <app-icon name="image" [size]="22" />
       {{ 'fixForm.gallery' | t }}
     </button>

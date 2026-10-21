@@ -726,15 +726,21 @@ ion-modal.detail-sheet::part(handle) {
   background: color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
+// the glass sits on the sheet itself (Ionic's sliding wrapper): a blur on an inner layer could not
+// see the map past that wrapper, which left sharp streets under the text. The ground is also denser
+// than the side panel's (88% of the night/cream ground): a sheet is read at length, on a small screen.
+ion-modal.detail-sheet::part(content) {
+  border-top: 1px solid var(--glass-edge);
+  background: var(--glass-sheen), color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(140%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(140%) var(--glass-dim);
+}
+
 .sheet-scroll {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border-top: 1px solid var(--glass-edge);
   border-radius: 26px 26px 0 0;
-  background: var(--glass-sheen), var(--glass-bg-dense);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
   color: var(--ink);
   padding-top: 8px; // clear of the drag handle
   box-sizing: border-box;

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { DuplicateCandidate } from '@jaeng/shared/report';
 import { createApp, type AppDeps } from '../src/app';
@@ -154,6 +154,38 @@ describe('POST /reports/:id/confirm', () => {
     expect(JSON.parse(text).error.code).toBe('internal');
     expect(text).not.toContain('boom');
     expect(text).not.toContain('at ');
+  });
+});
+
+describe('a failed broadcast (plan 8)', () => {
+  test('does not fail the request or leave an unhandled rejection, and is logged', async () => {
+    const warn = spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { app } = setup();
+    // the broadcaster of this app rejects; the comment is already stored
+    const failing = createApp({
+      photos: { put: async () => {}, remove: async () => {}, promote: async () => {}, signedUrl: async () => null },
+      checkDb: async () => true,
+      anonKey: 'k',
+      verify: async () => 'user-1',
+      quickLogin: { users: () => [], signIn: async () => { throw new Error('unused'); } },
+      store: {
+        member: async () => ({ id: 'user-1', role: 'user', banned: false }),
+        addComment: async () => ({ comment, report }),
+        toggleConfirmation: async () => ({ confirmed: true, report }),
+      } as unknown as Store,
+      rateLimits: { reports: 5, comments: 12, photos: 40, fixClaims: 10, flags: 20 },
+      broadcast: async () => {
+        throw new Error('realtime down');
+      },
+    } as AppDeps);
+    const res = await post(failing, `/reports/${ID}/comments`, { body: 'hi' });
+    expect(res.status).toBe(201);
+    const res2 = await post(failing, `/reports/${ID}/confirm`);
+    expect(res2.status).toBe(200);
+    await new Promise((r) => setTimeout(r, 10)); // let the rejected promise settle
+    expect(warn).toHaveBeenCalledWith('broadcast failed', 'realtime down');
+    expect(app).toBeDefined();
+    warn.mockRestore();
   });
 });
 

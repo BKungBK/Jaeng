@@ -29,6 +29,36 @@ function rethrow(error: { message: string }): never {
   throw new Error(`rpc failed: ${error.message}`);
 }
 
+/**
+ * The comment as everyone else sees it (the `public_comments` view holds the anonymity rule), read back after
+ * the insert. The comment already exists by then, so when the read fails the answer is built from what was
+ * inserted instead of an error: a 500 would make the writer send it again and post it twice.
+ */
+export async function commentAfterInsert(client: SupabaseClient, fallback: PublicComment): Promise<PublicComment> {
+  try {
+    const { data, error } = await client
+      .from('public_comments')
+      .select('id, report_id, body, author_name, created_at, by_reporter, photo_path')
+      .eq('id', fallback.id)
+      .single<PublicComment>();
+    if (error || !data) throw new Error(error?.message ?? 'no row');
+    return data;
+  } catch (e) {
+    console.warn('comment read-back failed, answering from the insert', e instanceof Error ? e.message : e);
+    return fallback;
+  }
+}
+
+const insertedComment = (id: string, reportId: string, body: string): PublicComment => ({
+  id,
+  report_id: reportId,
+  body: body.trim(),
+  author_name: null,
+  created_at: new Date().toISOString(),
+  by_reporter: false,
+  photo_path: null,
+});
+
 const LIVE_STATUSES = new Set(['open', 'fix_claimed', 'resolved', 'hidden']);
 
 function isCount(v: unknown): v is number {
@@ -154,12 +184,7 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       const row = Array.isArray(data) ? data[0] : data;
       if (!row) throw new Error('add_comment returned no row');
       // The anonymity rule lives in the public_comments view only.
-      const { data: comment, error: readError } = await client
-        .from('public_comments')
-        .select('id, report_id, body, author_name, created_at, by_reporter, photo_path')
-        .eq('id', row.comment_id)
-        .single<PublicComment>();
-      if (readError) throw new Error(`comment read failed: ${readError.message}`);
+      const comment = await commentAfterInsert(client, insertedComment(row.comment_id, reportId, body));
       return {
         comment,
         report: { id: reportId, status: row.status, confirm_count: row.confirm_count, comment_count: row.comment_count },
@@ -176,12 +201,7 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       if (error) rethrow(error);
       const row = Array.isArray(data) ? data[0] : data;
       if (!row) throw new Error('merge_duplicate returned no row');
-      const { data: comment, error: readError } = await client
-        .from('public_comments')
-        .select('id, report_id, body, author_name, created_at, by_reporter, photo_path')
-        .eq('id', row.comment_id)
-        .single<PublicComment>();
-      if (readError) throw new Error(`comment read failed: ${readError.message}`);
+      const comment = await commentAfterInsert(client, insertedComment(row.comment_id, reportId, ''));
       return {
         confirmed: row.confirmed,
         comment,

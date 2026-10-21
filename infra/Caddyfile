@@ -53,8 +53,11 @@
 
 	handle {
 		root * /srv/www
-		@nocache path /ngsw-worker.js /ngsw.json /index.html /
-		header @nocache Cache-Control "no-cache"
+		# Everything but the content-hashed bundles (main-*, chunk-*, polyfills-*, styles-*, scripts-*) is
+		# revalidated: the service worker, ngsw.json, index.html and, because try_files turns a deep link
+		# such as /r/<id> into index.html, every path that is not a file. (`header` sees the path as asked.)
+		@revalidate not path_regexp hashed ^/(main|chunk|polyfills|styles|scripts)-[A-Za-z0-9_-]+\.(js|css)$
+		header @revalidate Cache-Control "no-cache"
 		try_files {path} /index.html
 		file_server
 	}

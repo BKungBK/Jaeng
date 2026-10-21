@@ -42,6 +42,13 @@ async function main() {
   // 1
   check('/api/config lists 3 quick-login users', config.json?.quickLogin?.length === 3, JSON.stringify(config.json?.quickLogin));
 
+  // 1b (plan 8) the installable build on :8100: index.html is revalidated also when it answers a deep link
+  const deep = await fetch('http://localhost:8100/r/check-cache').catch(() => null);
+  if (deep) {
+    check(':8100 deep link answers index.html', deep.status === 200 && (deep.headers.get('content-type') ?? '').includes('text/html'));
+    check(':8100 deep link is Cache-Control: no-cache', /no-cache/.test(deep.headers.get('cache-control') ?? ''), deep.headers.get('cache-control') ?? 'none');
+  }
+
   // 2
   const login = async (who) => (await api('/dev/quick-login', { method: 'POST', body: { who } })).json;
   const reporter = await login('reporter');

@@ -91,7 +91,12 @@ function parseHideAuthor(value: unknown): boolean {
 }
 
 export function reportRoutes(deps: AppDeps) {
-  const announce = (report: ReportSignal) => void deps.broadcast(report);
+  // a failed broadcast must neither fail the request (the change is committed) nor go unseen
+  const announce = (report: ReportSignal) => {
+    void Promise.resolve()
+      .then(() => deps.broadcast(report))
+      .catch((e) => console.warn('broadcast failed', e instanceof Error ? e.message : e));
+  };
 
   // Declared before the /reports/:id/... routes so the literal path never reads as an :id.
   return new Elysia()

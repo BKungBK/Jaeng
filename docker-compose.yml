@@ -29,8 +29,9 @@ services:
     volumes:
       - ./apps/api:/app
       - ./packages:/packages
-    # bun --watch can't see file changes on /mnt/d, so nodemon polls (-L).
-    command: sh -c "bun install && bunx nodemon -L --watch src --ext ts --exec 'bun src/index.ts'"
+    # bun --watch can't see file changes on /mnt/d, so nodemon polls (-L). nodemon is a pinned devDependency
+    # (apps/api/package.json), so bunx runs the installed one instead of fetching whatever is newest.
+    command: sh -c "bun install --frozen-lockfile && bunx nodemon -L --watch src --ext ts --exec 'bun src/index.ts'"
     networks: [supabase]
 
   web:
@@ -41,7 +42,9 @@ services:
       - ./apps/web:/app
       - ./packages:/packages
       - web_node_modules:/app/node_modules
-    command: sh -c "npm ci && npx ng serve"
+    # npm ci wipes and reinstalls node_modules (minutes on /mnt/d), so it runs only when package-lock.json
+    # differs from the copy stamped inside the node_modules volume after the last install.
+    command: sh -c "cmp -s package-lock.json node_modules/.lock-stamp || (npm ci && cp package-lock.json node_modules/.lock-stamp); npx ng serve"
     networks: [supabase]
 
 volumes:

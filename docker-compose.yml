@@ -44,7 +44,7 @@ services:
       - web_node_modules:/app/node_modules
     # npm ci wipes and reinstalls node_modules (minutes on /mnt/d), so it runs only when package-lock.json
     # differs from the copy stamped inside the node_modules volume after the last install.
-    command: sh -c "cmp -s package-lock.json node_modules/.lock-stamp || (npm ci && cp package-lock.json node_modules/.lock-stamp); npx ng serve"
+    command: sh -c "cmp -s package-lock.json node_modules/.lock-stamp || (npm ci && cp package-lock.json node_modules/.lock-stamp) && npx ng serve"
     networks: [supabase]
 
 volumes:

@@ -69,10 +69,10 @@ type LoadState = 'loading' | 'ready' | 'error';
               <p class="note-text">{{ c.note }}</p>
             }
             <div class="decide">
-              <button type="button" class="btn" [disabled]="busy()" (click)="review(c, false, $event)">
+              <button type="button" class="btn" [disabled]="busy()" [attr.aria-busy]="deciding() === 'no'" (click)="review(c, false, $event)">
                 <app-icon name="circleX" [size]="18" />{{ 'admin.claims.notFixed' | t }}
               </button>
-              <button type="button" class="btn primary" [disabled]="busy()" [attr.aria-busy]="busy()" (click)="review(c, true, $event)">
+              <button type="button" class="btn primary" [disabled]="busy()" [attr.aria-busy]="deciding() === 'yes'" (click)="review(c, true, $event)">
                 <app-icon name="circleCheck" [size]="18" />{{ 'admin.claims.confirm' | t }}
               </button>
             </div>
@@ -96,6 +96,7 @@ export class ClaimsQueueComponent {
   protected readonly state = signal<LoadState>('loading');
   protected readonly items = signal<QueueClaim[]>([]);
   protected readonly busy = signal(false);
+  protected readonly deciding = signal<'yes' | 'no' | null>(null);
   protected readonly message = signal<Said>(null);
 
   constructor() {
@@ -118,6 +119,7 @@ export class ClaimsQueueComponent {
   protected async review(c: QueueClaim, approve: boolean, event?: Event) {
     if (this.busy()) return;
     this.busy.set(true);
+    this.deciding.set(approve ? 'yes' : 'no'); // only the button that was pressed shows it is working
     this.message.set(null);
     try {
       await this.admin.reviewClaim(c.id, approve);
@@ -134,6 +136,7 @@ export class ClaimsQueueComponent {
       }
     } finally {
       this.busy.set(false);
+      this.deciding.set(null);
     }
   }
 

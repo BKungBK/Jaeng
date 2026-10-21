@@ -823,7 +823,8 @@ ion-modal.detail-sheet::part(content)::after {
 }
 
 // the time left on a toast with a button: a thin line at its foot that runs out (linear: it is time, not a move)
-.toast .bar {
+// (not `.bar`: that is the phone search bar's class, and its top, z-index and radius would land on this line)
+.toast .toast-time {
   position: absolute;
   left: 0;
   right: 0;

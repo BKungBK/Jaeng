@@ -160,7 +160,7 @@
       <button type="button" class="toast-action" (click)="runToast(t)">{{ a.label | t }}</button>
       <!-- the time left to press it, running down (a new bar per toast: the key is the toast itself) -->
       @for (k of [t]; track k) {
-        <span class="bar" aria-hidden="true" [style.--ms]="actionMs + 'ms'"></span>
+        <span class="toast-time" aria-hidden="true" [style.--ms]="actionMs + 'ms'"></span>
       }
     }
   </div>

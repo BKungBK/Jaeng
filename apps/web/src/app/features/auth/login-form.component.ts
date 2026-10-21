@@ -68,6 +68,8 @@ export class LoginFormComponent {
   protected readonly shaking = signal(false);
   /** the six cells of the code, filled from the left (the real input sits over them and stays the source) */
   protected readonly cells = computed(() => Array.from({ length: 6 }, (_, i) => this.code()[i] ?? ''));
+  /** the cell that shows the focus ring: the next one, or the last one once the code is full */
+  protected readonly caret = computed(() => Math.min(this.code().length, 5));
   private finishTimer?: ReturnType<typeof setTimeout>;
   private shakeTimer?: ReturnType<typeof setTimeout>;
 

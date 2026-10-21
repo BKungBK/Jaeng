@@ -448,6 +448,12 @@ export class MapPage {
       if (this.destroyed) return;
       if (!ok) {
         this.closing = undefined; // the navigation did not happen: the report is still open and can be closed again
+        this.beacons?.setSelected(id); // ... and still selected
+        if (this.panelLeaving() === id) {
+          this.panelLeaving.set(null); // the panel stops leaving and shows again, not left faded
+          const el = this.panelEl()?.nativeElement;
+          if (el) unleave(el);
+        }
         return;
       }
       if (this.beacons?.focus(id)) return;

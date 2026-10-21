@@ -36,7 +36,7 @@
     <div class="otp" [class.shake]="shaking()" [class.ok]="verified()">
       <div class="cells" aria-hidden="true">
         @for (c of cells(); track $index) {
-          <span class="cell" [class.filled]="c !== ''" [class.now]="$index === code().length">{{ c }}</span>
+          <span class="cell" [class.filled]="c !== ''" [class.now]="$index === caret()">{{ c }}</span>
         }
       </div>
       <input

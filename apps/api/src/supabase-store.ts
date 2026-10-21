@@ -59,6 +59,8 @@ const insertedComment = (id: string, reportId: string, body: string): PublicComm
   photo_path: null,
 });
 
+export const MERGE_COMMENT_BODY = 'เจอเหมือนกัน แนบรูปเพิ่ม';
+
 const LIVE_STATUSES = new Set(['open', 'fix_claimed', 'resolved', 'hidden']);
 
 function isCount(v: unknown): v is number {
@@ -201,7 +203,8 @@ export function createSupabaseStore(client: SupabaseClient): Store {
       if (error) rethrow(error);
       const row = Array.isArray(data) ? data[0] : data;
       if (!row) throw new Error('merge_duplicate returned no row');
-      const comment = await commentAfterInsert(client, insertedComment(row.comment_id, reportId, ''));
+      // the words merge_duplicate gives its comment (migration 20261018000200); the photo path is not known here
+      const comment = await commentAfterInsert(client, insertedComment(row.comment_id, reportId, MERGE_COMMENT_BODY));
       return {
         confirmed: row.confirmed,
         comment,

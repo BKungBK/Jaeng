@@ -370,6 +370,30 @@ describe('MapPage', () => {
     expect(root.querySelector('aside.panel.leaving')).toBeNull();
   });
 
+  it('a closing whose navigation fails brings the panel back instead of leaving it faded', async () => {
+    const { fixture, root, navigate } = await leavingPanel(); // r1 is open and its exit is pending
+    navigate.mockResolvedValue(false);
+    const page = fixture.componentInstance;
+    page.panelLeaving.set(null);
+    page.close();
+    await Promise.resolve();
+    await Promise.resolve();
+    await settle(fixture);
+    expect(page.panelLeaving()).toBeNull();
+    expect(root.querySelector('aside.panel.leaving')).toBeNull();
+    expect(root.querySelector('aside.panel')).not.toBeNull();
+  });
+
+  it('the toast countdown line has a class of its own (not the phone search bar\'s .bar)', async () => {
+    vi.useFakeTimers();
+    const { map, fixture, root } = await setup(vi.fn().mockRejectedValue(new Error('offline')));
+    map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    fixture.detectChanges();
+    expect(root.querySelector('.toast .toast-time')).not.toBeNull();
+    expect(root.querySelector('.toast .bar')).toBeNull();
+  });
+
   it('can close again when the navigation to / did not happen', async () => {
     const { fixture, navigate } = await setup(undefined, { wide: true });
     fixture.componentRef.setInput('id', 'r1');

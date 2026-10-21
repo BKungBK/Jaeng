@@ -65,11 +65,23 @@ export function burst(host: HTMLElement, opts: { count?: number; radius?: number
  */
 export async function leave(el: HTMLElement, ms = 180, to: { x?: number; y?: number } = { y: 6 }): Promise<void> {
   if (!canAnimate(el)) return;
-  await animate(el, { opacity: [1, 0], x: [0, to.x ?? 0], y: [0, to.y ?? 0] }, { duration: ms / 1000, ease: 'easeIn' }).finished;
+  // the controls are kept so `unleave` can stop what Motion drives itself (independent x/y are not always WAAPI,
+  // so el.getAnimations() alone would not see them)
+  const playing = animate(el, { opacity: [1, 0], x: [0, to.x ?? 0], y: [0, to.y ?? 0] }, { duration: ms / 1000, ease: 'easeIn' });
+  leaving.set(el, playing);
+  try {
+    await playing.finished;
+  } finally {
+    if (leaving.get(el) === playing) leaving.delete(el);
+  }
 }
+
+const leaving = new WeakMap<HTMLElement, { cancel(): void }>();
 
 /** Undo a `leave` that was interrupted (the element stays and shows again): stops it and clears what it left. */
 export function unleave(el: HTMLElement): void {
+  leaving.get(el)?.cancel();
+  leaving.delete(el);
   if (typeof el.getAnimations === 'function') for (const a of el.getAnimations()) a.cancel();
   el.style.opacity = '';
   el.style.transform = '';

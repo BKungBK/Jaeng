@@ -59,6 +59,8 @@ export type StatsState = 'loading' | 'error' | Stats;
       background: conic-gradient(#f4b49a 0 calc(var(--p) * 100%), color-mix(in srgb, var(--ink) 14%, transparent) 0);
       -webkit-mask: radial-gradient(circle, transparent 9px, #000 10px);
       mask: radial-gradient(circle, transparent 9px, #000 10px);
+      /* --p is a registered number (theme/_motion.scss), so the ring sweeps to a new share */
+      transition: --p 700ms var(--ease, cubic-bezier(0.2, 0.8, 0.2, 1));
     }
     .open {
       flex: none;

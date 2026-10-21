@@ -83,15 +83,21 @@
             <p class="agreed"><app-icon name="hand" [size]="18" />{{ 'detail.agreed' | t: { n: d.confirm_count } }}</p>
           } @else {
             <button
+              #metooBtn
               type="button"
               class="btn metoo"
               [attr.aria-pressed]="confirmed()"
+              [attr.data-fx]="fx()"
               [disabled]="confirming()"
               (click)="toggle()"
             >
-              <!-- pressed is shown by shape too, not by fill colour alone -->
-              <app-icon [name]="confirmed() ? 'check' : 'hand'" [size]="20" />
-              {{ 'detail.metoo' | t }} · <span class="n">{{ d.confirm_count }}</span>
+              <!-- pressed is shown by shape too, not by fill colour alone; the tick draws only for a press made here -->
+              @if (confirmed()) {
+                <app-tick [size]="20" [play]="fx() === 'on'" />
+              } @else {
+                <app-icon name="hand" [size]="20" />
+              }
+              {{ 'detail.metoo' | t }} · <span class="n"><app-roll [value]="d.confirm_count" /></span>
             </button>
           }
           @if (d.status === 'fix_claimed') {

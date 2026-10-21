@@ -269,6 +269,33 @@ describe('ReportDetailComponent', () => {
       expect(out.changed).toHaveBeenCalledWith(sig({ confirm_count: 7 }));
     });
 
+    it('answers a new confirmation with a drawn tick and a rolled count, an undo with the other mark', async () => {
+      const { svc, meToo, settle } = await setup();
+      expect(meToo()!.getAttribute('data-fx')).toBeNull(); // nothing plays for the state the page opened in
+      svc.toggleConfirm.mockResolvedValue({ confirmed: true, report: sig({ confirm_count: 4 }) });
+      meToo()!.click();
+      await settle();
+      expect(meToo()!.getAttribute('data-fx')).toBe('on');
+      expect(meToo()!.querySelector('app-tick svg.play')).not.toBeNull();
+      expect(meToo()!.querySelector('app-roll .sr-only')?.textContent?.trim()).toBe('4');
+      svc.toggleConfirm.mockResolvedValue({ confirmed: false, report: sig({ confirm_count: 3 }) });
+      meToo()!.click();
+      await settle();
+      expect(meToo()!.getAttribute('data-fx')).toBe('off');
+      expect(meToo()!.querySelector('app-tick')).toBeNull();
+      expect(meToo()!.querySelector('app-roll .sr-only')?.textContent?.trim()).toBe('3');
+    });
+
+    it('opens already confirmed without a tick drawing, and a failed press plays nothing', async () => {
+      const { svc, meToo, settle } = await setup({ mine: true });
+      expect(meToo()!.getAttribute('data-fx')).toBeNull();
+      expect(meToo()!.querySelector('app-tick svg')?.classList.contains('play')).toBe(false);
+      svc.toggleConfirm.mockRejectedValue(new Error('offline'));
+      meToo()!.click();
+      await settle();
+      expect(meToo()!.getAttribute('data-fx')).toBeNull();
+    });
+
     it('asks to log in when signed out and does nothing when the visitor declines', async () => {
       const { svc, meToo, settle, ask } = await setup({ signedIn: false });
       meToo()!.click();
@@ -355,11 +382,11 @@ describe('ReportDetailComponent', () => {
     it('shows a hand when not pressed and a check when pressed, keeping the label', async () => {
       const { svc, meToo, settle } = await setup({ mine: false });
       expect(meToo()!.querySelector('svg.icon-hand')).not.toBeNull();
-      expect(meToo()!.querySelector('svg.icon-check')).toBeNull();
+      expect(meToo()!.querySelector('app-tick')).toBeNull();
       svc.toggleConfirm.mockResolvedValue({ confirmed: true, report: sig({ confirm_count: 4 }) });
       meToo()!.click();
       await settle();
-      expect(meToo()!.querySelector('svg.icon-check')).not.toBeNull();
+      expect(meToo()!.querySelector('app-tick svg')).not.toBeNull(); // the check, drawn by <app-tick>
       expect(meToo()!.querySelector('svg.icon-hand')).toBeNull();
       expect(meToo()!.textContent?.replace(/\s+/g, ' ')).toContain('เจอเหมือนกัน · 4');
     });

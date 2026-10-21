@@ -9,6 +9,13 @@
   --pop: linear(0, 0.026, 0.093, 0.186, 0.292, 0.403, 0.512, 0.613, 0.705, 0.785, 0.852, 0.908, 0.952, 0.985, 1.01, 1.027, 1.038, 1.044, 1.046, 1.045, 1.042, 1.038, 1.033, 1.028, 1);
 }
 
+// the stats ring's share, registered so a change sweeps instead of jumping
+@property --p {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 // a tick drawing itself: the path has pathLength 1
 @keyframes tick-draw {
   from {

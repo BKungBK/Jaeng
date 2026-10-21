@@ -50,6 +50,7 @@ describe('theme', () => {
     expect(read('src/global.scss')).toMatch(/@use 'theme\/motion'/);
     expect(motion).toMatch(/--ease:\s*cubic-bezier\(0\.2,\s*0\.8,\s*0\.2,\s*1\)/);
     expect(motion).toMatch(/--pop:\s*linear\(/);
+    expect(motion).toMatch(/@property --p\b/);
     for (const name of ['tick-draw', 'ping', 'settle', 'sheen', 'shimmer', 'leave', 'shake', 'vt-reveal']) {
       expect(motion, name).toMatch(new RegExp(`@keyframes ${name}\\b`));
     }

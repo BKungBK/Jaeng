@@ -22,8 +22,11 @@ import { CategoriesService } from '../../core/categories.service';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { RealtimeService } from '../../core/realtime.service';
 import { TPipe } from '../../i18n/t.pipe';
+import { burst } from '../../core/motion';
 import { EmergencyBoxComponent } from '../../shared/emergency-box.component';
 import { IconComponent } from '../../shared/icon.component';
+import { RollComponent } from '../../shared/roll.component';
+import { TickComponent } from '../../shared/tick.component';
 import { AdminService } from '../admin/admin.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { categoryIcon } from '../map/beacon';
@@ -53,7 +56,7 @@ type OpenForm = { kind: 'fix' } | { kind: 'flag'; type: FlagTarget; id: string }
   templateUrl: 'report-detail.component.html',
   styleUrls: ['report-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe, EmergencyBoxComponent],
+  imports: [IconComponent, LevelShapeComponent, FixClaimFormComponent, FlagFormComponent, TPipe, EmergencyBoxComponent, RollComponent, TickComponent],
 })
 export class ReportDetailComponent {
   private svc = inject(ReportDetailService);
@@ -61,6 +64,7 @@ export class ReportDetailComponent {
   protected readonly auth = inject(AuthService);
   private closeBtn = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');
   private moreBtn = viewChild<ElementRef<HTMLButtonElement>>('moreBtn');
+  private metooBtn = viewChild<ElementRef<HTMLButtonElement>>('metooBtn');
   private popovers = inject(PopoverController);
   private admin = inject(AdminService);
   protected readonly i18n = inject(I18nService);
@@ -78,6 +82,9 @@ export class ReportDetailComponent {
   protected readonly comments = signal<PublicComment[]>([]);
   protected readonly confirmed = signal(false);
   protected readonly confirming = signal(false);
+  /** What the last press made here did, so its answer plays once (a tick, a ring, sparks); null for
+   *  the state the report opened in. */
+  protected readonly fx = signal<'on' | 'off' | null>(null);
   protected readonly sending = signal(false);
   protected readonly draft = signal('');
   protected readonly message = signal<Said>(null);
@@ -128,6 +135,7 @@ export class ReportDetailComponent {
     this.detail.set(null);
     this.comments.set([]);
     this.confirmed.set(false);
+    this.fx.set(null);
     this.message.set(null);
     this.draft.set('');
     this.form.set(null);
@@ -231,7 +239,13 @@ export class ReportDetailComponent {
       const res = await this.svc.toggleConfirm(d.id);
       if (seq !== this.seq) return;
       this.confirmed.set(res.confirmed);
+      this.fx.set(res.confirmed ? 'on' : 'off');
       this.apply(res.report);
+      if (res.confirmed) {
+        // after the button has its new look: sparks in the colour of its fill
+        const btn = this.metooBtn()?.nativeElement;
+        if (btn) setTimeout(() => burst(btn, { count: 8, radius: 34, color: 'var(--pri)' }));
+      }
     } catch (e) {
       if (seq === this.seq) this.message.set({ error: e });
     } finally {

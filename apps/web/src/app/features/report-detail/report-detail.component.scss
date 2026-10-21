@@ -1,3 +1,5 @@
+@use '../../../theme/motion-mixins' as m;
+
 // Report detail (DESIGN.md "Report detail", .impeccable/surfaces/report-detail-*.md).
 // Text on a pastel fill is always Slate Ink on the pastel mixed into white (Ink On Pastel), in both themes.
 $slate: #2b2a33;
@@ -279,28 +281,85 @@ h2 {
 }
 
 // the main action keeps a whole line; "แจ้งว่าแก้แล้ว" and ⋯ share the next one
+// Plan 8: pressing it fills the button from the left (a clip, not a width), draws the tick, rings once
+// and scatters sparks (core/motion.ts burst); the count rolls (<app-roll>). data-fx is set only by a press
+// made on this page, so a report that opens already confirmed is simply there.
 .metoo {
+  @include m.press;
+  position: relative;
+  isolation: isolate;
   flex: 1 0 100%;
   white-space: nowrap;
   border-color: var(--pri);
   color: var(--pri);
+  transition:
+    transform 120ms var(--ease),
+    color 200ms var(--ease);
+
+  // the fill
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--pri);
+    clip-path: inset(0 100% 0 0 round 14px);
+    transition:
+      clip-path 320ms var(--ease),
+      background-color 160ms ease-out;
+  }
+
+  // the ring that leaves
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border: 2px solid var(--pri);
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+  }
 
   .n {
     font-variant-numeric: tabular-nums;
   }
 
   &[aria-pressed='true'] {
-    background: var(--pri);
     color: var(--onpri);
 
-    &:hover:not(:disabled) {
+    &::before {
+      clip-path: inset(0 0 0 0 round 14px);
+    }
+
+    &:hover:not(:disabled)::before {
       background: color-mix(in srgb, var(--pri) 88%, var(--ink));
     }
+  }
+
+  &[data-fx='on']::after {
+    animation: metoo-ring 560ms var(--ease);
+  }
+
+  &[data-fx='on'] app-tick,
+  &[data-fx='off'] app-icon {
+    animation: settle var(--pop-dur) var(--pop);
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: progress;
+  }
+}
+
+@keyframes metoo-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1.05, 1.4);
+    opacity: 0;
   }
 }
 

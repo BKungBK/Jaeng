@@ -2,13 +2,13 @@
 <div class="scroller">
   <main class="card glass">
     <header class="head">
-      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
-        <app-icon name="x" [size]="22" />
-      </button>
       <div class="titles">
         <h1 tabindex="-1">{{ 'list.title' | t }}</h1>
         <p class="caption caption-count">{{ (whole() ? 'list.country' : 'list.inView') | t: { n: count() } }}</p>
       </div>
+      <button type="button" class="ctl" [attr.aria-label]="'load.backToMap' | t" (click)="goBack()">
+        <app-icon name="x" [size]="22" />
+      </button>
     </header>
 
     <app-filter-bar />

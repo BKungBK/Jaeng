@@ -60,8 +60,10 @@ ul {
   gap: 12px;
 }
 
+// the close x stands at the right end of the heading
 .titles {
   display: grid;
+  flex: 1;
   min-width: 0;
 }
 

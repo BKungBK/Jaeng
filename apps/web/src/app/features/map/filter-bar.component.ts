@@ -210,7 +210,10 @@ import { LevelShapeComponent } from './level-shape';
         padding: 0 11px;
         gap: 6px;
       }
-      .more {
+    }
+    /* on the map the button leaves the row (the page gives its host .phone-chips) */
+    @media (max-width: 819px) {
+      :host(.phone-chips) .more {
         position: absolute;
         top: calc(100% + 3px);
         right: 0;
@@ -218,10 +221,10 @@ import { LevelShapeComponent } from './level-shape';
         height: 48px;
         min-height: 48px;
       }
-      .more::before {
+      :host(.phone-chips) .more::before {
         inset: 0;
       }
-      .count {
+      :host(.phone-chips) .count {
         top: -3px;
         right: -3px;
       }

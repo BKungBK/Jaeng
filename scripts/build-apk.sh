@@ -2,17 +2,16 @@
 # Builds dist/jaeng-debug.apk (plan 7, spec 8.4): the web app for the APK, the Capacitor sync, then
 # Gradle inside the jaeng-android image. The APK opens on the address given here; the reader can
 # change it in the app (/server), so a new IP does not need a new build.
-#   bash scripts/build-apk.sh http://192.168.1.143:8000
+#   bash scripts/build-apk.sh                      (no address: the app asks for it on first start)
+#   bash scripts/build-apk.sh https://<tunnel>     (an address to start on; a quick tunnel's changes every run)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 server="${1:-}"
-if [ -z "$server" ]; then
-  server="http://$(hostname -I | awk '{print $1}'):8000"
-  echo "build-apk: no address given, using $server" >&2
+if [ -n "$server" ]; then
+  case "$server" in http://*|https://*) ;; *) echo "build-apk: the address must start with http:// or https://" >&2; exit 1 ;; esac
+  server="${server%/}"
 fi
-case "$server" in http://*|https://*) ;; *) echo "build-apk: the address must start with http:// or https://" >&2; exit 1 ;; esac
-server="${server%/}"
 
 if ! docker image inspect jaeng-android > /dev/null 2>&1; then
   echo "build-apk: building the jaeng-android image (first time only, a few minutes)"
@@ -23,7 +22,7 @@ docker compose up -d web > /dev/null
 docker compose exec -T web npx ng build --configuration android
 
 # the address the app starts with, next to index.html (the app reads it when the reader has saved none)
-printf '{"server":"%s"}\n' "$server" > apps/web/www-android/server.json
+[ -z "$server" ] || printf '{"server":"%s"}\n' "$server" > apps/web/www-android/server.json
 
 # the launcher icon and splash are generated from apps/web/resources (drawn by
 # apps/web/scripts/build-app-icons.mjs) and committed; redo them only when the drawings are newer
@@ -44,4 +43,4 @@ docker run --rm --dns 1.1.1.1 --dns 8.8.8.8 \
 mkdir -p dist
 cp apps/web/android/app/build/outputs/apk/debug/app-debug.apk dist/jaeng-debug.apk
 echo
-echo "build-apk: dist/jaeng-debug.apk ($(du -h dist/jaeng-debug.apk | cut -f1)), starts on $server"
+echo "build-apk: dist/jaeng-debug.apk ($(du -h dist/jaeng-debug.apk | cut -f1)), starts on ${server:-no address: the app asks for one}"

@@ -136,6 +136,102 @@ describe('createBeaconElement', () => {
   });
 });
 
+describe('a beacon reacting to a change (plan 8)', () => {
+  const make = (p: ReportProps, zoom = 13) => createBeaconElement(p, beaconView(p, zoom), false, words());
+  const update = (el: HTMLElement, p: ReportProps, zoom = 13) => updateBeaconElement(el, p, beaconView(p, zoom), false, words());
+
+  it('plays nothing for a marker that was just created, however it looks', () => {
+    expect(make(report()).dataset['fx']).toBeUndefined();
+    expect(make(report({ status: 'resolved', confirm_count: 5 })).dataset['fx']).toBeUndefined();
+    expect(make(report({ status: 'fix_claimed' })).dataset['fx']).toBeUndefined();
+  });
+
+  it('bumps when the same marker gains a confirmation, and not when it loses one or stays', () => {
+    const p = report({ confirm_count: 3 });
+    const el = make(p);
+    update(el, { ...p, confirm_count: 3 });
+    expect(el.dataset['fx']).toBeUndefined();
+    update(el, { ...p, confirm_count: 4 });
+    expect(el.dataset['fx']).toBe('bump');
+    const lower = make(p);
+    update(lower, { ...p, confirm_count: 2 });
+    expect(lower.dataset['fx']).toBeUndefined();
+  });
+
+  it('does not bump for a marker that was only rebuilt by a different look of the same data', () => {
+    const p = report({ confirm_count: 3 });
+    const el = make(p, 9); // compact
+    update(el, p, 14); // zoomed in: height changes, the data does not
+    expect(el.dataset['fx']).toBeUndefined();
+  });
+
+  it('dims when the fix is claimed and goes out when it is resolved, keeping the same stand and disc', () => {
+    const p = report({ confirm_count: 2 });
+    const el = make(p);
+    const stand = el.querySelector('.stand');
+    const disc = el.querySelector('.disc');
+    update(el, { ...p, status: 'fix_claimed' });
+    expect(el.dataset['fx']).toBe('claimed');
+    expect(el.classList).toContain('st-claimed');
+    update(el, { ...p, status: 'resolved' });
+    expect(el.dataset['fx']).toBe('out');
+    expect(el.classList).toContain('st-done');
+    expect(el.querySelector('.stand')).toBe(stand); // it shrinks, it is not replaced
+    expect(el.querySelector('.disc')).toBe(disc);
+    expect(el.querySelector('.tick svg.icon-check')).not.toBeNull();
+    expect(el.querySelector('.disc svg.icon-construction')).toBeNull();
+    expect(el.style.getPropertyValue('--h')).toBe('0px');
+  });
+
+  it('goes straight out when an open report is resolved', () => {
+    const p = report();
+    const el = make(p);
+    update(el, { ...p, status: 'resolved' });
+    expect(el.dataset['fx']).toBe('out');
+  });
+
+  it('draws the tick of a resolved marker (a path with a length of 1)', () => {
+    const el = make(report({ status: 'resolved' }));
+    expect(el.querySelector('.tick path')?.getAttribute('pathLength')).toBe('1');
+  });
+
+  it('brings the original look back when a resolved report is reopened', () => {
+    const p = report();
+    const el = make(p);
+    update(el, { ...p, status: 'resolved' });
+    update(el, { ...p, status: 'open' });
+    expect(el.classList).toContain('st-open');
+    expect(el.querySelector('.disc svg.icon-construction')).not.toBeNull();
+    expect(el.querySelector('.tick')).toBeNull();
+  });
+
+  it('clears the effect by itself so a later change can play it again', () => {
+    vi.useFakeTimers();
+    try {
+      const p = report({ confirm_count: 1 });
+      const el = make(p);
+      update(el, { ...p, confirm_count: 2 });
+      expect(el.dataset['fx']).toBe('bump');
+      vi.advanceTimersByTime(1100);
+      expect(el.dataset['fx']).toBeUndefined();
+      update(el, { ...p, confirm_count: 3 });
+      expect(el.dataset['fx']).toBe('bump');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('rebuilds fully only when the category or the level changes', () => {
+    const p = report();
+    const el = make(p);
+    const stand = el.querySelector('.stand');
+    update(el, { ...p, danger_level: 0 });
+    expect(el.querySelector('.stand')).not.toBe(stand);
+    expect(el.querySelectorAll('.ring')).toHaveLength(1);
+    expect(el.dataset['fx']).toBeUndefined();
+  });
+});
+
 describe('createClusterElement', () => {
   it('shows the count with the highest level colour', () => {
     const el = createClusterElement(7, 3, 0, words());

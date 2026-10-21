@@ -141,6 +141,8 @@
     background: linear-gradient(to top, var(--c), transparent 95%);
     opacity: 0.8;
     clip-path: polygon(0 0, 100% 0, 54% 100%, 46% 100%);
+    // a claimed fix dims it, a resolved one lets it go (plan 8)
+    transition: opacity 600ms var(--ease);
   }
 
   .disc {
@@ -185,7 +187,24 @@
   }
 
   .disc {
-    transition: box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition:
+      box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 600ms var(--ease);
+  }
+
+  // the ring that leaves the disc once when a report is confirmed again (data-fx='bump'); at rest it is not drawn
+  .disc::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 3px solid var(--c);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tick path {
+    stroke-dasharray: 1; // the tick has pathLength 1, so it can draw itself
   }
 
   .disc.selected {
@@ -234,13 +253,76 @@
   &.st-done {
     --c: var(--s0);
 
-    .beam,
     .ring {
       display: none;
+    }
+    // not display:none: the beam flickers out first (data-fx='out'), the stand shrinks under it
+    .beam {
+      opacity: 0;
     }
     .disc {
       opacity: 0.85;
     }
+  }
+
+  // ---- what a change looks like, once (beacon.ts sets data-fx for ~1 s on a marker that already existed).
+  // Only transform-like properties of this one marker; nothing here animates a filter or a shadow. ----
+  &[data-fx='bump'] .disc,
+  &[data-fx='claimed'] .disc {
+    animation: disc-bump var(--pop-dur) var(--pop);
+  }
+
+  &[data-fx='bump'] .disc::after {
+    animation: disc-ring 560ms var(--ease);
+  }
+
+  &[data-fx='out'] {
+    .beam {
+      animation: beam-out 900ms linear;
+    }
+    .tick path {
+      animation: tick-draw 280ms var(--ease) 500ms backwards;
+    }
+  }
+}
+
+// `scale` (not `transform`): a compact marker's disc is already scaled by transform, and the map moves the marker itself
+@keyframes disc-bump {
+  from {
+    scale: 0.8;
+  }
+}
+
+@keyframes disc-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+// the light flickers twice and goes out
+@keyframes beam-out {
+  0% {
+    opacity: 0.8;
+  }
+  14% {
+    opacity: 0.12;
+  }
+  28% {
+    opacity: 0.7;
+  }
+  44% {
+    opacity: 0.08;
+  }
+  60% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
   }
 }
 

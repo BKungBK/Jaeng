@@ -44,6 +44,7 @@ function setLevelVars(node: HTMLElement, level: LevelInfo) {
   node.style.setProperty('--d', level.pulse);
 }
 
+/** The frame: pulse rings, base, stand with its beam, and the focusable disc. Built once per look. */
 function build(root: HTMLElement, p: ReportProps, view: BeaconView) {
   root.replaceChildren();
   for (let i = 0; i < view.level.rings; i++) el('i', i ? 'ring two' : 'ring', root);
@@ -54,8 +55,18 @@ function build(root: HTMLElement, p: ReportProps, view: BeaconView) {
   disc.setAttribute('role', 'button');
   disc.tabIndex = 0;
   disc.dataset['id'] = p.id;
+  fillDisc(disc, p, view);
+}
+
+/** What is on the disc: the category icon and level badge, or a tick once resolved. The stand and the
+ *  disc stay, so a resolved report's beam can shrink instead of being replaced. */
+function fillDisc(disc: HTMLElement, p: ReportProps, view: BeaconView) {
+  disc.replaceChildren();
   if (view.state === 'done') {
-    el('span', 'tick', disc).appendChild(iconElement('check', 18));
+    const icon = iconElement('check', 18);
+    // pathLength 1 lets the tick draw itself when a report is resolved (theme/map.scss)
+    icon.querySelector('path')?.setAttribute('pathLength', '1');
+    el('span', 'tick', disc).appendChild(icon);
   } else {
     disc.appendChild(iconElement(categoryIcon(p.category), 18));
   }
@@ -73,15 +84,50 @@ function levelBadge(level: DangerLevel | null): HTMLElement {
   return sym;
 }
 
-// Rebuild only when the look changes; label and height update in place so a focused disc survives.
-const structureKey = (p: ReportProps, view: BeaconView) => `${p.category}|${p.danger_level}|${view.state}`;
+// Rebuild only when the frame changes (category or level); the disc's face changes when a report is
+// resolved or reopened; label, height and status update in place so a focused disc survives.
+const structureKey = (p: ReportProps) => `${p.category}|${p.danger_level}`;
+
+type Fx = 'bump' | 'claimed' | 'out';
+const FX_MS = 1000;
+const fxTimers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
+
+/** Sets `data-fx` (theme/map.scss plays one effect per value) and clears it after it has run, restarting it if it was still running. */
+function playFx(root: HTMLElement, fx: Fx) {
+  clearTimeout(fxTimers.get(root));
+  if (root.dataset['fx']) {
+    delete root.dataset['fx'];
+    void root.offsetWidth; // let the browser see it gone, so the same effect can start again
+  }
+  root.dataset['fx'] = fx;
+  fxTimers.set(
+    root,
+    setTimeout(() => delete root.dataset['fx'], FX_MS),
+  );
+}
+
+/** What this update means to someone watching, judged against what the same marker showed before. A marker
+ *  that was just created (or rebuilt by a pan) has no "before", so nothing plays for it. */
+function reaction(prevState: string | undefined, prevCount: string | undefined, p: ReportProps, view: BeaconView): Fx | null {
+  if (prevState === undefined) return null;
+  if (view.state === 'done' && prevState !== 'done') return 'out';
+  if (view.state === 'claimed' && prevState === 'open') return 'claimed';
+  if (view.state !== 'done' && Number(prevCount) < p.confirm_count) return 'bump';
+  return null;
+}
 
 export function updateBeaconElement(root: HTMLElement, p: ReportProps, view: BeaconView, showLabel: boolean, w: Words): void {
-  const key = structureKey(p, view);
+  const fx = reaction(root.dataset['state'], root.dataset['count'], p, view);
+  const key = structureKey(p);
   if (root.dataset['key'] !== key) {
     build(root, p, view);
     root.dataset['key'] = key;
+  } else if ((root.dataset['state'] === 'done') !== (view.state === 'done')) {
+    fillDisc(root.querySelector<HTMLElement>('.disc')!, p, view);
   }
+  root.dataset['state'] = view.state;
+  root.dataset['count'] = String(p.confirm_count);
+  if (fx) playFx(root, fx);
   const disc = root.querySelector<HTMLElement>('.disc')!;
   let lbl = root.querySelector('.lbl');
   if (showLabel && !lbl) lbl = el('span', 'lbl', disc);

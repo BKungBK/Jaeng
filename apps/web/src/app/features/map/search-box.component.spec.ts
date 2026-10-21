@@ -70,6 +70,39 @@ describe('SearchBoxComponent', () => {
     expect(input().getAttribute('aria-label')).toBe('ค้นหาเรื่องหรือสถานที่');
   });
 
+  it('on a wide screen the answers are a line of the side panel itself (the host steps out of the layout), not a floating card', async () => {
+    const { fixture, root, type, settle } = await setup();
+    await type('เชียงใหม่');
+    await settle(400);
+    expect((fixture.nativeElement as HTMLElement).classList).toContain('wide');
+    const results = root.querySelector('.results')!;
+    expect(results.classList).toContain('float');
+    expect(results.classList).not.toContain('glass'); // the panel is the glass; no second one inside it
+  });
+
+  it('on a phone the card is glass like the bar it replaces, denser once answers hang from it', async () => {
+    const { fixture, root, type, settle } = await setup({ collapsed: true });
+    root.querySelector<HTMLButtonElement>('.search-pill')!.click();
+    await settle(10);
+    const box = root.querySelector('.box.phone')!;
+    expect(box.classList).toContain('glass');
+    expect(box.classList).not.toContain('dense');
+    await type('เชียงใหม่');
+    await settle(400);
+    expect(box.classList).toContain('dense');
+    expect(fixture.nativeElement.classList).not.toContain('wide');
+  });
+
+  it('empties the field from the x on a wide screen and keeps the caret in it', async () => {
+    const { root, input, type, settle } = await setup();
+    expect(root.querySelector('.clear')).toBeNull();
+    await type('เชียงใหม่');
+    root.querySelector<HTMLButtonElement>('.clear')!.click();
+    await settle();
+    expect(input().value).toBe('');
+    expect(root.querySelector('.clear')).toBeNull();
+  });
+
   it('does not search one letter', async () => {
     const { type, settle, places, reports } = await setup();
     await type('ถ');

@@ -42,7 +42,7 @@ let nextId = 0;
   imports: [TPipe, IconComponent, LevelShapeComponent],
   templateUrl: 'search-box.component.html',
   styleUrl: 'search-box.component.scss',
-  host: { '[class.open]': 'cardOpen()' },
+  host: { '[class.open]': 'cardOpen()', '[class.wide]': '!collapsed()' },
 })
 export class SearchBoxComponent {
   private placesSvc = inject(PlacesService);

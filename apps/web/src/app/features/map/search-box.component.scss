@@ -6,6 +6,14 @@
   min-width: 0;
 }
 
+// Wide screens: the field and its results are plain items of the side panel's search row (the row wraps, the
+// results take the line under the field), so a search shows its answers inside the panel's own glass instead
+// of in a second card floating over the map.
+:host(.wide),
+:host(.wide) .box {
+  display: contents;
+}
+
 // phones: the pill sits inside the page's glass bar, so it has no ground of its own
 .search-pill {
   display: flex;
@@ -50,6 +58,8 @@
 
 // desktop: the field sits inline in the side panel's search row, a faint well with no box line
 .box:not(.phone) .field {
+  flex: 1;
+  min-width: 0;
   min-height: 44px;
   height: 44px;
   padding: 0 4px 0 12px;
@@ -63,28 +73,29 @@
   }
 }
 
-// What opens over glass is solid (DESIGN.md "No Glass In Glass"): the results are text, and they have to be
-// read over the chips, the list and the map behind them, which thin glass would show straight through.
-// phones: a full-width warm card over the top bar, sliding down a little as it opens
+// phones: the glass card takes the bar's place, size and look, so the bar seems to open in place: the brand
+// mark stays where it was (the page keeps it above the card), the field starts where the pill's icon was, and
+// the answers hang from the same glass
 .box.phone {
   position: fixed;
   z-index: 8;
   top: calc(12px + env(safe-area-inset-top, 0px));
   left: 16px;
   right: 16px;
-  border: 1px solid var(--warm-line);
   border-radius: 23px;
   overflow: hidden;
-  background: var(--warm-surf);
-  box-shadow: var(--glass-shadow);
-  animation: search-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: search-in 160ms var(--ease);
 }
 
 @keyframes search-in {
   from {
     opacity: 0;
-    transform: translateY(-8px);
   }
+}
+
+// the field starts after the brand mark, where the pill's icon was (measured: 53 px in from the card's edge)
+.box.phone .field {
+  padding-left: 53px;
 }
 
 .field {
@@ -148,19 +159,15 @@
   border-top: 1px solid var(--warm-line);
 }
 
-// desktop: the results float under the field as a warm card of their own, wider than the field so a place
-// name and its district fit on a line
+// desktop: the results are the next line of the side panel's search row (see :host(.wide)), on the panel's own
+// glass; the page hides the chips, the numbers and the list while they show
 .results.float {
-  position: absolute;
-  z-index: 8;
-  top: calc(100% + 10px);
-  left: -8px;
-  right: -8px;
-  padding: 8px 8px 10px;
-  border: 1px solid var(--warm-line);
-  border-radius: 18px;
-  background: var(--warm-surf);
-  box-shadow: var(--glass-shadow);
+  flex: 0 0 100%;
+  order: 2;
+  box-sizing: border-box;
+  max-height: min(64vh, 460px);
+  margin-top: 2px;
+  padding: 8px 0 2px;
 }
 
 .group,

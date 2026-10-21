@@ -153,9 +153,14 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 
-  &::after,
-  > .mark {
+  &::after {
     visibility: hidden;
+  }
+
+  // the brand mark stays where it was, above the card that takes the bar's place: the bar opens in place
+  > .mark {
+    position: relative;
+    z-index: 9;
   }
 }
 
@@ -334,7 +339,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   display: flex;
   flex-direction: column;
   gap: 10px; // the search, the chips, the numbers and the list are four groups: air between them, not borders
-  width: 364px;
+  width: 372px;
   max-height: calc(100% - 40px - #{$safe-top});
   padding: 16px; // room to the edge for the avatar, the chips and the list text (they sat 8 px from it)
   border-radius: 28px; // the outer container of the scene: 26–30 px; the panels inside it 18–22
@@ -360,15 +365,14 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 
   // four chips and the more button in one row of the 332 px inside the panel
   // (English runs ~17 px wider than Thai: tighter chips, and the row scrolls rather than spill)
+  // (a chip's pill fills its whole width: the gap is what keeps two pills from touching)
   app-filter-bar ::ng-deep .chips {
-    flex-wrap: nowrap;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-wrap: wrap;
+    gap: 0 5px;
   }
 
   app-filter-bar ::ng-deep .chip {
-    padding: 0 6px;
+    padding: 0 8px;
   }
 
   // one hairline between the controls above and what the map holds below, in place of the chips' own border
@@ -386,15 +390,19 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   }
 }
 
-// the search results float out of the panel, so the panel must not clip them
-.side:has(app-search-box.open),
-.side:has(.results:not([hidden])),
+// the more-filters card floats out of the panel, so the panel must not clip it
 .side:has(app-filter-bar.open) {
   overflow: visible;
 }
 
+// a search is showing its answers (inside the search row): the chips, the numbers and the list make room
+.side:has(.results:not([hidden])) > :not(.search-row) {
+  display: none;
+}
+
 .search-row {
   display: flex;
+  flex-wrap: wrap; // the answers take the line under the field
   align-items: center;
   gap: 6px;
 

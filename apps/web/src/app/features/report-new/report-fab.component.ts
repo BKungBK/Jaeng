@@ -53,7 +53,8 @@ import { LoginPromptService } from '../auth/login-prompt.service';
         transform 120ms ease-out;
     }
     .fab.round {
-      width: 46px;
+      width: 54px;
+      min-height: 54px;
       padding: 0;
       border-radius: 50%;
       box-shadow:

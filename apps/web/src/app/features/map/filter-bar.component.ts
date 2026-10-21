@@ -180,11 +180,28 @@ import { LevelShapeComponent } from './level-shape';
       font: 600 12px/20px var(--font);
       text-align: center;
     }
+    /* phones: a bigger chip to read and to press: 13 px type, a 34 px pill (the target stays 44) */
+    @media (max-width: 819px) {
+      .chip {
+        font-size: 13px;
+        padding: 0 10px;
+      }
+      .chip::before {
+        inset: 5px 0;
+        border-radius: 17px;
+      }
+      .more::before {
+        inset: 5px;
+      }
+      .chip app-level-shape {
+        font-size: 15px;
+      }
+    }
     /* narrow phones: one row that scrolls sideways */
     @media (max-width: 419px) {
       .chips {
         flex-wrap: nowrap;
-        gap: 4px;
+        gap: 3px;
         padding: 0 3px; /* room for the focus ring at both ends */
         overflow-x: auto;
         scrollbar-width: none;
@@ -192,8 +209,13 @@ import { LevelShapeComponent } from './level-shape';
       .chips::-webkit-scrollbar {
         display: none;
       }
+      /* 13 px type, and the five still fit a 375 px phone in one row (measured) */
       .chip {
-        padding: 0 10px;
+        padding: 0 8px;
+        gap: 4px;
+      }
+      .chip app-level-shape {
+        font-size: 14px;
       }
     }
   `,

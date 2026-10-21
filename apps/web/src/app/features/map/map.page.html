@@ -84,7 +84,7 @@
 
   <div class="controls" style="--i: 2">
     <button type="button" class="ctl glass" [attr.aria-label]="'map.locate' | t" (click)="locate()">
-      <app-icon name="locateFixed" [size]="18" />
+      <app-icon name="locateFixed" [size]="22" />
     </button>
   </div>
 
@@ -92,11 +92,11 @@
   @if (!id()) {
     <nav class="dock glass" style="--i: 4">
       <button type="button" class="tab" aria-current="page" (click)="home()">
-        <app-icon name="map" [size]="18" />
+        <app-icon name="map" [size]="24" />
         <span class="word">{{ 'nav.map' | t }}</span>
       </button>
       <button type="button" class="tab" [attr.aria-label]="'map.list' | t" (click)="openList()">
-        <app-icon name="list" [size]="18" />
+        <app-icon name="list" [size]="24" />
         <span class="word" aria-hidden="true">{{ 'nav.list' | t }}</span>
       </button>
       <app-report-fab variant="round" />

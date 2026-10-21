@@ -3,7 +3,7 @@
 // capsule, control column, the "+ report" pill.
 $safe-top: env(safe-area-inset-top, 0px);
 $safe-bottom: env(safe-area-inset-bottom, 0px);
-$dock: 60px;
+$dock: 68px; // phones: roomier (was 60): the labels are 12 px and the icons 24
 $dock-gap: 16px;
 // the summary pill and the locate button stand 14 px above the dock
 $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
@@ -175,7 +175,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 .phone-chips {
   position: absolute;
   z-index: 4;
-  top: calc(12px + 46px + 12px - 7px + #{$safe-top}); // 7 px: the chip's 44 px target around its 30 px pill
+  top: calc(12px + 46px + 10px - 5px + #{$safe-top}); // 5 px: the chip's 44 px target around its 34 px pill
   left: 16px;
   right: 16px;
 
@@ -197,10 +197,10 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   position: absolute;
   z-index: 4;
   left: 16px;
-  right: 72px;
+  right: 80px; // the locate button (48 px) and a 16 px gap
   bottom: $above-dock;
-  height: 40px;
-  border-radius: 20px;
+  height: 48px;
+  border-radius: 24px;
 }
 
 .open-list {
@@ -236,7 +236,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   .list-word {
     flex: 1;
     padding-left: 8px;
-    font: 500 13px/1.4 var(--font);
+    font: 500 14px/1.4 var(--font);
   }
 
   .chev {
@@ -268,17 +268,9 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   bottom: $above-dock;
 
   .ctl {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-
-    // a 44 px target around the 40 px circle (::after is the glass grain)
-    &::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: 50%;
-    }
   }
 }
 
@@ -291,7 +283,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   display: flex;
   align-items: center;
   justify-content: space-around;
-  width: min(300px, calc(100% - 32px));
+  width: min(344px, calc(100% - 24px));
   height: $dock;
   margin-inline: auto;
   padding: 0 8px;
@@ -300,9 +292,9 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   .tab {
     align-content: center;
     gap: 2px;
-    width: 56px;
-    height: 44px;
-    border-radius: 14px;
+    width: 68px;
+    height: 52px;
+    border-radius: 16px;
     color: var(--ink2);
 
     &[aria-current='page'] {
@@ -313,20 +305,20 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
       color: var(--ink);
     }
 
-    // the same 22 px icon box as the account tab's face, so the words line up
+    // the same 26 px icon box as the account tab's face, so the words line up
     app-icon {
       display: grid;
       place-items: center;
-      height: 22px;
+      height: 26px;
     }
   }
 
   .word {
-    max-width: 56px;
+    max-width: 68px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font: 400 10px/1.2 var(--font);
+    font: 500 12px/1.2 var(--font);
   }
 }
 
@@ -334,7 +326,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 @media (max-width: 819px) {
   :host ::ng-deep .maplibregl-ctrl-bottom-right {
     right: 6px;
-    bottom: calc(#{$dock-gap} + #{$dock} + 14px + 40px + 4px + #{$safe-bottom});
+    bottom: calc(#{$dock-gap} + #{$dock} + 14px + 48px + 4px + #{$safe-bottom});
   }
 }
 

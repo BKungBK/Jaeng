@@ -167,7 +167,7 @@ export class AccountMenuComponent {
         @if (initial(); as letter) {
           <span class="initial">{{ letter }}</span>
         } @else {
-          <app-icon name="circleUser" [size]="variant() === 'tab' ? 18 : 20" />
+          <app-icon name="circleUser" [size]="variant() === 'tab' ? 24 : 20" />
         }
       </span>
       @if (variant() === 'tab') {
@@ -222,14 +222,15 @@ export class AccountMenuComponent {
     }
     /* tab: icon over a 10 px word, like the other dock slots */
     .ctl.tab {
-      width: 56px;
+      width: 68px;
+      height: 52px;
       align-content: center;
       gap: 2px;
       color: var(--ink2);
     }
     .ctl.tab .face {
-      width: 22px;
-      height: 22px;
+      width: 26px;
+      height: 26px;
       background: none;
     }
     .ctl.tab.in .face {
@@ -237,14 +238,14 @@ export class AccountMenuComponent {
       color: var(--ink);
     }
     .ctl.tab .initial {
-      font-size: 12px;
+      font-size: 14px;
     }
     .word {
-      max-width: 56px;
+      max-width: 68px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font: 400 10px/1.2 var(--font);
+      font: 500 12px/1.2 var(--font);
     }
     .ctl.tab:hover {
       color: var(--ink);

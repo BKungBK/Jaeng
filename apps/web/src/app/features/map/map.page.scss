@@ -7,6 +7,12 @@ $dock: 68px; // phones: roomier (was 60): the labels are 12 px and the icons 24
 $dock-gap: 16px;
 // the summary pill and the locate button stand 14 px above the dock
 $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
+// the right-hand column on phones, top to bottom: "more filters" (the filter bar's button, 48 px), locate, the
+// folded attribution ⓘ. The column starts under the chip row: its 44 px target, a 3 px gap, then each 48 px
+// button 10 px below the last
+$chips-top: calc(12px + 46px + 10px - 5px + #{$safe-top}); // 5 px: the chip's 44 px target around its 34 px pill
+$locate-top: calc(#{$chips-top} + 44px + 3px + 48px + 10px);
+$info-top: calc(#{$locate-top} + 48px + 10px);
 
 :host {
   background: var(--sea);
@@ -175,7 +181,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 .phone-chips {
   position: absolute;
   z-index: 4;
-  top: calc(12px + 46px + 10px - 5px + #{$safe-top}); // 5 px: the chip's 44 px target around its 34 px pill
+  top: $chips-top;
   left: 16px;
   right: 16px;
 
@@ -196,8 +202,11 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 .summary.glass {
   position: absolute;
   z-index: 4;
-  left: 16px;
-  right: 80px; // the locate button (48 px) and a 16 px gap
+  // as wide as the dock under it
+  left: 0;
+  right: 0;
+  width: min(344px, calc(100% - 24px));
+  margin-inline: auto;
   bottom: $above-dock;
   height: 48px;
   border-radius: 24px;
@@ -249,7 +258,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
 .summary.glass .hint-line:not(.sr-only) {
   position: absolute;
   left: 0;
-  right: -56px;
+  right: 0;
   bottom: calc(100% + 8px);
   padding: 8px 14px;
   border: 1px solid var(--glass-edge);
@@ -265,7 +274,7 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   position: absolute;
   z-index: 4;
   right: 16px;
-  bottom: $above-dock;
+  top: $locate-top;
 
   .ctl {
     width: 48px;
@@ -322,11 +331,13 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   }
 }
 
-// MapLibre's attribution, folded to its info button, stands above the locate button
+// MapLibre's attribution, folded to its info button, comes next in the column under the locate button
+// (17 px: the 26 px circle and its 10 px margin centre on the 48 px buttons above)
 @media (max-width: 819px) {
   :host ::ng-deep .maplibregl-ctrl-bottom-right {
-    right: 6px;
-    bottom: calc(#{$dock-gap} + #{$dock} + 14px + 48px + 4px + #{$safe-bottom});
+    right: 17px;
+    top: $info-top;
+    bottom: auto;
   }
 }
 

@@ -203,25 +203,37 @@ import { LevelShapeComponent } from './level-shape';
         font-size: 15px;
       }
     }
-    /* phones: the chips keep room around their words; when the four do not fit beside the "more" button the
-       chips slide sideways (the last one peeks out to say so) and the button stays put at the end */
+    /* phones: the four chips take the whole row; "more filters" is a round glass button in the column down the
+       right edge (under the row, above locate), the same 48 px as the locate button */
     @media (max-width: 819px) {
       .chip {
-        padding: 0 13px;
+        padding: 0 11px;
         gap: 6px;
       }
-    }
-    @media (max-width: 419px) {
-      .chips {
-        flex-wrap: nowrap;
-        gap: 4px;
+      .more {
+        position: absolute;
+        top: calc(100% + 3px);
+        right: 0;
+        width: 48px;
+        height: 48px;
+        min-height: 48px;
       }
+      .more::before {
+        inset: 0;
+      }
+      .count {
+        top: -3px;
+        right: -3px;
+      }
+    }
+    /* narrow phones: the chips share the row evenly; a longer language that does not fit slides sideways */
+    @media (max-width: 419px) {
       .levels {
         display: flex;
         flex: 1;
         min-width: 0;
         flex-wrap: nowrap;
-        gap: 6px;
+        gap: 5px;
         padding: 0 3px; /* room for the focus ring at both ends */
         overflow-x: auto;
         scrollbar-width: none;
@@ -229,6 +241,9 @@ import { LevelShapeComponent } from './level-shape';
       }
       .levels::-webkit-scrollbar {
         display: none;
+      }
+      .levels .chip {
+        flex: 1 1 auto;
       }
     }
   `,

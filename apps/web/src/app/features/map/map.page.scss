@@ -66,22 +66,15 @@ $info-top: calc(#{$locate-top} + 48px + 10px);
   }
 }
 
-// the brand: a dawn circle with "แ" (the word itself is read aloud)
+// the brand: the round logo (assets/icon/logo.svg; the name itself is read aloud)
 .mark {
-  display: grid;
-  place-items: center;
   flex: none;
   width: 34px;
   height: 34px;
   margin: 0;
   border-radius: 50%;
-  background: var(--dawn);
-  color: var(--dawn-ink);
-  font: 600 15px/1 var(--font);
-
-  &::before {
-    content: '\0E41';
-  }
+  background: url('/assets/icon/logo.svg') center / contain no-repeat;
+  box-shadow: 0 1px 6px rgba(46, 35, 28, 0.28);
 }
 
 .hint-line {
@@ -367,7 +360,6 @@ $info-top: calc(#{$locate-top} + 48px + 10px);
     width: 32px;
     height: 32px;
     margin-left: 0;
-    font-size: 14px;
   }
 
   app-filter-bar {

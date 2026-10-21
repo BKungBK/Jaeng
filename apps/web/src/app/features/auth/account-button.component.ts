@@ -287,12 +287,17 @@ export class AccountButtonComponent {
       await this.prompt.ask();
       return;
     }
+    // beside the button, on the side that has room: a button in the lower half (the phone dock) has its menu rise
+    // from the button's bottom edge, one in the upper half (the side panel's search row) hangs from its top edge
+    // (a menu aligned to the bottom of a button near the top of the screen would be cut off above it)
+    const box = (event.currentTarget as HTMLElement | null)?.getBoundingClientRect();
+    const lower = !box || box.top + box.height / 2 > window.innerHeight / 2;
     const popover = await this.popovers.create({
       component: AccountMenuComponent,
       cssClass: 'account-menu',
       event,
       side: 'left',
-      alignment: 'end',
+      alignment: lower ? 'end' : 'start',
     });
     await popover.present();
     const { role } = await popover.onDidDismiss();

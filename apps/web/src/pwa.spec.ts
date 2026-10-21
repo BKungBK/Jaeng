@@ -38,16 +38,31 @@ describe('app icon', () => {
     const i = (png.width * y + x) * 4;
     return [png.data[i], png.data[i + 1], png.data[i + 2]];
   };
-  const near = (a: number[], b: number[]) => a.every((v, i) => Math.abs(v - b[i]) <= 8);
+  const alpha = (x: number, y: number) => png.data[(png.width * y + x) * 4 + 3];
+  const peach = (c: number[]) => c[0] > c[2] + 20 && c[0] > 170; // the dawn gradient
+  const ink = (c: number[]) => c[0] < 90 && c[1] < 80 && c[2] < 80; // --dawn-ink, the lines
+  const columnHasInk = (at: (x: number, y: number) => number[], x: number, size: number) => {
+    for (let y = 0; y < size; y++) if (ink(at(x, y))) return true;
+    return false;
+  };
 
-  it('is cream at the corner, white inside the disc, and keeps the disc inside the safe zone', () => {
-    expect(near(px(0, 0), [0xfb, 0xf7, 0xf2])).toBe(true);
-    const disc = [256, 180] as const;
-    expect(near(px(disc[0], disc[1]), [0xff, 0xff, 0xff])).toBe(true);
-    // outside the central 80% (the maskable safe zone) there is no Trust Blue
-    const blue = [0x3f, 0x6f, 0xa8];
-    for (let x = 0; x < 512; x += 8) {
-      for (const y of [0, 20, 40, 491, 511]) expect(near(px(x, y), blue)).toBe(false);
+  it('is a round dawn-gradient disc with the signal drawn in ink (logo.svg)', () => {
+    for (const [x, y] of [[0, 0], [511, 0], [0, 511], [511, 511]]) expect(alpha(x, y)).toBe(0);
+    expect(alpha(256, 2)).toBe(255); // the disc touches the top of the square
+    expect(peach(px(256, 24))).toBe(true);
+    expect(columnHasInk(px, 256, 512)).toBe(true);
+  });
+
+  it("keeps the signal inside the maskable icon's safe zone (the middle 80%)", () => {
+    const mask = PNG.sync.read(read('src/assets/icon/app-maskable-512.png'));
+    const at = (x: number, y: number) => [...mask.data.subarray((mask.width * y + x) * 4, (mask.width * y + x) * 4 + 3)];
+    expect(columnHasInk(at, 256, 512)).toBe(true);
+    // the outer 10% on every side is plain gradient: no line a mask could cut
+    for (let t = 0; t < 512; t += 8) {
+      for (const edge of [0, 25, 486, 511]) {
+        expect(peach(at(t, edge))).toBe(true);
+        expect(peach(at(edge, t))).toBe(true);
+      }
     }
   });
 });
@@ -65,13 +80,14 @@ describe('Android launcher resources (plan 7)', () => {
     expect(size('resources/splash.png')).toBe('2732x2732');
   });
 
-  it('draws the splash as the icon on cream: cream at the corner, the white disc in the middle', () => {
+  it('draws the splash as the signal on the dawn gradient: peach at the corner, ink lines down the middle', () => {
     const png = PNG.sync.read(read('resources/splash.png'));
     const px = (x: number, y: number) => [...png.data.subarray((png.width * y + x) * 4, (png.width * y + x) * 4 + 3)];
-    expect(px(0, 0)).toEqual([0xfb, 0xf7, 0xf2]);
-    // the disc centre is at design (256, 186): 30% of the side, 256 units = the middle
-    const scale = (2732 * 0.3) / 512;
-    expect(px(1366, Math.round(1366 + (186 - 256) * scale))).toEqual([0xff, 0xff, 0xff]);
+    const [r, , b] = px(0, 0);
+    expect(r > b + 10).toBe(true);
+    let inked = false;
+    for (let y = 800; y < 1900 && !inked; y++) inked = px(1366, y)[0] < 90;
+    expect(inked).toBe(true);
   });
 });
 

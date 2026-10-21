@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- The app's mark at small sizes (the top bar, the sign-in page): resources/logo.svg with heavier lines, so it
+       reads at 32 px. Ink on the dawn gradient of theme/glass.scss. -->
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#efd8bf" />
+      <stop offset="0.52" stop-color="#dcae92" />
+      <stop offset="1" stop-color="#bb9c94" />
+    </linearGradient>
+  </defs>
+  <circle cx="512" cy="512" r="512" fill="url(#dawn)" />
+  <g fill="none" stroke="#2e231c" stroke-width="66" stroke-linecap="round" stroke-linejoin="round" transform="translate(512 512) scale(0.86) translate(-512 -512)">
+    <circle cx="512" cy="330" r="150" />
+    <path d="M512 262 L512 350" />
+    <circle cx="512" cy="408" r="4" />
+    <path d="M474 780 L376 456" />
+    <path d="M550 780 L648 456" />
+    <ellipse cx="512" cy="824" rx="92" ry="30" fill="#2e231c" stroke="none" />
+  </g>
+</svg>

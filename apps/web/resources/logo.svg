@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- แจ้ง: the signal. A lens that throws a beam down to the ground, drawn in line like a bat-signal: a ring with a
+       dot in it, two lines that close in to a point of light, a ripple under it. Ink on the web's dawn gradient
+       (theme/glass.scss --dawn, --dawn-ink). #ground is the flat gradient square, #disc the round one, #symbol the
+       lines (render-app-icons.mjs puts them together for each icon). -->
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#efd8bf" />
+      <stop offset="0.52" stop-color="#dcae92" />
+      <stop offset="1" stop-color="#bb9c94" />
+    </linearGradient>
+  </defs>
+  <g id="ground">
+    <rect width="1024" height="1024" fill="url(#dawn)" />
+  </g>
+  <g id="disc">
+    <circle cx="512" cy="512" r="512" fill="url(#dawn)" />
+  </g>
+  <g id="symbol" fill="none" stroke="#2e231c" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 0)">
+    <!-- the lit disc with its mark, the beam that reaches it, the lamp it comes from -->
+    <circle cx="512" cy="330" r="150" />
+    <path d="M512 262 L512 350" />
+    <circle cx="512" cy="408" r="4" />
+    <path d="M474 780 L376 456" />
+    <path d="M550 780 L648 456" />
+    <ellipse cx="512" cy="824" rx="92" ry="30" fill="#2e231c" stroke="none" />
+  </g>
+</svg>

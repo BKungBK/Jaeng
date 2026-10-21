@@ -15,6 +15,7 @@ import { safeNext } from './safe-next';
   template: `
     <app-backdrop />
     <main class="wrap">
+      <img class="logo" src="assets/icon/logo.svg" alt="" width="72" height="72" />
       <h1 class="brand">{{ 'app.title' | t }}</h1>
       <div class="card glass">
         <app-login-form (done)="finish()" />
@@ -35,6 +36,10 @@ import { safeNext } from './safe-next';
       height: 100%; /* a fixed height so a short phone scrolls inside the page to its bottom */
       overflow-y: auto;
       padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .logo {
+      border-radius: 50%;
+      box-shadow: 0 6px 20px rgba(46, 35, 28, 0.3);
     }
     .brand {
       margin: 0;

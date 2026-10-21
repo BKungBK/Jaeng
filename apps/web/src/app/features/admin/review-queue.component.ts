@@ -99,15 +99,16 @@ export class ReviewQueueComponent {
     void this.categoriesSvc.list().then((c) => this.categories.set(c)).catch(() => {});
   }
 
-  protected async load() {
-    this.state.set('loading');
+  /** quiet: a re-read after an action keeps the list on screen instead of turning it into a placeholder. */
+  protected async load(quiet = false) {
+    if (!quiet) this.state.set('loading');
     try {
       this.items.set(await this.admin.queue('reports'));
       this.index.set(0);
       this.mode.set('view');
       this.state.set('ready');
     } catch {
-      this.state.set('error');
+      if (!quiet) this.state.set('error'); // a failed re-read keeps what is on screen
     }
   }
 
@@ -194,7 +195,7 @@ export class ReviewQueueComponent {
     } catch (e) {
       this.message.set({ error: e });
       if (e instanceof ApiError && e.status === 409) {
-        await this.load();
+        await this.load(true);
         this.changed.emit();
       }
     } finally {

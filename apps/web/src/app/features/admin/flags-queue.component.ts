@@ -150,8 +150,9 @@ export class FlagsQueueComponent {
     void this.load();
   }
 
-  protected async load() {
-    this.state.set('loading');
+  /** quiet: a re-read after an action keeps the list on screen instead of turning it into a placeholder. */
+  protected async load(quiet = false) {
+    if (!quiet) this.state.set('loading');
     try {
       const [flags, hidden] = await Promise.all([this.admin.queue('flags'), this.admin.queue('hidden')]);
       this.items.set(flags);
@@ -159,7 +160,7 @@ export class FlagsQueueComponent {
       this.confirming.set(null);
       this.state.set('ready');
     } catch {
-      this.state.set('error');
+      if (!quiet) this.state.set('error'); // a failed re-read keeps what is on screen
     }
   }
 
@@ -185,13 +186,13 @@ export class FlagsQueueComponent {
     try {
       await act();
       if (card) await this.playDone(card, kind).catch(() => undefined);
-      await this.load();
+      await this.load(true);
       this.message.set(done);
       this.changed.emit();
     } catch (e) {
       this.message.set({ error: e });
       if (e instanceof ApiError && e.status === 409) {
-        await this.load();
+        await this.load(true);
         this.changed.emit();
       }
     } finally {

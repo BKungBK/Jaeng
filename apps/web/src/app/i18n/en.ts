@@ -127,6 +127,7 @@ export const en: Messages = {
     label: 'Search reports or places',
     open: 'Search',
     close: 'Close search',
+    clear: 'Clear search',
     loading: 'Searching…',
     places: 'Places',
     reports: 'Reports',

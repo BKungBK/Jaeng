@@ -333,9 +333,10 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   left: 20px;
   display: flex;
   flex-direction: column;
-  width: 340px;
+  gap: 10px; // the search, the chips, the numbers and the list are four groups: air between them, not borders
+  width: 364px;
   max-height: calc(100% - 40px - #{$safe-top});
-  padding: 8px;
+  padding: 16px; // room to the edge for the avatar, the chips and the list text (they sat 8 px from it)
   border-radius: 28px; // the outer container of the scene: 26–30 px; the panels inside it 18–22
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -349,16 +350,15 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   .mark {
     width: 32px;
     height: 32px;
-    margin-left: 4px;
+    margin-left: 0;
     font-size: 14px;
   }
 
   app-filter-bar {
-    padding: 2px 2px 4px;
-    border-bottom: 1px solid var(--glass-edge);
+    padding: 0;
   }
 
-  // four chips and the more button in one row of the 324 px panel
+  // four chips and the more button in one row of the 332 px inside the panel
   // (English runs ~17 px wider than Thai: tighter chips, and the row scrolls rather than spill)
   app-filter-bar ::ng-deep .chips {
     flex-wrap: nowrap;
@@ -368,13 +368,15 @@ $above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
   }
 
   app-filter-bar ::ng-deep .chip {
-    padding: 0 5px;
+    padding: 0 6px;
   }
 
+  // one hairline between the controls above and what the map holds below, in place of the chips' own border
   .summary {
     display: grid;
     gap: 4px;
-    padding: 10px 10px 6px;
+    padding: 12px 4px 4px;
+    border-top: 1px solid var(--glass-edge);
     color: var(--ink);
 
     .hint-line {

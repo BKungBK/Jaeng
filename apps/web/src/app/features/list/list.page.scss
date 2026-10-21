@@ -197,6 +197,13 @@ app-filter-bar {
 .reports {
   display: grid;
   gap: 8px;
+  transition: opacity 160ms var(--ease);
+
+  // a new sort or filter is on its way: the old rows stay, dimmed and not pressable, instead of vanishing
+  &.refreshing {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .row {

@@ -126,6 +126,7 @@ export const th = {
     label: 'ค้นหาเรื่องหรือสถานที่',
     open: 'ค้นหา',
     close: 'ปิดการค้นหา',
+    clear: 'ล้างคำค้น',
     loading: 'กำลังค้นหา…',
     places: 'สถานที่',
     reports: 'เรื่อง',

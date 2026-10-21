@@ -148,6 +148,30 @@ describe('ListPage', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
+  it('a new sort keeps the rows on screen (dimmed) until the new ones arrive, not a wall of placeholders', async () => {
+    const { radio, settle, root, page } = await setup({ pages: [rows(3)] });
+    let release!: (r: ListRow[]) => void;
+    page.mockImplementationOnce(() => new Promise<ListRow[]>((r) => (release = r)));
+    radio('ค้างนานสุด').click();
+    await settle();
+    expect(root.querySelectorAll('a.row')).toHaveLength(3); // the old rows are still there
+    expect(root.querySelector('.ghost')).toBeNull();
+    expect(root.querySelector('ul.reports.refreshing')).not.toBeNull();
+    release([row('n1'), row('n2')]);
+    await settle();
+    expect(root.querySelectorAll('a.row')).toHaveLength(2);
+    expect(root.querySelector('ul.reports.refreshing')).toBeNull();
+  });
+
+  it('a refresh that fails keeps the old rows and says so', async () => {
+    const { radio, settle, root, page } = await setup({ pages: [rows(3)] });
+    page.mockRejectedValueOnce(new Error('offline'));
+    radio('ค้างนานสุด').click();
+    await settle();
+    expect(root.querySelectorAll('a.row')).toHaveLength(3);
+    expect(root.querySelector('.status')?.textContent).toContain('โหลดรายการไม่สำเร็จ');
+  });
+
   it('keeps the rows on screen when the next page fails to load, and says so', async () => {
     const { button, settle, root, page } = await setup({ pages: [rows(50)] });
     page.mockRejectedValueOnce(new Error('offline'));

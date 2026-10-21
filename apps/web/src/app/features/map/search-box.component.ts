@@ -99,6 +99,13 @@ export class SearchBoxComponent {
     setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.search-pill')?.focus());
   }
 
+  /** Empties the field and keeps the caret in it, ready for the next word. */
+  protected clear() {
+    this.q.set('');
+    this.schedule();
+    this.field()?.focus();
+  }
+
   protected onInput(e: Event) {
     this.q.set((e.target as HTMLInputElement).value);
     this.schedule();

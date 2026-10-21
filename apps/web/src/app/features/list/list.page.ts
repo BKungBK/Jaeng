@@ -60,6 +60,8 @@ export class ListPage {
   protected readonly rows = signal<ListRow[]>([]);
   protected readonly hasMore = signal(false);
   protected readonly loadingMore = signal(false);
+  /** a new sort or filter is being read: the rows already shown stay, dimmed */
+  protected readonly refreshing = signal(false);
   /** the heading's number: exact on the last page, "50+" while there is more */
   protected readonly count = computed(() => (this.hasMore() ? `${this.rows().length}+` : String(this.rows().length)));
   protected readonly sorts = LIST_SORTS;
@@ -106,7 +108,12 @@ export class ListPage {
 
   protected async load(offset: number, quiet = false) {
     const seq = ++this.seq;
-    if (offset === 0 && !quiet) this.state.set('loading');
+    if (offset === 0 && !quiet) {
+      // a new sort or filter: what is on screen stays (dimmed) until the new rows come, instead of the whole
+      // list turning into placeholders. Only a first load, or one after an error, has nothing to keep.
+      if (this.state() === 'ready') this.refreshing.set(true);
+      else this.state.set('loading');
+    }
     this.loadingMore.set(offset > 0); // the next page: two ghost rows under the list while it comes
     try {
       const page = await this.svc.page({ ...this.query(), offset });
@@ -121,11 +128,14 @@ export class ListPage {
       this.state.set('ready');
     } catch {
       if (seq !== this.seq || quiet) return;
-      // the next page failing leaves what is already on screen alone; only a first load has nothing to show
-      if (offset > 0) this.notice.set('list.failed');
+      // a failed next page, or a failed refresh, leaves what is already on screen alone; only a first load has nothing to show
+      if (offset > 0 || (this.state() === 'ready' && this.rows().length > 0)) this.notice.set('list.failed');
       else this.state.set('error');
     } finally {
-      if (seq === this.seq) this.loadingMore.set(false);
+      if (seq === this.seq) {
+        this.loadingMore.set(false);
+        this.refreshing.set(false);
+      }
     }
   }
 

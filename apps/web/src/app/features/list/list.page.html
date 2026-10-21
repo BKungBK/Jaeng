@@ -64,7 +64,7 @@
       }
       @case ('ready') {
         @if (rows().length) {
-          <ul class="reports">
+          <ul class="reports" [class.refreshing]="refreshing()" [attr.aria-busy]="refreshing()">
             @for (r of rows(); track r.id) {
               <li>
                 <a class="row" [href]="'/r/' + r.id" (click)="open(r, $event)">

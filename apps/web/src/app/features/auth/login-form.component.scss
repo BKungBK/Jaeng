@@ -67,12 +67,77 @@
   }
 }
 
-.code {
-  font: 600 26px/1 var(--font);
+// the code: six cells to look at, the real field laid invisibly over them (it takes the typing, the paste,
+// the autofill and the screen reader; the cells only show what it holds)
+.otp {
+  position: relative;
+}
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  transition: opacity 200ms ease-out;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  height: 52px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  font: 600 24px/1 var(--font);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.4em;
-  text-align: center;
-  text-indent: 0.4em; // balances the trailing letter-spacing so the digits sit centred
+  transition:
+    border-color 160ms ease-out,
+    color 200ms ease-out;
+
+  // a digit lands: its cell settles with the pop spring
+  &.filled {
+    animation: settle var(--pop-dur) var(--pop) backwards;
+  }
+}
+
+// where the next digit goes, while the field has focus
+.otp:focus-within .cell.now {
+  border-color: var(--pri);
+  box-shadow: 0 0 0 2px var(--pri);
+}
+
+.otp .code {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: 100%;
+  opacity: 0;
+  font-size: 26px; // at least 16 px: no zoom-on-focus on phones
+}
+
+// a wrong code: the whole row shakes twice
+.otp.shake .cells {
+  animation: shake 320ms var(--ease);
+}
+
+// a right code: the digits take the accent, dim behind a tick that draws, and the sheet closes after it
+.otp.ok {
+  .cell {
+    border-color: var(--pri);
+    color: var(--pri);
+  }
+
+  .cells {
+    opacity: 0.35;
+  }
+
+  .check {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--pri);
+    pointer-events: none;
+  }
 }
 
 button {

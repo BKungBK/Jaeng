@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ApplicationRef, ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { AuthService } from '../core/auth.service';
 import { I18nService } from '../core/i18n.service';
+import { viewTransition } from '../core/motion';
 import { MeService } from '../features/me/me.service';
 import { LOCALE_SWITCH, type Locale } from '../i18n/keys';
 
@@ -45,6 +46,7 @@ import { LOCALE_SWITCH, type Locale } from '../i18n/keys';
 export class LanguageToggleComponent {
   private i18n = inject(I18nService);
   private auth = inject(AuthService);
+  private app = inject(ApplicationRef);
   private me = inject(MeService);
 
   protected readonly other = computed<Locale>(() => (this.i18n.locale() === 'th' ? 'en' : 'th'));
@@ -52,7 +54,11 @@ export class LanguageToggleComponent {
 
   protected toggle() {
     const l = this.other();
-    this.i18n.setLocale(l);
+    viewTransition(async () => {
+      this.i18n.setLocale(l);
+      await this.app.whenStable(); // the new words must be on the page when the transition looks
+    }).catch(() => undefined); // the words cross-fade
+
     if (this.auth.signedIn()) this.me.setLocale(l).catch((e) => console.warn('language not saved to the account', e));
   }
 }

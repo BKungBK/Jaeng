@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core';
+import { ApplicationRef, ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core';
 import { AuthService } from '../core/auth.service';
 import { I18nService } from '../core/i18n.service';
+import { viewTransition } from '../core/motion';
 import { MeService } from '../features/me/me.service';
 import { LOCALE_NAMES, LOCALES, type Locale } from '../i18n/keys';
 import { TPipe } from '../i18n/t.pipe';
@@ -32,6 +33,7 @@ import { TPipe } from '../i18n/t.pipe';
 export class LanguageChoiceComponent {
   protected readonly i18n = inject(I18nService);
   private auth = inject(AuthService);
+  private app = inject(ApplicationRef);
   private me = inject(MeService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -40,7 +42,11 @@ export class LanguageChoiceComponent {
 
   protected choose(l: Locale) {
     if (l === this.i18n.locale()) return;
-    this.i18n.setLocale(l);
+    // the words cross-fade (no circle: a language is not a light switch)
+    viewTransition(async () => {
+      this.i18n.setLocale(l);
+      await this.app.whenStable(); // the new words must be on the page when the transition looks
+    }).catch(() => undefined);
     // the device already switched; the account follows when it can
     if (this.auth.signedIn()) this.me.setLocale(l).catch((e) => console.warn('language not saved to the account', e));
   }

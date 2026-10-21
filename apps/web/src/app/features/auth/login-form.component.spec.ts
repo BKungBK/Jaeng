@@ -3,7 +3,7 @@ import type { DemoUser } from '@jaeng/shared/api';
 import { AuthError, AuthService } from '../../core/auth.service';
 import { I18nService } from '../../core/i18n.service';
 import { SupabaseService } from '../../core/supabase.service';
-import { LoginFormComponent } from './login-form.component';
+import { LoginFormComponent, VERIFIED_HOLD_MS } from './login-form.component';
 
 const DEMO: DemoUser[] = [
   { who: 'reporter', label_th: 'คนแจ้ง', label_en: 'Reporter' },
@@ -118,7 +118,26 @@ describe('LoginFormComponent', () => {
     expect(t.button('ยืนยัน')!.disabled).toBe(false);
     await t.submit();
     expect(t.auth.verifyCode).toHaveBeenCalledWith('pla@example.com', '123456');
+    // a right code is shown (accent, a tick that draws) for a moment before the sheet closes
+    expect(t.done).not.toHaveBeenCalled();
+    expect(t.root.querySelector('.otp.ok .check app-tick svg.play')).not.toBeNull();
+    await new Promise((r) => setTimeout(r, VERIFIED_HOLD_MS + 60));
     expect(t.done).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the six cells filling from the left, and shakes the row on a wrong code', async () => {
+    const t = await setup();
+    t.auth.verifyCode.mockRejectedValue(new AuthError('badCode'));
+    await toCodeStep(t);
+    await t.type('input[autocomplete="one-time-code"]', '123');
+    const cells = [...t.root.querySelectorAll('.cells .cell')];
+    expect(cells.map((c) => c.textContent?.trim())).toEqual(['1', '2', '3', '', '', '']);
+    expect(cells.map((c) => c.classList.contains('filled'))).toEqual([true, true, true, false, false, false]);
+    expect(cells[3].classList.contains('now')).toBe(true);
+    await t.type('input[autocomplete="one-time-code"]', '123456');
+    await t.submit();
+    expect(t.root.querySelector('.otp.shake')).not.toBeNull();
+    expect(t.root.querySelector('.otp.ok')).toBeNull();
   });
 
   it('keeps only digits in the code field', async () => {

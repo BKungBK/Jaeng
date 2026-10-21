@@ -26,7 +26,7 @@ const OPTIONS: readonly { value: ThemeChoice; icon: IconName; key: MessageKey }[
           [attr.data-value]="o.value"
           [attr.aria-checked]="theme.choice() === o.value"
           [tabIndex]="theme.choice() === o.value ? 0 : -1"
-          (click)="theme.set(o.value)"
+          (click)="pick(o.value, $event)"
         >
           <app-icon [name]="o.icon" [size]="18" />
           {{ o.key | t }}
@@ -41,13 +41,20 @@ export class ThemeChoiceComponent {
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly options = OPTIONS;
 
+  /** the new theme grows from the middle of the button that was pressed */
+  protected pick(value: ThemeChoice, e: Event) {
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    this.theme.set(value, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  }
+
   protected onKey(e: KeyboardEvent) {
     const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
     if (!step) return;
     e.preventDefault();
     const i = OPTIONS.findIndex((o) => o.value === this.theme.choice());
     const next = OPTIONS[(i + step + OPTIONS.length) % OPTIONS.length].value;
-    this.theme.set(next);
+    const from = (e.target as HTMLElement).closest('[role="radio"]')?.getBoundingClientRect();
+    this.theme.set(next, from && { x: from.left + from.width / 2, y: from.top + from.height / 2 });
     setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>(`[data-value="${next}"]`)?.focus());
   }
 }

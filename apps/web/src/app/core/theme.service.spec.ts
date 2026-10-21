@@ -107,6 +107,39 @@ describe('ThemeService', () => {
     expect(s.effective()).toBe('dark');
   });
 
+  describe('with view transitions (plan 8: the new theme grows from the button)', () => {
+    type Doc = { startViewTransition?: unknown };
+    afterEach(() => delete (document as Doc).startViewTransition);
+
+    it('still switches when the transition is skipped and never runs the update (the promise must not hang)', async () => {
+      fakeMedia(false);
+      (document as Doc).startViewTransition = () => ({ finished: Promise.reject(new Error('skipped')) });
+      const s = make();
+      s.set('light');
+      await new Promise((r) => setTimeout(r));
+      expect(s.choice()).toBe('light');
+      expect(root().getAttribute('data-theme')).toBe('light');
+    });
+
+    it('grows from the given point, or from the middle of the screen without one, and ends with the last choice', async () => {
+      fakeMedia(false);
+      const callbacks: (() => void)[] = [];
+      (document as Doc).startViewTransition = (cb: () => void) => {
+        callbacks.push(cb);
+        return { finished: Promise.resolve() };
+      };
+      const s = make();
+      s.set('light', { x: 30, y: 42 });
+      expect(root().style.getPropertyValue('--vt-x')).toBe('30px');
+      expect(root().style.getPropertyValue('--vt-y')).toBe('42px');
+      s.set('dark'); // quickly again, from nowhere in particular
+      expect(root().style.getPropertyValue('--vt-x')).toBe(`${window.innerWidth / 2}px`);
+      for (const cb of callbacks) cb(); // the browser runs both callbacks, in order
+      expect(s.choice()).toBe('dark');
+      expect(root().getAttribute('data-theme')).toBe('dark');
+    });
+  });
+
   it('drives the sea theme for all three choices', () => {
     fakeMedia(true);
     const s = make();

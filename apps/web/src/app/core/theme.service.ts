@@ -1,4 +1,5 @@
 import { computed, DOCUMENT, inject, Injectable, signal } from '@angular/core';
+import { viewTransition } from './motion';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
 export const THEME_STORAGE_KEY = 'jaeng.theme';
@@ -45,13 +46,21 @@ export class ThemeService {
     this.apply(isChoice(stored) ? stored : DEFAULT_CHOICE);
   }
 
-  set(c: ThemeChoice): void {
+  /**
+   * Switches the theme. In a browser with view transitions the new look grows as a circle from `origin`
+   * (the button that was pressed; the middle of the screen when there is none); elsewhere, or when the
+   * transition is skipped, it simply changes. The choice is stored first, so a slow or aborted
+   * transition never loses it.
+   */
+  set(c: ThemeChoice, origin?: { x: number; y: number }): void {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, c);
     } catch {
       // the choice lasts for this visit only
     }
-    this.apply(c);
+    const win = this.doc.defaultView;
+    const at = origin ?? { x: (win?.innerWidth ?? 0) / 2, y: (win?.innerHeight ?? 0) / 2 };
+    viewTransition(() => this.apply(c), at).catch(() => undefined);
   }
 
   private apply(c: ThemeChoice): void {

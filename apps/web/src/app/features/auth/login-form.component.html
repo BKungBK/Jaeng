@@ -21,7 +21,7 @@
     />
     <ng-container *ngTemplateOutlet="stepError" />
 
-    <button type="submit" class="primary" [disabled]="!emailOk() || busy() !== null">
+    <button type="submit" class="primary" [disabled]="!emailOk() || busy() !== null" [attr.aria-busy]="busy() === 'send'">
       <app-icon name="send" [size]="20" />
       {{ (busy() === 'send' ? 'auth.sending' : 'auth.send') | t }}
     </button>
@@ -32,23 +32,35 @@
     </p>
 
     <label class="field" [for]="id + '-code'">{{ 'auth.code' | t }}</label>
-    <input
-      #codeInput
-      class="input code"
-      type="text"
-      inputmode="numeric"
-      autocomplete="one-time-code"
-      pattern="[0-9]*"
-      maxlength="6"
-      [id]="id + '-code'"
-      [value]="code()"
-      [attr.aria-describedby]="error() ? id + '-error' : null"
-      [attr.aria-invalid]="error() ? true : null"
-      (input)="onCode($event)"
-    />
+    <!-- six cells to look at; the real field sits over them (paste, autofill, screen readers keep working) -->
+    <div class="otp" [class.shake]="shaking()" [class.ok]="verified()">
+      <div class="cells" aria-hidden="true">
+        @for (c of cells(); track $index) {
+          <span class="cell" [class.filled]="c !== ''" [class.now]="$index === code().length">{{ c }}</span>
+        }
+      </div>
+      <input
+        #codeInput
+        class="input code"
+        type="text"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        pattern="[0-9]*"
+        maxlength="6"
+        [id]="id + '-code'"
+        [value]="code()"
+        [readonly]="verified()"
+        [attr.aria-describedby]="error() ? id + '-error' : null"
+        [attr.aria-invalid]="error() ? true : null"
+        (input)="onCode($event)"
+      />
+      @if (verified()) {
+        <span class="check" aria-hidden="true"><app-tick [size]="24" /></span>
+      }
+    </div>
     <ng-container *ngTemplateOutlet="stepError" />
 
-    <button type="submit" class="primary" [disabled]="!codeOk() || busy() !== null">
+    <button type="submit" class="primary" [disabled]="!codeOk() || busy() !== null || verified()" [attr.aria-busy]="busy() === 'verify'">
       {{ (busy() === 'verify' ? 'auth.verifying' : 'auth.verify') | t }}
     </button>
 
@@ -74,7 +86,7 @@
     <h3 class="demo-head" [id]="id + '-demo'">{{ 'auth.demo' | t }}</h3>
     <div class="who">
       @for (u of demo(); track u.who) {
-        <button type="button" class="secondary" [disabled]="busy() !== null" (click)="quick(u.who)">
+        <button type="button" class="secondary" [disabled]="busy() !== null" [attr.aria-busy]="busy() === u.who" (click)="quick(u.who)">
           {{ busy() === u.who ? ('auth.entering' | t) : demoLabel(u) }}
         </button>
       }

@@ -22,6 +22,19 @@ function setupLanguage(signedIn: boolean) {
   return { fixture, root, radios, me, i18n: TestBed.inject(I18nService) };
 }
 
+describe('ThemeChoiceComponent (plan 8)', () => {
+  it('asks for the new theme to grow from the middle of the button that was pressed', () => {
+    const theme = { choice: signal('dark'), set: vi.fn() };
+    TestBed.configureTestingModule({ providers: [{ provide: ThemeService, useValue: theme }] });
+    const fixture = TestBed.createComponent(ThemeChoiceComponent);
+    fixture.detectChanges();
+    const light = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-value="light"]')!;
+    light.getBoundingClientRect = () => ({ left: 10, top: 20, width: 40, height: 44 }) as DOMRect;
+    light.click();
+    expect(theme.set).toHaveBeenCalledWith('light', { x: 30, y: 42 });
+  });
+});
+
 describe('LanguageChoiceComponent', () => {
   it('offers both languages, each named in itself, as a radiogroup', () => {
     const { root, radios } = setupLanguage(false);

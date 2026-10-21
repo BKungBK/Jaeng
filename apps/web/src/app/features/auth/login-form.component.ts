@@ -18,11 +18,16 @@ import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { SupabaseService } from '../../core/supabase.service';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 
 /** Supabase's minimum gap between two codes for one email. */
 export const RESEND_AFTER_MS = 60_000;
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/** How long a right code is shown (digits in the accent, a tick drawing) before the sheet closes. */
+export const VERIFIED_HOLD_MS = 450;
+const SHAKE_MS = 320;
+
+const EMAIL =/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type Busy = 'send' | 'verify' | 'resend' | DemoWho;
 
@@ -34,7 +39,7 @@ let nextId = 0;
   templateUrl: 'login-form.component.html',
   styleUrls: ['login-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, NgTemplateOutlet, TPipe],
+  imports: [IconComponent, NgTemplateOutlet, TickComponent, TPipe],
 })
 export class LoginFormComponent {
   private auth = inject(AuthService);
@@ -57,6 +62,15 @@ export class LoginFormComponent {
   protected readonly status = signal<Said>(null);
   protected readonly demo = signal<DemoUser[]>([]);
 
+  /** the code was right: its digits show the accent and a tick draws before the sheet closes */
+  protected readonly verified = signal(false);
+  /** the code was wrong: the digits shake for a moment */
+  protected readonly shaking = signal(false);
+  /** the six cells of the code, filled from the left (the real input sits over them and stays the source) */
+  protected readonly cells = computed(() => Array.from({ length: 6 }, (_, i) => this.code()[i] ?? ''));
+  private finishTimer?: ReturnType<typeof setTimeout>;
+  private shakeTimer?: ReturnType<typeof setTimeout>;
+
   private readonly until = signal(0);
   private readonly now = signal(Date.now());
   private ticker?: ReturnType<typeof setInterval>;
@@ -66,7 +80,11 @@ export class LoginFormComponent {
   protected readonly wait = computed(() => Math.max(0, Math.ceil((this.until() - this.now()) / 1000)));
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => clearInterval(this.ticker));
+    inject(DestroyRef).onDestroy(() => {
+      clearInterval(this.ticker);
+      clearTimeout(this.finishTimer);
+      clearTimeout(this.shakeTimer);
+    });
     this.supabase
       .config()
       .then((c) => this.demo.set(c.quickLogin))
@@ -128,10 +146,17 @@ export class LoginFormComponent {
   }
 
   private async verify() {
-    if (!this.codeOk() || this.busy()) return;
+    if (!this.codeOk() || this.busy() || this.verified()) return;
     const ok = await this.run('verify', () => this.auth.verifyCode(this.sentTo(), this.code()));
-    if (ok) this.done.emit();
-    else this.focus(this.codeInput, true);
+    if (ok) {
+      // the digits turn to the accent and a tick draws; only then does the sheet close
+      this.verified.set(true);
+      this.finishTimer = setTimeout(() => this.done.emit(), VERIFIED_HOLD_MS);
+    } else {
+      this.shaking.set(true);
+      this.shakeTimer = setTimeout(() => this.shaking.set(false), SHAKE_MS);
+      this.focus(this.codeInput, true);
+    }
   }
 
   protected async quick(who: DemoWho) {

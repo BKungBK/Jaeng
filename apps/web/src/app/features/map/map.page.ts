@@ -69,6 +69,7 @@ const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
 const TOAST_MS = 3200;
 /** The wide panel slides out 16 px sideways while it fades (plan 8). */
 const PANEL_LEAVE_MS = 200;
+const TOAST_LEAVE_MS = 180;
 /** How the wide panel leaves (an injection point so a test can hold the exit open). */
 export const PANEL_EXIT = new InjectionToken<(el: HTMLElement, ms: number, to: { x?: number; y?: number }) => Promise<void>>('PANEL_EXIT', {
   providedIn: 'root',
@@ -157,6 +158,11 @@ export class MapPage {
   readonly shown = signal<number | null>(null);
   readonly hover = signal<{ p: ReportProps; x: number; y: number } | null>(null);
   readonly toast = signal<Toast | null>(null);
+  /** the toast is fading out (its time is up); it is gone 180 ms later */
+  readonly toastLeaving = signal(false);
+  private toastEl = viewChild<ElementRef<HTMLElement>>('toastEl');
+  /** the countdown bar of a toast with a button runs for exactly as long as the toast stays */
+  protected readonly actionMs = ACTION_TOAST_MS;
   /** the month numbers of the loaded view (hint card) */
   readonly stats = signal<StatsState>('loading');
   /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
@@ -495,13 +501,30 @@ export class MapPage {
   }
 
   private showToast(said: Said, action?: Toast['action']) {
+    this.toastLeaving.set(false);
+    const el = this.toastEl()?.nativeElement;
+    if (el) unleave(el); // a toast that was on its way out is simply replaced
     this.toast.set({ said, action });
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => this.toast.set(null), action ? ACTION_TOAST_MS : TOAST_MS);
+    this.toastTimer = setTimeout(() => void this.dismissToast(), action ? ACTION_TOAST_MS : TOAST_MS);
+  }
+
+  /** The toast's time is up: it fades out (180 ms), then goes. Showing another one meanwhile replaces it. */
+  private async dismissToast() {
+    const t = this.toast();
+    const el = this.toastEl()?.nativeElement;
+    if (!t || !el) return this.toast.set(null);
+    this.toastLeaving.set(true);
+    await this.exitPanel(el, TOAST_LEAVE_MS, { y: 6 });
+    if (this.toast() !== t || !this.toastLeaving()) return;
+    this.toastLeaving.set(false);
+    this.toast.set(null);
   }
 
   protected runToast(t: Toast) {
+    if (this.toast() !== t) return; // pressed twice, or it was already replaced
     clearTimeout(this.toastTimer);
+    this.toastLeaving.set(false);
     this.toast.set(null);
     t.action?.run();
   }

@@ -67,6 +67,14 @@ export type StatsState = 'loading' | 'error' | Stats;
       font-weight: 500;
       white-space: nowrap;
     }
+    /* the numbers are not here yet: the placeholder dashes shimmer (ink gradient clipped to the text) until they are */
+    :host(.loading) :is(.open, .fixed, .n) {
+      background: linear-gradient(100deg, var(--ink2) 30%, var(--ink) 50%, var(--ink2) 70%) 150% 0 / 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 1.4s linear infinite;
+    }
     .fixed {
       min-width: 0;
       overflow: hidden;
@@ -75,7 +83,7 @@ export type StatsState = 'loading' | 'error' | Stats;
       color: var(--ink2);
     }
   `,
-  host: { '[class.compact]': 'compact()' },
+  host: { '[class.compact]': 'compact()', '[class.loading]': "state() === 'loading'" },
 })
 export class StatsLineComponent {
   readonly state = input.required<StatsState>();

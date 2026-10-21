@@ -59,6 +59,7 @@ export class ListPage {
   protected readonly state = signal<State>('loading');
   protected readonly rows = signal<ListRow[]>([]);
   protected readonly hasMore = signal(false);
+  protected readonly loadingMore = signal(false);
   protected readonly sorts = LIST_SORTS;
   protected readonly sortIcon = SORT_ICON;
 
@@ -104,6 +105,7 @@ export class ListPage {
   protected async load(offset: number, quiet = false) {
     const seq = ++this.seq;
     if (offset === 0 && !quiet) this.state.set('loading');
+    this.loadingMore.set(offset > 0); // the next page: two ghost rows under the list while it comes
     try {
       const page = await this.svc.page({ ...this.query(), offset });
       if (seq !== this.seq) return;
@@ -113,6 +115,8 @@ export class ListPage {
     } catch {
       if (seq !== this.seq || quiet) return;
       this.state.set('error');
+    } finally {
+      if (seq === this.seq) this.loadingMore.set(false);
     }
   }
 

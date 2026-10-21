@@ -51,9 +51,14 @@ describe('theme', () => {
     expect(motion).toMatch(/--ease:\s*cubic-bezier\(0\.2,\s*0\.8,\s*0\.2,\s*1\)/);
     expect(motion).toMatch(/--pop:\s*linear\(/);
     expect(motion).toMatch(/@property --p\b/);
-    for (const name of ['tick-draw', 'ping', 'settle', 'sheen', 'shimmer', 'leave', 'shake', 'vt-reveal']) {
+    for (const name of ['tick-draw', 'ping', 'settle', 'sheen', 'shimmer', 'leave', 'shake', 'vt-reveal', 'bob']) {
       expect(motion, name).toMatch(new RegExp(`@keyframes ${name}\\b`));
     }
+    // a button at work sweeps a band while aria-busy, and a placeholder shimmers (`.skel`)
+    expect(motion).toMatch(/button\[aria-busy='true'\][^}]*::after\s*\{[^}]*animation:\s*sheen/s);
+    expect(motion).toMatch(/\.skel\s*\{[^}]*animation:\s*shimmer/s);
+    // an empty state's icon floats three times and stops: no endless loop outside busy and loading things
+    expect(motion).toMatch(/\.empty > \.disc\s*\{\s*animation:\s*bob [\d.]+s ease-in-out 3;/);
     // the mixins file emits nothing by itself, so components can @use it without repeating the keyframes
     expect(read('src/theme/_motion-mixins.scss')).not.toMatch(/@keyframes/);
   });

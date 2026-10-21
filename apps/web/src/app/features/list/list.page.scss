@@ -286,9 +286,10 @@ app-filter-bar {
 }
 
 .ghost {
+  --skel-a: color-mix(in srgb, var(--ink) 6%, transparent);
+  --skel-b: color-mix(in srgb, var(--ink) 13%, transparent);
   height: 94px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
 .note,

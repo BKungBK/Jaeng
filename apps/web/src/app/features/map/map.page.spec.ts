@@ -858,6 +858,55 @@ describe('MapPage plan 6: numbers, home, list, retry toasts, language', () => {
     expect(root.querySelector('.toast')).toBeNull();
   });
 
+  /** the 8 s toast of a failed load, up to the moment its time is over and it starts to leave */
+  async function leavingToast() {
+    vi.useFakeTimers();
+    let finish!: () => void;
+    const s = await setup(vi.fn().mockRejectedValue(new Error('offline')), { exit: () => new Promise<void>((r) => (finish = r)) });
+    s.map.fire('moveend');
+    await vi.advanceTimersByTimeAsync(300);
+    s.fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(8000);
+    s.fixture.detectChanges();
+    return { ...s, finish: () => finish() };
+  }
+
+  it('the toast fades out for 180 ms when its time is up, and goes once it has faded (plan 8)', async () => {
+    const { fixture, root, finish } = await leavingToast();
+    expect(fixture.componentInstance.toastLeaving()).toBe(true);
+    expect(root.querySelector('.toast.leaving')).not.toBeNull(); // still there, not clickable
+    finish();
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')).toBeNull();
+    expect(fixture.componentInstance.toastLeaving()).toBe(false);
+  });
+
+  it('a new toast replaces one that is leaving, at once and without stacking', async () => {
+    const { fixture, root, finish } = await leavingToast();
+    (fixture.componentInstance as unknown as { showToast(k: string): void }).showToast('map.toast.geoDenied');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.toastLeaving()).toBe(false);
+    expect(root.querySelectorAll('.toast')).toHaveLength(1);
+    expect(root.querySelector('.toast')?.textContent).toContain(th.map.toast.geoDenied);
+    finish(); // the old exit ends: it must not remove the new toast
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+    expect(root.querySelector('.toast')).not.toBeNull();
+  });
+
+  it('runs the toast button once even when pressed again while the toast leaves', async () => {
+    const { fixture, root } = await leavingToast();
+    const retry = root.querySelector<HTMLButtonElement>('.toast button')!;
+    const inBbox = fixture.componentInstance as unknown as { runToast(t: unknown): void };
+    const t = fixture.componentInstance.toast()!;
+    const run = vi.fn();
+    t.action = { label: 'common.retry', run };
+    retry.click(); // the real button, while it is leaving
+    inBbox.runToast(t); // a second press of the same toast
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
   it('labels the new controls in English too', async () => {
     const { root, fixture } = await setup();
     TestBed.inject(I18nService).setLocale('en');

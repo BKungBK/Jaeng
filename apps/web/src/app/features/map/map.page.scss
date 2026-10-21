@@ -794,10 +794,14 @@ ion-modal.detail-sheet::part(content)::after {
 .toast {
   position: absolute;
   z-index: 9;
-  left: 50%;
+  // centred without a transform, so the exit (core/motion.ts leave) can move it freely
+  left: 0;
+  right: 0;
+  width: fit-content;
+  margin: 0 auto;
   top: calc(84px + env(safe-area-inset-top, 0px));
-  transform: translateX(-50%);
   max-width: calc(100% - 32px);
+  animation: rise 420ms var(--ease) backwards;
   display: flex;
   align-items: center;
   gap: 4px 12px;
@@ -810,6 +814,29 @@ ion-modal.detail-sheet::part(content)::after {
 
   &:has(.toast-action) {
     padding: 0 4px 0 16px;
+    overflow: hidden;
+  }
+
+  &.leaving {
+    pointer-events: none;
+  }
+}
+
+// the time left on a toast with a button: a thin line at its foot that runs out (linear: it is time, not a move)
+.toast .bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--pri);
+  transform-origin: left;
+  animation: toast-time var(--ms) linear forwards;
+}
+
+@keyframes toast-time {
+  to {
+    transform: scaleX(0);
   }
 }
 

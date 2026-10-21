@@ -53,9 +53,9 @@
       @case ('loading') {
         <p class="note" role="status">{{ 'list.loading' | t }}</p>
         <ul class="reports wait" aria-hidden="true">
-          <li class="ghost"></li>
-          <li class="ghost"></li>
-          <li class="ghost"></li>
+          <li class="ghost skel"></li>
+          <li class="ghost skel"></li>
+          <li class="ghost skel"></li>
         </ul>
       }
       @case ('error') {
@@ -96,8 +96,14 @@
               </li>
             }
           </ul>
+          @if (loadingMore()) {
+            <ul class="reports wait" aria-hidden="true">
+              <li class="ghost skel"></li>
+              <li class="ghost skel"></li>
+            </ul>
+          }
           @if (hasMore()) {
-            <button type="button" class="btn more" (click)="more()">{{ 'list.more' | t }}</button>
+            <button type="button" class="btn more" [disabled]="loadingMore()" [attr.aria-busy]="loadingMore()" (click)="more()">{{ 'list.more' | t }}</button>
           }
         } @else {
           <div class="empty">

@@ -111,11 +111,39 @@ img[appFadeIn] {
 // a placeholder waiting for its content: a soft band sweeping over the shape. It loops only while the
 // thing it stands for is not there; whoever shows it removes it (or `[data-still]`) when the content arrives.
 .skel {
-  background: linear-gradient(100deg, var(--bg) 30%, color-mix(in srgb, var(--ink) 9%, var(--bg)) 50%, var(--bg) 70%) 150% 0 / 300% 100%;
+  --skel-a: var(--bg);
+  --skel-b: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  background: linear-gradient(100deg, var(--skel-a) 30%, var(--skel-b) 50%, var(--skel-a) 70%) 150% 0 / 300% 100%;
   animation: shimmer 1.4s linear infinite;
 
   &[data-still] {
     animation: none;
+  }
+}
+
+// a button at work (aria-busy): a soft band sweeps across it until the work is done
+button[aria-busy='true'] {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+    animation: sheen 1.1s var(--ease) infinite;
+    pointer-events: none;
+  }
+}
+
+// an empty or failed state: its icon floats up and down three times, then is still
+.empty > .disc {
+  animation: bob 2.4s ease-in-out 3;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-6px);
   }
 }
 

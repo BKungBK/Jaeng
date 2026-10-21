@@ -114,7 +114,7 @@
 <ng-template #body let-r>
   <div class="thumb" [style.--c]="level(r).color">
     @if (r.thumb_url) {
-      <img [src]="r.thumb_url" alt="" width="72" height="72" loading="lazy" />
+      <img [src]="r.thumb_url | serverUrl" alt="" width="72" height="72" loading="lazy" />
     } @else {
       <app-icon [name]="icon(r)" [size]="30" />
     }

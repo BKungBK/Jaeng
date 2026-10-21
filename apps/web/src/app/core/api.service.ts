@@ -3,6 +3,7 @@ import type { ApiErrorBody, ErrorCode } from '@jaeng/shared/api';
 import { en } from '../i18n/en';
 import { th } from '../i18n/th';
 import { AuthService } from './auth.service';
+import { ServerConfigService } from './server-config.service';
 
 export class ApiError extends Error {
   constructor(
@@ -28,6 +29,7 @@ type Payload = { json: unknown } | { form: FormData } | undefined;
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private auth = inject(AuthService);
+  private server = inject(ServerConfigService);
 
   get<T>(path: string): Promise<T> {
     return this.request<T>('GET', path, undefined);
@@ -73,7 +75,7 @@ export class ApiService {
       body = payload.form;
     }
     try {
-      return await fetch(`/api${path}`, { method, headers, body });
+      return await fetch(this.server.apiUrl(path),{ method, headers, body });
     } catch {
       throw own(0, 'network', 'network');
     }

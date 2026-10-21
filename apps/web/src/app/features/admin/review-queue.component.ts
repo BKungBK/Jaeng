@@ -8,6 +8,7 @@ import { CategoriesService, type CategoryInfo } from '../../core/categories.serv
 import { I18nService, type Said } from '../../core/i18n.service';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
+import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
@@ -26,7 +27,7 @@ type LoadState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-review-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, PlaceMapComponent, TPipe],
+  imports: [IconComponent, LevelShapeComponent, PlaceMapComponent, ServerUrlPipe, TPipe],
   templateUrl: 'review-queue.component.html',
   styleUrl: 'review-queue.component.scss',
 })

@@ -3,6 +3,7 @@ import type { FlagAction, HiddenItem, QueueFlag } from '@jaeng/shared/admin';
 import { ApiError } from '../../core/api.service';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
+import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { STATUS_ICON, statusKey } from '../me/reject-reason';
 import { I18nService, type Said } from '../../core/i18n.service';
@@ -21,7 +22,7 @@ const DONE: Record<FlagAction, MessageKey> = {
 @Component({
   selector: 'app-flags-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe],
+  imports: [IconComponent, ServerUrlPipe, TPipe],
   template: `
     <p class="status" role="status">{{ i18n.say(message()) }}</p>
     @switch (state()) {
@@ -48,10 +49,10 @@ const DONE: Record<FlagAction, MessageKey> = {
             @if (t.comment; as cm) {
               <blockquote class="body">{{ cm.body }}</blockquote>
               @if (cm.photo?.thumb_url) {
-                <img class="attached" [src]="cm.photo!.thumb_url" [attr.alt]="'detail.attached' | t" />
+                <img class="attached" [src]="cm.photo!.thumb_url | serverUrl" [attr.alt]="'detail.attached' | t" />
               }
             } @else if (t.report.photo?.thumb_url) {
-              <img class="attached" [src]="t.report.photo!.thumb_url" [attr.alt]="'detail.photos' | t" />
+              <img class="attached" [src]="t.report.photo!.thumb_url | serverUrl" [attr.alt]="'detail.photos' | t" />
             }
             <ul class="reasons-list">
               @for (f of t.flags; track $index) {

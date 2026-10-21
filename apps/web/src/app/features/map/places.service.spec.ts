@@ -10,7 +10,7 @@ describe('PlacesService', () => {
     vi.stubGlobal('fetch', fetchMock);
     expect(await TestBed.inject(PlacesService).search('เชียง ใหม่', 'en')).toEqual(answer);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe(`/api/places?q=${encodeURIComponent('เชียง ใหม่')}&lang=en`);
+    expect(url).toBe(`${location.origin}/api/places?q=${encodeURIComponent('เชียง ใหม่')}&lang=en`);
     expect(init).toBeUndefined();
   });
 
@@ -18,7 +18,7 @@ describe('PlacesService', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('{"places":[],"online":true}', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     await TestBed.inject(PlacesService).search('ab', 'th', true);
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/places?q=ab&lang=th&more=1');
+    expect(fetchMock.mock.calls[0][0]).toBe(`${location.origin}/api/places?q=ab&lang=th&more=1`);
   });
 
   it('rejects on an error answer', async () => {

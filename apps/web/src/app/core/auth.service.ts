@@ -25,11 +25,12 @@ export class AuthError extends Error {
 
 type AuthErr = { status?: number; code?: string; message?: string };
 
-function toAuthError(e: AuthErr): AuthError {
+/** `verifying`: a 400/403 then means the code is wrong or expired; asking for a code, it is just a failure. */
+function toAuthError(e: AuthErr, verifying = false): AuthError {
   if (e.status === 429 || e.code === 'over_email_send_rate_limit' || e.code === 'over_request_rate_limit') {
     return new AuthError('tooOften');
   }
-  if (e.code === 'otp_expired' || e.code === 'otp_disabled' || e.status === 403 || e.status === 400) {
+  if (verifying && (e.code === 'otp_expired' || e.code === 'otp_disabled' || e.status === 403 || e.status === 400)) {
     return new AuthError('badCode');
   }
   return new AuthError('failed');
@@ -52,6 +53,8 @@ export class AuthService {
   private subscribed = false;
   /** The profile read of the current session, while it runs (and after: it stays settled). */
   private profileLoad: Promise<void> = Promise.resolve();
+  /** The user whose profile has been read or is being read; reset when the read fails, so the next event retries. */
+  private profileFor: string | null = null;
 
   constructor() {
     this.ready = this.start().catch(() => {
@@ -89,11 +92,16 @@ export class AuthService {
     this.sessionSig.set(s);
     if (!s) {
       this.profileSig.set(null);
+      this.profileFor = null;
       return;
     }
     // never keep the previous user's profile (and role) attached to a new user
     if (this.profileSig()?.id !== s.user.id) this.profileSig.set(null);
     const id = s.user.id;
+    // the same user's profile is already read (or being read): the start applies the session twice
+    // (getSession and the first auth event) and every token refresh applies it again, none needs a read
+    if (this.profileFor === id) return;
+    this.profileFor = id;
     this.profileLoad = new Promise<void>((done) => setTimeout(() => void this.loadProfile(id).finally(done), 0));
   }
 
@@ -120,8 +128,9 @@ export class AuthService {
       // a device that never chose a language takes the account's (plan 6 decision 2)
       if (profile?.locale) this.i18n.adoptProfileLocale(profile.locale);
     } catch {
-      // A failed reload for the same user (e.g. on TOKEN_REFRESHED) keeps the profile already shown.
+      // A failed read keeps whatever is shown for the same user, and lets the next event try again.
       // apply() has already cleared it when the user changed, so nothing of another user survives.
+      if (this.profileFor === id) this.profileFor = null;
       if (this.sessionSig()?.user.id === id && this.profileSig()?.id !== id) this.profileSig.set(null);
     }
   }
@@ -140,7 +149,7 @@ export class AuthService {
   async verifyCode(email: string, code: string): Promise<void> {
     const client = await this.clientReady();
     const { error } = await client.auth.verifyOtp({ email, token: code, type: 'email' });
-    if (error) throw toAuthError(error);
+    if (error) throw toAuthError(error, true);
   }
 
   async quickLogin(who: DemoWho): Promise<void> {

@@ -9,13 +9,14 @@ import { ServerConfigService } from './core/server-config.service';
 import { ThemeService } from './core/theme.service';
 import { glassNav } from './core/motion';
 import { TPipe } from './i18n/t.pipe';
+import { IconComponent } from './shared/icon.component';
 import { IntroComponent } from './shared/intro.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrl: 'app.component.scss',
-  imports: [IonApp, IonRouterOutlet, TPipe, IntroComponent],
+  imports: [IonApp, IonRouterOutlet, TPipe, IntroComponent, IconComponent],
 })
 export class AppComponent {
   protected readonly update = inject(AppUpdateService);

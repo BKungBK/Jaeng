@@ -60,6 +60,8 @@ export class ListPage {
   protected readonly rows = signal<ListRow[]>([]);
   protected readonly hasMore = signal(false);
   protected readonly loadingMore = signal(false);
+  /** the heading's number: exact on the last page, "50+" while there is more */
+  protected readonly count = computed(() => (this.hasMore() ? `${this.rows().length}+` : String(this.rows().length)));
   protected readonly sorts = LIST_SORTS;
   protected readonly sortIcon = SORT_ICON;
 
@@ -109,18 +111,26 @@ export class ListPage {
     try {
       const page = await this.svc.page({ ...this.query(), offset });
       if (seq !== this.seq) return;
-      this.rows.update((have) => (offset === 0 ? page : [...have, ...page]));
+      this.rows.update((have) => {
+        if (offset === 0) return page;
+        // a report that arrived meanwhile shifts the pages: the overlap is not shown twice
+        const seen = new Set(have.map((r) => r.id));
+        return [...have, ...page.filter((r) => !seen.has(r.id))];
+      });
       this.hasMore.set(page.length === LIST_PAGE);
       this.state.set('ready');
     } catch {
       if (seq !== this.seq || quiet) return;
-      this.state.set('error');
+      // the next page failing leaves what is already on screen alone; only a first load has nothing to show
+      if (offset > 0) this.notice.set('list.failed');
+      else this.state.set('error');
     } finally {
       if (seq === this.seq) this.loadingMore.set(false);
     }
   }
 
   protected more() {
+    this.notice.set(null);
     void this.load(this.rows().length);
   }
 

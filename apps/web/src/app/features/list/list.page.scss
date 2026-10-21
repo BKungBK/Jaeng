@@ -190,9 +190,8 @@ app-filter-bar {
   }
 }
 
-.status:empty {
-  display: none;
-}
+// (an empty .status keeps its place in the accessibility tree and takes no room: _flow.scss hides it visually;
+// display: none here would drop the live region and the first message would be missed)
 
 // ---- rows (as on /me) ----
 .reports {

@@ -730,6 +730,15 @@ describe('MapPage', () => {
     history.replaceState(null, '');
   });
 
+  it('the hover tooltip shows the small thumb of the cover photo, not the full picture', async () => {
+    const { fixture, root } = await setup(undefined, { wide: true });
+    fixture.componentInstance.hover.set({ p: { ...report, cover_photo_path: 'r1/a.webp' } as never, x: 10, y: 10 });
+    fixture.detectChanges();
+    const src = root.querySelector('.tip img')?.getAttribute('src') ?? '';
+    expect(src).toContain('r1/a_thumb.webp');
+    expect(src).not.toMatch(/r1\/a\.webp/);
+  });
+
   it('zooms with the buttons', async () => {
     const { map, root } = await setup();
     root.querySelector<HTMLButtonElement>('button[aria-label="ซูมเข้า"]')!.click();

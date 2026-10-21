@@ -19,6 +19,7 @@ import {
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { IonModal } from '@ionic/angular';
 import { LEVELS } from '@jaeng/shared/levels';
+import { thumbPath } from '@jaeng/shared/report';
 import type { Place } from '@jaeng/shared/places';
 import { BACK_PRIORITY, BackButtonService } from '../../core/back-button.service';
 import { DeviceService } from '../../core/device.service';
@@ -584,5 +585,6 @@ export class MapPage {
   protected level = (p: ReportProps) => LEVELS[p.danger_level];
   protected status = (p: ReportProps) => this.i18n.t(`status.${p.status}`);
   protected icon = (p: ReportProps) => categoryIcon(p.category);
-  protected photo = (p: ReportProps) => (p.cover_photo_path ? coverPhotoUrl(p.cover_photo_path) : null);
+  /** The small tile (hover tooltip, the side panel's list) takes the 400 px thumb, not the full picture. */
+  protected photo = (p: ReportProps) => (p.cover_photo_path ? coverPhotoUrl(thumbPath(p.cover_photo_path)) : null);
 }

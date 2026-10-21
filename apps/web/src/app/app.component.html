@@ -10,5 +10,9 @@
   <div class="update" role="status">
     <span>{{ 'update.ready' | t }}</span>
     <button type="button" (click)="update.reload()">{{ 'update.reload' | t }}</button>
+    <!-- not now: the notice goes, the new version waits for the next visit -->
+    <button type="button" class="close" [attr.aria-label]="'common.close' | t" (click)="update.dismiss()">
+      <app-icon name="x" [size]="20" />
+    </button>
   </div>
 }

@@ -183,9 +183,11 @@ button {
     outline-color: var(--ink);
   }
 
+  // unavailable: an ink wash with the secondary ink, readable (the dawn at 45% opacity was below AA)
   &:disabled {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    color: var(--ink2);
     box-shadow: none;
-    opacity: 0.45;
   }
 }
 

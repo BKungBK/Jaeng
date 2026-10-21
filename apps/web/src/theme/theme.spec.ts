@@ -87,6 +87,30 @@ describe('theme', () => {
     }
   }, 30_000);
 
+  it('keeps the motion budget: no entrance animates a filter, and nothing on the map holds a finished animation', () => {
+    // `rise` is on a dozen glass panels at once: a filter there re-blurs the map behind each of them every frame
+    const glass = read('src/theme/glass.scss');
+    expect(glass.match(/@keyframes rise\s*\{[^}]*\{[^}]*\}[^}]*\}/s)?.[0]).not.toMatch(/filter/);
+    expect(read('src/app/core/motion.ts')).not.toMatch(/fromTo\('filter'/);
+    // a marker animation that fills `both` stays alive on up to ~150 markers for good; `backwards` ends with the play
+    expect(read('src/theme/map.scss')).not.toMatch(/animation:\s*pop\b[^;]*\b(both|forwards)\b/);
+    expect(read('src/theme/map.scss')).not.toMatch(/\.disc\s*\{[^}]*transition:[^;]*box-shadow/s);
+  });
+
+  it('never drops an empty live region from the accessibility tree (an empty .status is hidden visually, not with display: none)', () => {
+    for (const file of sourceFiles('src/app').filter((f) => f.endsWith('.scss') || f.endsWith('.ts'))) {
+      if (file.endsWith('.spec.ts')) continue;
+      expect(read(file), file).not.toMatch(/\.status:empty\s*\{[^}]*display:\s*none/s);
+    }
+    // and the shared rule gives a filled one its padding and border only when it has something to say
+    const flow = read('src/app/features/report-new/_flow.scss');
+    // a disabled main button keeps a readable label (secondary ink on an ink wash), not the dawn at 45% opacity
+    expect(flow.match(/\.primary\s*\{[\s\S]*?&:disabled\s*\{([^}]*)\}/)?.[1]).toMatch(/color:\s*var\(--ink2\)/);
+    expect(flow.match(/\.primary\s*\{[\s\S]*?&:disabled\s*\{([^}]*)\}/)?.[1]).not.toMatch(/opacity/);
+    expect(flow).toMatch(/&:not\(:empty\)\s*\{[^}]*padding/s);
+    expect(flow).toMatch(/&:empty\s*\{[^}]*clip-path/s);
+  }, 30_000);
+
   it('uses Anuphan everywhere except MapLibre glyph fonts', () => {
     const files = sourceFiles('src').filter((f) => !f.endsWith('map-style.ts') && !f.endsWith('theme.spec.ts'));
     expect(files.length).toBeGreaterThan(50);

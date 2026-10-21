@@ -126,6 +126,33 @@ describe('FilterBarComponent more filters (plan 6)', () => {
     expect(document.activeElement).toBe(more());
   });
 
+  it('is a modal dialog: Tab goes round inside it, Shift+Tab from the first control to the last', async () => {
+    const { more, root, settle } = setupMore();
+    document.body.appendChild(root);
+    more().click();
+    await settle();
+    const panel = root.querySelector('app-filters-panel section')!;
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    const items = [...panel.querySelectorAll<HTMLElement>('button')];
+    const first = items[0];
+    const last = items[items.length - 1];
+    last.focus();
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    last.dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(first);
+    const back = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    first.dispatchEvent(back);
+    expect(back.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(last);
+    // in the middle the browser's own Tab order is left alone
+    items[1].focus();
+    const mid = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    items[1].dispatchEvent(mid);
+    expect(mid.defaultPrevented).toBe(false);
+    root.remove();
+  });
+
   it('names the categories in English after a switch', async () => {
     const { more, root, settle } = setupMore();
     TestBed.inject(I18nService).setLocale('en');

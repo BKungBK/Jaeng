@@ -139,6 +139,34 @@ describe('ListPage', () => {
     expect(button('ดูเพิ่มอีก')).toBeUndefined();
   });
 
+  it('does not show a report twice when the next page overlaps the one before (a report arrived meanwhile)', async () => {
+    const { button, settle, root } = await setup({ pages: [rows(50), [...rows(5, 48), ...rows(3, 60)]] });
+    button('ดูเพิ่มอีก')!.click();
+    await settle();
+    const hrefs = [...root.querySelectorAll('a.row')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toHaveLength(56); // the 50 + r50..r52 + r60..r62; r48 and r49 came again and are skipped
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+
+  it('keeps the rows on screen when the next page fails to load, and says so', async () => {
+    const { button, settle, root, page } = await setup({ pages: [rows(50)] });
+    page.mockRejectedValueOnce(new Error('offline'));
+    button('ดูเพิ่มอีก')!.click();
+    await settle();
+    expect(root.querySelectorAll('a.row')).toHaveLength(50);
+    expect(root.querySelector('.status')?.textContent).toContain('โหลดรายการไม่สำเร็จ');
+    expect(button('ดูเพิ่มอีก')).toBeDefined(); // and it can be tried again
+  });
+
+  it('says "50+" in the heading while there is another page, and the exact number when there is not', async () => {
+    const { button, settle, root } = await setup({ pages: [rows(50), rows(10, 50)] });
+    expect(root.querySelector('.caption-count')?.textContent).toContain('50+ เรื่อง');
+    button('ดูเพิ่มอีก')!.click();
+    await settle();
+    expect(root.querySelector('.caption-count')?.textContent).toContain('60 เรื่อง');
+    expect(root.querySelector('.caption-count')?.textContent).not.toContain('+');
+  });
+
   it('offers old fixed reports only while fixed reports are shown', async () => {
     const { root, settle, page } = await setup();
     const box = () => root.querySelector<HTMLInputElement>('input.old');

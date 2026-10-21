@@ -150,6 +150,36 @@ describe('AuthService', () => {
     expect(service.profile()).toEqual(a); // an error answer is a failure too, not "no profile"
   });
 
+  it('reads the profile once for one user: not twice at start, not again on a token refresh', async () => {
+    const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' };
+    const { service, emit, maybeSingle } = setup({ session: session(), profile });
+    await service.ready; // getSession() applied the session ...
+    emit('INITIAL_SESSION', session()); // ... and so does the subscription's first event
+    await flush();
+    expect(maybeSingle).toHaveBeenCalledTimes(1);
+    emit('TOKEN_REFRESHED', session('at2'));
+    await flush();
+    expect(maybeSingle).toHaveBeenCalledTimes(1);
+    expect(service.profile()).toEqual(profile);
+  });
+
+  it('reads the profile again for another user, and again after the first read failed', async () => {
+    const a = { id: 'u1', display_name: 'A', role: 'user', locale: 'th' };
+    const { service, emit, maybeSingle } = setup({ profile: a });
+    await service.ready;
+    maybeSingle.mockRejectedValueOnce(new Error('offline'));
+    emit('SIGNED_IN', session());
+    await flush();
+    expect(service.profile()).toBeNull();
+    emit('TOKEN_REFRESHED', session('at2')); // the first read failed: this one tries again
+    await flush();
+    expect(maybeSingle).toHaveBeenCalledTimes(2);
+    expect(service.profile()).toEqual(a);
+    emit('SIGNED_IN', { ...session(), user: { id: 'u2' } });
+    await flush();
+    expect(maybeSingle).toHaveBeenCalledTimes(3);
+  });
+
   it('picks up an existing session on start', async () => {
     const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' };
     const { service } = setup({ session: session(), profile });
@@ -216,6 +246,16 @@ describe('AuthService', () => {
     const { service, auth } = setup();
     auth.signInWithOtp.mockResolvedValue({ error: { status: 429, code: 'over_email_send_rate_limit', message: 'rate' } });
     await expect(service.sendCode('a@b.co')).rejects.toThrow('ขอรหัสถี่ไปหน่อย รอสักครู่แล้วลองใหม่นะ');
+  });
+
+  it('a bad request when asking for a code is "failed", not "wrong code"; only verifying says the code is wrong', async () => {
+    const { service, auth } = setup();
+    auth.signInWithOtp.mockResolvedValue({ error: { status: 400, code: 'validation_failed', message: 'bad email' } });
+    await expect(service.sendCode('nope')).rejects.toMatchObject({ key: 'failed' });
+    auth.verifyOtp.mockResolvedValue({ error: { status: 400, code: 'validation_failed', message: 'bad token' } });
+    await expect(service.verifyCode('a@b.co', '000000')).rejects.toMatchObject({ key: 'badCode' });
+    auth.verifyOtp.mockResolvedValue({ error: { status: 500, message: 'server' } });
+    await expect(service.verifyCode('a@b.co', '000000')).rejects.toMatchObject({ key: 'failed' });
   });
 
   it('verifyCode verifies an email OTP', async () => {

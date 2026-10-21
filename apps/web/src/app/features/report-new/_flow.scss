@@ -72,11 +72,13 @@ textarea {
     outline-color: var(--ink); // a peach ring would vanish against the gradient
   }
 
+  // unavailable: a quiet ink wash with the secondary ink (4.5:1 on every glass tier, theme/glass.spec.ts),
+  // not the dawn at 45% whose label fell below AA
   &:disabled {
-    background: var(--dawn);
-    color: var(--dawn-ink);
+    border-color: var(--glass-edge);
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    color: var(--ink2);
     box-shadow: none;
-    opacity: 0.45;
   }
 }
 

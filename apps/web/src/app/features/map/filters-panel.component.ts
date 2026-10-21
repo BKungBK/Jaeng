@@ -19,7 +19,15 @@ let nextId = 0;
   imports: [TPipe, IconComponent, TickComponent],
   template: `
     <div class="backdrop" (click)="closed.emit()"></div>
-    <section class="panel" role="dialog" [attr.aria-labelledby]="id" (keydown.escape)="$event.stopPropagation(); closed.emit()">
+    <section
+      class="panel"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="id"
+      (keydown.escape)="$event.stopPropagation(); closed.emit()"
+      (keydown.tab)="trap($event)"
+      (keydown.shift.tab)="trap($event)"
+    >
       <h2 [id]="id" tabindex="-1">{{ 'filters.button' | t }}</h2>
       <div role="group" [attr.aria-labelledby]="id + '-cats'">
         <p class="label" [id]="id + '-cats'">{{ 'filters.categories' | t }}</p>
@@ -70,6 +78,24 @@ export class FiltersPanelComponent {
       .then((c) => this.categories.set(c))
       .catch(() => undefined);
     afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>('h2')?.focus());
+  }
+
+  /** The panel is modal: Tab and Shift+Tab go round inside it instead of out to the map behind. */
+  protected trap(e: Event) {
+    const ke = e as KeyboardEvent;
+    const items = [...this.host.nativeElement.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex]:not([tabindex="-1"])')];
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    // from the title (focused by script, tabindex -1) Tab goes to the first control, Shift+Tab to the last
+    if (ke.shiftKey && (active === first || active === this.host.nativeElement.querySelector('h2'))) {
+      ke.preventDefault();
+      last.focus();
+    } else if (!ke.shiftKey && active === last) {
+      ke.preventDefault();
+      first.focus();
+    }
   }
 
   protected icon(c: CategoryInfo): IconName {

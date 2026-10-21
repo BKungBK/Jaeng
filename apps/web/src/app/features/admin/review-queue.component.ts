@@ -59,6 +59,8 @@ export class ReviewQueueComponent {
   protected readonly note = signal('');
 
   protected readonly current = computed(() => this.items()[this.index()] ?? null);
+  /** how many reports were decided here: the card element is renewed after each (see the template) */
+  protected readonly gen = signal(0);
   /** the card on screen, as a list of one (see the template) */
   protected readonly shown = computed(() => {
     const c = this.current();
@@ -183,6 +185,7 @@ export class ReviewQueueComponent {
       // only after the server said yes: the card plays its exit, then leaves the list
       const el = this.card()?.nativeElement;
       if (el) await this.playDone(el, kind).catch(() => undefined);
+      this.gen.update((g) => g + 1);
       this.items.update((list) => list.filter((x) => x.id !== r.id));
       this.index.update((i) => Math.min(i, Math.max(0, this.items().length - 1)));
       this.mode.set('view');

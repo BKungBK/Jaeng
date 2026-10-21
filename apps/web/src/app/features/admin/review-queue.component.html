@@ -10,8 +10,9 @@
     <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
   }
   @case ('ready') {
-    <!-- one card at a time; a new element per report, so the folded-away one never lends its styles to the next -->
-    @for (r of shown(); track r.id) {
+    <!-- one card at a time. It is a new element after a report was decided (`gen` counts those), so the folded-away
+         card never lends its styles to the next; stepping with the arrows keeps the element and its map. -->
+    @for (r of shown(); track gen()) {
       <div class="counter">
         <button type="button" class="ctl" [attr.aria-label]="'admin.review.prev' | t" [disabled]="items().length < 2 || busy()" (click)="step(-1)">
           <app-icon name="chevronLeft" [size]="22" />

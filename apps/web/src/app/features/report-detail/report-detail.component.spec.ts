@@ -193,6 +193,7 @@ describe('ReportDetailComponent', () => {
   it('shows the category tile when there is no photo, and the photos when there are', async () => {
     const a = await setup();
     expect(a.root.querySelector('.gallery .tile app-icon')).not.toBeNull();
+    expect(a.root.querySelector('.gallery')?.classList).toContain('no-photo'); // a small tile, not a hero
     TestBed.resetTestingModule();
     const b = await setup({
       report: detail({

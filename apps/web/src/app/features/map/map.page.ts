@@ -24,6 +24,7 @@ import type { FeatureCollection } from 'geojson';
 import type maplibregl from 'maplibre-gl';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { MapViewService } from '../../core/map-view.service';
+import { FIT, FLY } from '../../core/motion';
 import type { MessageKey } from '../../i18n/keys';
 import { LanguageToggleComponent } from '../../shared/language-toggle.component';
 import { RealtimeService } from '../../core/realtime.service';
@@ -46,14 +47,19 @@ import { ReportsService } from './reports.service';
 import { StatsLineComponent, type StatsState } from './stats-line.component';
 import { StatsService } from './stats.service';
 import { SearchBoxComponent } from './search-box.component';
+import { topReports } from './top-reports';
 import { toyOpacity, zoomHint } from './toy';
 
 const LOAD_DEBOUNCE_MS = 300;
 /** A linked report opens at street level at least (spec 3.4). */
 const DETAIL_ZOOM = 15;
-/** Room the right panel takes: 380 px plus its two 12 px gutters. */
-const PANEL_SPACE = 404;
+/** Room the right panel takes: 380 px plus its two 20 px gutters. */
+const PANEL_SPACE = 420;
 const WIDE = '(min-width: 820px)';
+/** Room for the side panel, the detail panel and ~440 px of map between them (plan 6b decision 8). */
+const ROOMY = '(min-width: 1180px)';
+/** How many reports the side panel lists. */
+const IN_VIEW = 3;
 /** Ionic's dismiss roles for the reader closing the sheet: a drag ('gesture'), the backdrop or Escape.
  *  A drag allowed by `canDismiss` then dismisses with 'handler'. */
 const SHEET_CLOSE_ROLES = new Set(['gesture', 'backdrop']);
@@ -95,7 +101,12 @@ export function centerFor(target: [number, number], zoom: number, offset: [numbe
     LanguageToggleComponent,
     SearchBoxComponent,
   ],
-  host: { class: 'ion-page', '[class.with-panel]': 'panelOpen()', '(document:keydown.escape)': 'onEscape()' },
+  host: {
+    class: 'ion-page',
+    '[class.with-panel]': 'panelOpen()',
+    '[class.sheet-open]': '!wide() && !!id()',
+    '(document:keydown.escape)': 'onEscape()',
+  },
 })
 export class MapPage {
   private createMap = inject(MAP_FACTORY);
@@ -138,6 +149,13 @@ export class MapPage {
   /** One breakpoint (DESIGN.md Layout): the right panel from 820 px, the bottom sheet below. */
   readonly wide = signal(false);
   readonly panelOpen = computed(() => this.wide() && !!this.id());
+  /** wide enough for both panels side by side */
+  private readonly roomy = signal(false);
+  /** the detail panel is open on a screen under 1180 px: the side panel folds to its search row */
+  readonly sideCompact = computed(() => this.panelOpen() && !this.roomy());
+  /** the side panel's top reports of the loaded view, and how many the view holds */
+  readonly inView = signal<ReportProps[]>([]);
+  readonly inViewCount = signal(0);
   /** The sheet keeps showing its report while it slides away after the URL went back to `/`. */
   protected readonly sheetId = linkedSignal<string | undefined, string | undefined>({
     source: this.id,
@@ -145,14 +163,22 @@ export class MapPage {
   });
 
   readonly hint = computed(() => zoomHint(this.zoom(), this.shown() ?? 1, this.filters.levels().length, (k) => this.i18n.t(k)));
+  /** The hint shows only when it reports a state (every level off, nothing here); zoom tips stay for
+   *  screen readers (plan 6b decision 6). */
+  readonly hintIsState = computed(() => this.filters.levels().length === 0 || this.shown() === 0);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
-    const media = matchMedia(WIDE);
-    this.wide.set(media.matches);
-    const onMedia = (e: MediaQueryListEvent) => this.wide.set(e.matches);
-    media.addEventListener('change', onMedia);
-    destroyRef.onDestroy(() => media.removeEventListener('change', onMedia));
+    for (const [query, flag] of [
+      [WIDE, this.wide],
+      [ROOMY, this.roomy],
+    ] as const) {
+      const media = matchMedia(query);
+      flag.set(media.matches);
+      const onMedia = (e: MediaQueryListEvent) => flag.set(e.matches);
+      media.addEventListener('change', onMedia);
+      destroyRef.onDestroy(() => media.removeEventListener('change', onMedia));
+    }
     effect(() => {
       const id = this.id();
       untracked(() => this.follow(id));
@@ -215,7 +241,7 @@ export class MapPage {
     const zoom = Math.max(this.map.getZoom(), DETAIL_ZOOM);
     // phones: the beam's foot just above the sheet's 64% edge, so the disc above it stays in view
     const offset: [number, number] = this.wide() ? [-PANEL_SPACE / 2, 0] : [0, -Math.round(innerHeight * 0.14 + 32)];
-    this.map.flyTo({ center: centerFor([d.lng, d.lat], zoom, offset), zoom });
+    this.map.flyTo({ center: centerFor([d.lng, d.lat], zoom, offset), zoom, ...FLY });
   }
 
   /** The linked report is not public (or never existed): say so and go home. The panel may name why (an admin hid it). */
@@ -260,8 +286,9 @@ export class MapPage {
     labelBaseMap(map, this.i18n.locale());
     this.stopWords = this.i18n.watch((l) => labelBaseMap(map, l));
     setupReportLayers(map);
-    // phones: start with the attribution folded to its info button so it does not sit under the hint card
-    if (innerWidth < 820) map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
+    // start with the attribution folded to its info button at every width (plan 6b: a faint ⓘ, as in
+    // the comps); a press unfolds the credits
+    map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
     this.scheduleLoad(0);
     await Promise.all([this.startBeacons(map), this.startToy(map)]);
   }
@@ -388,7 +415,10 @@ export class MapPage {
       this.showToast('map.toast.loadFailed', { label: 'common.retry', run: () => this.scheduleLoad(0) });
       return;
     }
-    this.shown.set(result.data.features.length);
+    const props = result.data.features.map((f) => f.properties);
+    this.shown.set(props.length);
+    this.inView.set(topReports(props, IN_VIEW));
+    this.inViewCount.set(props.length);
     map.getSource<maplibregl.GeoJSONSource>(REPORT_SOURCE)?.setData(result.data);
   }
 
@@ -419,15 +449,15 @@ export class MapPage {
   home() {
     const map = this.map;
     if (!map) return;
-    map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth) });
+    map.fitBounds(THAILAND_BOUNDS, { padding: fitPadding(map.getContainer().clientWidth), ...FIT });
   }
 
   /** A place from the search: its own box when it has one (not closer than street level), else its point. */
   flyToPlace(p: Place) {
     const map = this.map;
     if (!map) return;
-    if (p.bbox) map.fitBounds(p.bbox, { padding: 48, maxZoom: 14 });
-    else map.flyTo({ center: [p.lng, p.lat], zoom: 13 });
+    if (p.bbox) map.fitBounds(p.bbox, { padding: 48, maxZoom: 14, ...FIT });
+    else map.flyTo({ center: [p.lng, p.lat], zoom: 13, ...FLY });
   }
 
   /** A report from the search opens like a shared link: the panel loads it and the map flies there. */
@@ -466,7 +496,7 @@ export class MapPage {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }),
+      (pos) => this.map?.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, ...FLY }),
       () => this.showToast('map.toast.geoDenied'),
       { enableHighAccuracy: true, timeout: 10000 },
     );

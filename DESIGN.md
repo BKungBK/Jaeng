@@ -1,24 +1,45 @@
 ---
 name: แจ้ง
-description: Community problems as pastel signal beams on a toy-like illustrated map of Thailand.
+description: Community problems as pastel signal beams on a toy Thailand, read through frosted, grain-textured glass at night-into-dawn.
 colors:
-  cream-ground: "#FBF7F2"
-  card-white: "#FFFFFF"
+  night-ground: "#0F1F44"
+  night-surface: "#1B2A52"
+  night-ink: "#F3EFF7"
+  night-muted-ink: "#B9B5CC"
+  night-line: "#2F3D66"
+  night-accent: "#F4B49A"
+  on-night-accent: "#2A1F3A"
+  night-ink-wash: "rgba(243, 239, 247, 0.06)"
+  glass-night: "rgba(16, 26, 54, 0.45)"
+  glass-night-dense: "rgba(16, 26, 54, 0.8)"
+  glass-edge-night: "rgba(255, 255, 255, 0.13)"
+  dawn-cream: "#FFE3C4"
+  dawn-peach: "#F4B49A"
+  dawn-lilac: "#C9A0DC"
+  dawn-ink: "#2A1F3A"
+  backdrop-night: "#0E1D40"
+  backdrop-navy: "#13264D"
+  backdrop-glow: "#24356E"
+  day-ground: "#FBF7F2"
+  day-surface: "#FFFFFF"
   slate-ink: "#2B2A33"
   muted-ink: "#6B6878"
-  trust-blue: "#3F6FA8"
-  on-trust-blue: "#FFFFFF"
   sand-line: "#E8E0D5"
-  street-ground: "#EFF3E1"
-  toy-sea: "#9FCFDD"
-  sea-shallow: "#C8F0E6"
-  sea-mid: "#9FCFDD"
-  sea-deep: "#86A6D4"
-  sea-line: "#F2FCF9"
+  glass-day: "rgba(255, 255, 255, 0.58)"
+  glass-day-dense: "rgba(255, 255, 255, 0.84)"
+  glass-edge-day: "rgba(255, 255, 255, 0.75)"
+  backdrop-day: "#F6F1FA"
+  backdrop-day-lilac: "#DCD6F2"
+  backdrop-day-blush: "#F9D9CB"
   level-minor-mint: "#8FD3B6"
   level-caution-butter: "#F6D983"
   level-danger-peach: "#F4A582"
   level-critical-rose: "#E57373"
+  toy-sea: "#9FCFDD"
+  night-sea: "#1F5A6E"
+  sea-shallow: "#C8F0E6"
+  sea-deep: "#86A6D4"
+  sea-line: "#F2FCF9"
   cel-north: "#B4DCAB"
   cel-isan: "#F9CDA2"
   cel-central: "#F5E7B2"
@@ -30,145 +51,244 @@ colors:
   toy-soil-light: "#DDBB98"
   toy-soil-mid: "#CBA582"
   toy-soil-deep: "#B8916F"
-  night-ground: "#23212B"
-  night-card: "#2E2B38"
-  night-ink: "#F3EFF7"
-  night-muted-ink: "#B7B2C4"
-  night-blue: "#9CC0EE"
-  night-on-blue: "#1D1B24"
-  night-line: "#433F52"
-  night-sea: "#1F5A6E"
 typography:
-  headline:
-    fontFamily: "Prompt, IBM Plex Sans Thai, system-ui, sans-serif"
-    fontSize: "24px"
+  display:
+    fontFamily: "Anuphan, system-ui, sans-serif"
+    fontSize: "56px"
     fontWeight: 600
-    lineHeight: 1.2
+    lineHeight: 1.3
+  headline:
+    fontFamily: "Anuphan, system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 600
+    lineHeight: 1.3
   title:
-    fontFamily: "Prompt, IBM Plex Sans Thai, system-ui, sans-serif"
+    fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "15px"
     fontWeight: 500
     lineHeight: 1.4
   body:
-    fontFamily: "IBM Plex Sans Thai, system-ui, sans-serif"
+    fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.6
   label:
-    fontFamily: "IBM Plex Sans Thai, system-ui, sans-serif"
+    fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "14px"
     fontWeight: 500
-    lineHeight: 1.4
+    lineHeight: 1.5
   caption:
-    fontFamily: "IBM Plex Sans Thai, system-ui, sans-serif"
+    fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.5
-  map-label:
-    fontFamily: "Prompt, sans-serif"
-    fontSize: "13px"
-    fontWeight: 600
+  chip:
+    fontFamily: "Anuphan, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
     lineHeight: 1
+  dock-word:
+    fontFamily: "Anuphan, system-ui, sans-serif"
+    fontSize: "10px"
+    fontWeight: 400
+    lineHeight: 1.2
   count:
-    fontFamily: "Prompt, sans-serif"
+    fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "18px"
     fontWeight: 600
     lineHeight: 1
     fontFeature: "tnum"
+  map-label:
+    fontFamily: "Anuphan, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: "22px"
 rounded:
   badge: "9px"
   tag: "10px"
   thumb: "12px"
-  chip: "14px"
-  card: "18px"
-  sheet: "24px"
+  chip: "15px"
+  button: "16px"
+  toast: "16px"
+  capsule-sm: "20px"
+  panel: "22px"
+  capsule: "23px"
+  page-card: "24px"
+  sheet: "26px"
+  dock: "30px"
   disc: "50%"
 spacing:
+  hair: "2px"
   xs: "4px"
-  sm: "8px"
-  md: "12px"
-  lg: "16px"
+  sm: "6px"
+  md: "8px"
+  lg: "12px"
+  gutter: "16px"
+  gutter-wide: "20px"
   xl: "24px"
 components:
+  glass-panel:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.panel}"
+    padding: "8px"
+  glass-panel-dense:
+    backgroundColor: "{colors.glass-night-dense}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.panel}"
   button-primary:
-    backgroundColor: "{colors.trust-blue}"
-    textColor: "{colors.on-trust-blue}"
+    backgroundColor: "{colors.dawn-peach}"
+    textColor: "{colors.dawn-ink}"
     typography: "{typography.title}"
-    rounded: "{rounded.chip}"
-    padding: "0 14px"
+    rounded: "{rounded.button}"
+    padding: "0 16px"
     height: "44px"
+  button-primary-big:
+    backgroundColor: "{colors.dawn-peach}"
+    textColor: "{colors.dawn-ink}"
+    typography: "{typography.title}"
+    rounded: "{rounded.button}"
+    padding: "0 16px"
+    height: "52px"
   button-secondary:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
+    backgroundColor: "{colors.night-ink-wash}"
+    textColor: "{colors.night-ink}"
     typography: "{typography.title}"
-    rounded: "{rounded.chip}"
-    padding: "0 14px"
+    rounded: "{rounded.button}"
+    padding: "0 16px"
     height: "44px"
-  button-icon:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
-    rounded: "{rounded.chip}"
+  button-back:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.disc}"
     size: "44px"
+  report-pill:
+    backgroundColor: "{colors.dawn-peach}"
+    textColor: "{colors.dawn-ink}"
+    rounded: "{rounded.capsule}"
+    padding: "0 20px 0 16px"
+    height: "46px"
+  report-round:
+    backgroundColor: "{colors.dawn-peach}"
+    textColor: "{colors.dawn-ink}"
+    rounded: "{rounded.disc}"
+    size: "46px"
+  brand-mark:
+    backgroundColor: "{colors.dawn-peach}"
+    textColor: "{colors.dawn-ink}"
+    rounded: "{rounded.disc}"
+    size: "34px"
   chip-level:
-    textColor: "{colors.slate-ink}"
-    typography: "{typography.label}"
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    typography: "{typography.chip}"
     rounded: "{rounded.chip}"
-    padding: "0 12px"
+    padding: "0 11px"
     height: "44px"
   chip-level-off:
-    backgroundColor: "transparent"
-    textColor: "{colors.muted-ink}"
-    typography: "{typography.label}"
+    textColor: "{colors.night-muted-ink}"
+    typography: "{typography.chip}"
     rounded: "{rounded.chip}"
-    padding: "0 12px"
+    padding: "0 11px"
     height: "44px"
-  card-floating:
-    backgroundColor: "{colors.card-white}"
-    rounded: "{rounded.card}"
-    padding: "8px 14px"
-  tooltip:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
-    rounded: "{rounded.card}"
-    padding: "10px 12px 12px"
-    width: "240px"
+  phone-bar:
+    backgroundColor: "{colors.glass-night}"
+    rounded: "{rounded.capsule}"
+    padding: "0 4px 0 6px"
+    height: "46px"
+  summary-pill:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    typography: "{typography.caption}"
+    rounded: "{rounded.capsule-sm}"
+    height: "40px"
+  dock:
+    backgroundColor: "{colors.glass-night}"
+    rounded: "{rounded.dock}"
+    padding: "0 8px"
+    height: "60px"
+    width: "300px"
+  dock-tab:
+    textColor: "{colors.night-muted-ink}"
+    typography: "{typography.dock-word}"
+    rounded: "{rounded.chip}"
+    height: "44px"
+    width: "56px"
+  side-panel:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.panel}"
+    padding: "8px"
+    width: "340px"
+  menu-capsule:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-muted-ink}"
+    rounded: "{rounded.capsule-sm}"
+    padding: "0 4px"
+    height: "40px"
+  control-column:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.capsule-sm}"
+    width: "40px"
+  search-field:
+    backgroundColor: "{colors.night-ink-wash}"
+    textColor: "{colors.night-ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.button}"
+    padding: "0 4px 0 12px"
+    height: "44px"
   detail-panel:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
-    rounded: "{rounded.card}"
+    backgroundColor: "{colors.glass-night-dense}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.panel}"
     padding: "12px"
     width: "380px"
-  fab-report:
-    backgroundColor: "{colors.trust-blue}"
-    textColor: "{colors.on-trust-blue}"
-    typography: "{typography.title}"
-    rounded: "{rounded.chip}"
-    padding: "0 20px"
-    height: "56px"
-    width: "116px"
-  report-card:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
-    rounded: "{rounded.card}"
-    padding: "16px"
-    width: "600px"
-  report-row:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
-    rounded: "{rounded.card}"
-    padding: "12px"
+  detail-sheet:
+    backgroundColor: "{colors.glass-night-dense}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.sheet}"
+  tooltip:
+    backgroundColor: "{colors.glass-night-dense}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.toast}"
+    padding: "10px 12px 12px"
+    width: "240px"
   toast:
-    backgroundColor: "{colors.slate-ink}"
-    textColor: "{colors.cream-ground}"
-    rounded: "{rounded.chip}"
+    backgroundColor: "{colors.glass-night-dense}"
+    textColor: "{colors.night-ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.toast}"
     padding: "8px 16px"
+  page-card:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.page-card}"
+    padding: "20px 24px 28px"
+    width: "600px"
+  admin-card:
+    backgroundColor: "{colors.glass-night}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.page-card}"
+    padding: "20px 24px 28px"
+    width: "760px"
+  report-row:
+    backgroundColor: "{colors.night-ink-wash}"
+    textColor: "{colors.night-ink}"
+    rounded: "{rounded.button}"
+    padding: "10px"
+  stats-ring:
+    backgroundColor: "{colors.dawn-peach}"
+    rounded: "{rounded.disc}"
+    size: "26px"
   beacon-disc:
-    backgroundColor: "{colors.card-white}"
+    backgroundColor: "{colors.night-surface}"
+    textColor: "{colors.night-ink}"
     rounded: "{rounded.disc}"
     size: "54px"
   cluster-disc:
-    backgroundColor: "{colors.card-white}"
-    textColor: "{colors.slate-ink}"
+    backgroundColor: "{colors.night-surface}"
+    textColor: "{colors.night-ink}"
     typography: "{typography.count}"
     rounded: "{rounded.disc}"
     size: "52px"
@@ -183,206 +303,234 @@ components:
 
 ## Overview
 
-**Creative North Star: "เมืองของเล่นยามฟ้าแจ้ง" (Toy Town at First Light)**
+**Creative North Star: "กระจกฝ้ายามฟ้าแจ้ง" (Frosted Glass at First Light)**
 
-แจ้ง means both "to report" and "the sky turning bright". The system is a toy model of Thailand seen at dawn: thick, soft-edged land like a painted wooden puzzle, a bright toy sea, small 3D landmarks, and above it the only lights in the scene, pastel signal beams that rise from each reported problem. The toy world is the welcome; the beams are the information. As the visitor zooms in, the toy dissolves into a calm street map and the beams stay, so the map stops being a picture and becomes a place.
+แจ้ง means both "to report" and "the sky turning bright". The map underneath is still the toy model of Thailand: thick, soft-edged cel land like a painted wooden puzzle, an animated sea, and above it the only lights in the scene, pastel signal beams rising from each reported problem. Since plan 6b everything the visitor touches floats over that world as one material: frosted, grain-textured glass, seen at night turning into dawn. The night is the default (a navy ground, a lavender glow top-left, a peach dawn glow bottom-right); the light theme keeps the same layout with white frosted glass.
 
-Everything around the map is a working app: floating white cards with soft shadows, 44 px targets, Thai-first type, short warm copy. The interface never imitates the toy; it sits on top of it like a friendly guide holding the map open. Danger is said three ways at once (colour, a solid shape from one SVG set, pulse speed), and status is said by the beam's form, never by colour.
+The glass is quiet so the map can speak. Panels are small and few (the owner asked twice for less): a search pill, one row of level chips, a one-line summary, a locate button and a dock on phones; a content-height side panel, a menu capsule, a control column and one report pill on desktop. Exactly one thing is warm: the dawn gradient, on the brand mark, the report control and the page's primary action, and the stats ring. Danger is still said three ways at once (colour, a solid shape from one SVG set, pulse speed), and status by the beam's form, never by colour.
 
-Confirmed anti-references: a dark gaming look, glowing neon on black, and the cold grey forms of a government portal. The owner's reference poster is a style reference only; its artwork is never copied or stored.
+Confirmed anti-references (PRODUCT.md): a neon gaming look and a cold government form. The owner's reference poster is a style reference only; its artwork is never copied or stored.
 
 **Key Characteristics:**
-- Cel-shaded toy Thailand (one flat pastel per region, soft plum outline, sand rim, stacked soil layers) that fades out between zoom 6 and 8. No names, landmarks or props on it (owner, 2026-10-17): place names arrive with the street map at zoom 7.5. Only Thailand is ever shown: everything else is an animated stylized sea.
-- Pastel beams as the only light source; height grows with "เจอเหมือนกัน".
-- Floating cards over a full-bleed map; no app chrome bars.
-- Lucide (ISC) line icons for every pictogram: the controls and the eight category icons. No emoji anywhere (owner decision 2026-10-17).
-- One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels everywhere they appear.
-- Prompt for voice, IBM Plex Sans Thai for reading.
+- One material: frosted glass (24px blur, 150% saturation, a 1px light edge, a 160-degree white sheen, fractal-noise grain at 15% overlay) for every floating surface, in a dense variant for running text.
+- Night-into-dawn ground: dark theme by default; pages other than the map stand on a slow shader backdrop (navy mesh with a dawn corner, CSS gradient fallback).
+- One warm accent, the dawn gradient (cream, peach, lilac), used on four things only.
+- Cel-shaded toy Thailand that fades out between zoom 6 and 8 into a calm street map; only Thailand is ever shown, everything else is an animated sea.
+- Pastel beams as the only light on the map; height grows with "เจอเหมือนกัน".
+- Lucide (ISC) line icons for every pictogram; no emoji anywhere (owner, 2026-10-17). One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels.
+- Anuphan 300–600 for every word the app sets.
+- Small visible parts inside full 44px targets.
+- One easing for everything that moves; motion always plays.
 
 ## Colors
 
-A full pastel palette on a warm cream ground, with one trustworthy blue for action and four level colours that only ever mean danger.
+A navy night ground under translucent glass, one warm dawn gradient for the few things that matter most, and four pastel level colours that only ever mean danger.
 
 ### Primary
-- **Trust Blue** (#3F6FA8; Night Blue #9CC0EE in the dark theme, with Night On Blue #1D1B24 text): primary buttons, links, focus rings, the selected-beacon ring, text selection (28% tint), the "me" location dot. Never used for danger or status.
+- **Dawn** (Dawn Cream → Dawn Peach → Dawn Lilac, a 135-degree gradient at 0 / 45 / 100%, with Dawn Ink text): the one warm colour, the same in both themes. Used only on the brand mark (a 34px dawn disc holding "แ"), the report control (desktop pill and the phone dock's round +), the primary button of a page, and the stats ring's filled arc. The intro blooms in the same three colours.
+- **Accent** (`--pri`: Night Accent, peach, in the dark theme with On Night Accent text; the dark-dawn terracotta `#A6522F` with white text in the light theme, about 5.2:1 on Cream Ground): focus rings (3px), the field focus edge, the selected beacon's ring, the "เจอเหมือนกัน" button's outline and pressed fill, the more-filters count pill, the signed-in avatar tint (24%), the active search row's inner edge, toast and retry links, checkbox accent, text selection (28% tint). Never used for danger or status.
 
 ### Secondary
-- **Level Minor Mint** (#8FD3B6): danger level 0 ทั่วไป, and the resolved state's disc border.
-- **Level Caution Butter** (#F6D983): danger level 1 ควรระวัง.
-- **Level Danger Peach** (#F4A582): danger level 2 อันตราย.
-- **Level Critical Rose** (#E57373): danger level 3 วิกฤต. The only red in the system.
+- **Level Minor Mint**: danger level 0 ทั่วไป, and the resolved state's disc border.
+- **Level Caution Butter**: danger level 1 ควรระวัง.
+- **Level Danger Peach**: danger level 2 อันตราย.
+- **Level Critical Rose**: danger level 3 วิกฤต. The only red in the system.
 
 ### Tertiary (illustration only)
-- **Cel Land**, one flat pastel for each of the six geographic regions (owner, 2026-10-17): north sage #B4DCAB, Isan apricot #F9CDA2, central cream #F5E7B2, east blush #F3C3D0, west lavender #D0C4EF, south lime #DAEBA8 (not blue-green, so the long coast never melts into the sea). They are paler and greyer than the level colours, so the land never reads as a danger level. Faint ink lines still mark the provinces. Hover lifts a province 30% toward white. **Toy Rim Cream** (#FBF0D2) is the 6px sand beach under the 2–3px **Land Ink** outline (#4A4458, a soft plum gentler than Slate Ink on pastel).
-- **Toy Soil** light / mid / deep (#DDBB98 / #CBA582 / #B8916F, pastel clay): the three stacked side layers that make the land look thick.
-- **Sea**: daylight Shallow Glow #C8F0E6, Mid #9FCFDD, Deep #86A6D4, Line #F2FCF9, white foam; Night is the reference's navy and teal: #4DB0AA / #1F5A6E / #16234D, Line #86DCD2, foam #D8F7F0. **Toy Sea** (#9FCFDD, Night #1F5A6E) stays as the flat fallback under it.
+- **Cel Land**, one flat pastel for each of the six regions: north sage, Isan apricot, central cream, east blush, west lavender, south lime. Paler and greyer than the level colours so the land never reads as a level. **Toy Rim Cream** is the 6px sand beach under the 2–3px **Land Ink** outline; faint Land Ink lines mark the provinces.
+- **Toy Soil** light / mid / deep: the three stacked side layers that make the land thick.
+- **Sea**: daylight Sea Shallow → Toy Sea → Sea Deep with Sea Line ripples and white foam; at night teal and navy (Night Sea is the flat fallback).
+- **Backdrop**: dark Backdrop Night, Backdrop Navy, Backdrop Glow and Dawn Peach as the four mesh colours; light Backdrop Day, Backdrop Day Lilac, Backdrop Day Blush and white.
 
 ### Neutral
-- **Cream Ground** (#FBF7F2): page background, icon-button hover fill, toast text.
-- **Card White** (#FFFFFF): cards, chip tray, discs, tooltips, sheets, and the white base every chip pastel is mixed into.
-- **Slate Ink** (#2B2A33): all text, including text on pastel chips and level badges in both themes; the toast fill.
-- **Muted Ink** (#6B6878): secondary text, hints, meta lines, off chips, map attribution.
-- **Sand Line** (#E8E0D5): dividers, icon-button borders, the 1px outline of an off chip.
-- **Street map (pastel):** ground #EFF3E1, parks #D2EAC0, woods #C2E0AD, homes #F6F0E3, buildings #FFFAF2 with a #B7AEC6 edge, roads white with soft lilac casings (#A49BB6), water in Shallow Mint; Night ground #2C3328 with the same roles darkened.
-- **Night** set (#23212B ground, #2E2B38 card, #F3EFF7 ink, #B7B2C4 muted, #9CC0EE blue, #433F52 line, #1F5A6E sea): the dark theme, same roles. Cards, discs and the chip tray turn Night Card; chips keep their daylight pastel.
+- **Night set** (default): Night Ground (page ground, browser bar, Ionic background), Night Surface (glass-toned beacon and cluster discs, label pills, popovers), Night Ink (all text on glass), Night Muted Ink (secondary text, inactive tabs, meta lines, off chips), Night Line (dividers on solid surfaces).
+- **Glass tints**: Glass Night under every panel, Glass Night Dense under running text, Glass Edge Night as the 1px edge and the hairlines between grouped controls. Light: Glass Day, Glass Day Dense, Glass Edge Day.
+- **Ink washes**: anything set inside a glass panel (secondary buttons, fields, rows, segmented tracks, chips in the side panel) takes the theme ink at 5–14% over transparent instead of a second glass (Night Ink Wash is the 6% resting value; hover 10–12%, chosen 14%).
+- **Day set**: Day Ground (Cream), Day Surface, Slate Ink, Muted Ink, Sand Line, the same roles in the light theme. Slate Ink is also the fixed ink on every pastel fill in both themes.
 
 ### Named Rules
+**The One Warm Control Rule.** The dawn gradient appears on the brand mark, the report control, a page's primary action and the stats ring, and nowhere else. If a screen has two dawn buttons, one of them is wrong.
+
 **The Levels Only Mean Danger Rule.** Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.
 
-**The Ink On Pastel Rule.** Text on any pastel fill is Slate Ink (#2B2A33), never white and never the theme ink, and the pastel is always mixed into white, never into the theme surface. A chip reads the same in light and dark and every one passes WCAG AA.
+**The Ink On Pastel Rule.** Text and icons on a pastel fill are Slate Ink, never white and never the theme ink, and the pastel is mixed into white, never into the theme surface or transparent. A level tile reads the same on night glass and day glass.
 
-**The Toy Stays Toy Rule.** Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.
+**The Toy Stays Toy Rule.** Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the glass dims what is behind it instead.
 
-**The Cel Rule.** The land has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs. The sea is the counterpart: a smooth glow with a few crisp one-pixel ripple lines, so the land reads as the solid object in it. Every line and step is anti-aliased over one screen pixel, so nothing stair-steps at any zoom.
+**The Cel Rule.** The land has no gradients: every colour change is a hard step, every land edge has an ink line, and its depth is flat offsets, never blurs. The sea is the smooth counterpart, and the glass is the only blur in the scene.
 
 ## Typography
 
-**Display Font:** Prompt (with IBM Plex Sans Thai, system-ui)
-**Body Font:** IBM Plex Sans Thai (with system-ui)
+**Display Font:** Anuphan (with system-ui, sans-serif)
+**Body Font:** Anuphan (with system-ui, sans-serif)
 
-**Character:** Prompt is round, friendly and loud enough to name a place; Plex Sans Thai is calm and legible at 12–16 px in Thai and English. Both are served locally through @fontsource.
+**Character:** One Thai-first sans in four weights (300–600), served locally through @fontsource and exposed as `--font`; Ionic and every heading take it. Weight and size carry the hierarchy, not a second family. MapLibre's street labels keep the base style's glyph fonts, the one exception.
 
 ### Hierarchy
-- **Headline** (Prompt 600, 24px, 1.2): the brand word แจ้ง in the brand card; sheet titles.
-- **Title** (Prompt 500, 15px, 1.4): buttons and card headings, the report title in the tooltip and detail panel (wraps anywhere, never truncates).
-- **Body** (400, 16px, 1.6): descriptions and comments.
-- **Label** (500, 14px, 1.4): level chips (13px under 420px), toast.
-- **Caption** (400, 13px, 1.5): brand tagline, hint card, meta and age lines. An age past 30 days switches to ink at 500 ("ค้างนาน").
-- **Count** (Prompt 600, 18px, tabular figures): cluster counts.
-- **Map Label**: beacon short labels are Plex 12px on a 22px white pill, max 150px, ellipsised.
+- **Display** (600, 56px, 1.3): the word แจ้ง in the intro only.
+- **Headline** (600, 22px, 1.3): page h1s (`/list`, `/me`, `/about`, report steps) and the report title in the detail panel (1.4, wraps anywhere). Admin titles 20px.
+- **Title** (500, 15px, 1.4): buttons, row and tooltip titles, comment heading, menu rows, search result names (two-line clamp).
+- **Body** (400, 16px, 1.6): descriptions, comments, the search input (16px so iOS never zooms), about text at most 62ch.
+- **Label** (500, 14px, 1.5): the full numbers line (tabular), status lines, segmented options, toast.
+- **Caption** (400, 13px, 1.5): summary pill words, meta and age lines, hints, search group headings. An age past 30 days switches to ink at 500 ("ค้างนาน").
+- **Chip** (500, 12px, 1): level chips, menu capsule tabs at 13px.
+- **Dock word** (400, 10px, 1.2): the word under each dock icon, ellipsised at 56px.
+- **Count** (600, 18px, tabular): cluster counts. **Map Label** (400, 12px on a 22px pill): beacon short labels, max 150px, ellipsised.
 
 ### Named Rules
-**The Thai First Rule.** Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.
+**The Thai First Rule.** Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai running text tighter than 1.5. Single-line controls (chips, tabs) may set 1.
+
+**The One Family Rule.** Every word the app sets is Anuphan; a new surface never brings its own face.
+
 ## Layout
 
-A full-bleed map with floating controls. No top app bar and no tab bar on the map.
+A full-bleed map with a handful of glass pieces at its edges; no app bars. Phones and desktop are two arrangements of the same pieces, switched at 820px.
 
-- Top-left: brand card, with the level chip tray beside it (wrapping below on narrow screens). The group stops 72px from the right edge on desktop to clear the controls. Plan 6: the brand card carries a row of 44px buttons (language toggle, `info` to `/about`; on phones also the `search` icon) beside the name from 820px and under it on phones; from 820px a 300px search field card sits between the brand card and the chip tray; the tray ends with a 44px more-filters button. A skip link "ข้ามไปที่รายการเรื่อง" is the first focus stop, out of sight until focused.
-- Right edge: zoom-in, zoom-out, my-location, home (`house`, the whole-country view), list (`list`, `/list`) and account icon buttons in an 8px stack, vertically centred on desktop and bottom-right on phones. While a report is open on desktop the stack, the chip group and MapLibre's bottom-right controls step left of the panel.
-- Bottom-left: the zoom-level hint card (max 340px on desktop), led by the month numbers line (plan 6). On phones it stretches to the control column and both sit 52px above the bottom so the attribution fits beneath.
-- Attribution: bottom-right MapLibre strip; folded to its ⓘ button under 820px.
-- Report detail: at ≥ 820px a 380px panel on the right (12px from the top, right and bottom edges, scrolling inside); below 820px a bottom sheet (24px top corners) that opens at 64% height and can be dragged to full height or away. It sits on `/r/:id` on the same map page, so the map is never rebuilt. The login form opens as a sheet over the map (auto-height under 820px, a centred 420px card from 820px), and `/login` is a page of its own for direct links.
-- Report button (FAB "แจ้ง", chosen in the plan 4 shape pass and owner-constrained): the extended pill sits bottom-right on every screen size. On phones it is 12px from the right edge in the row 52px above the bottom, where the controls column used to end (the most thumb-reachable spot, clear of the folded attribution button beneath); the controls column lifts to sit 8px above it and the hint card stops 8px short of it. From 820px it is 12px from the right and 48px from the bottom so the attribution strip stays readable under it, and while the detail panel is open it steps left of the panel with the controls. It is hidden while the report sheet is open on phones.
-- Report flow (`/report`): on phones a full page on Cream Ground; from 820px a centred Card White card, 600px wide, 24px from the top. The page scrolls, the card does not. `/me`, `/list` and `/about` (plan 6) use the same grammar.
-- Admin (`/admin`, plan 5): the same grammar with a **760px** card, so a report's facts and its small map sit side by side; below 820px one column with the map under the facts. Under the header a tablist of five tabs; on phones it is one sideways-scrolling row (no wrap), from 820px all five fit. Full spec: `docs/design/admin-handoff.md`.
-- Toast: centred, 84px from the top. The new-version notice of the installed app (plan 6) uses the toast's look at the bottom centre.
-- Gutters are 12px from every edge plus the safe-area inset. Gaps between floating elements are 8px.
-- Breakpoint: 820px is the only layout breakpoint; under 420px the chip tray tightens (4px gaps, 8px chip padding, no wrap).
+**Phones (under 820px)**
+- **Top bar**: a 46px glass capsule, 12px below the safe area, 16px from both sides: the dawn mark and the search pill. Opening search lays a full-width glass card over the bar (sliding 8px down); the bar gives up its glass meanwhile so the card's own blur is not trapped.
+- **Chip row**: directly under the bar (30px pills inside 44px targets); one sideways-scrolling row under 420px.
+- **Summary pill**: bottom-left, 16px from the left and 72px from the right, 14px above the dock, 40px tall: the stats ring, "N ค้างอยู่ · แก้แล้ว M" and a chevron; the whole pill opens `/list`. A hint worth saying (every level off, nothing here) floats above it as a near-opaque bubble.
+- **Locate**: a 40px glass circle in the same row, 16px from the right. MapLibre's attribution folds to its ⓘ above it.
+- **Dock**: a 60px glass capsule, at most 300px wide, centred 16px above the bottom: แผนที่, รายการ, the round dawn +, ของฉัน (the account). Hidden while the report sheet is open; beams are capped at 96px meanwhile so their discs stay below the top bar.
+- **Toast**: centred 124px from the top, under the bar and chips.
+
+**Wide screens (820px and up)**
+- **Side panel**: top-left, 20px gutters, 340px wide, content height (at most the viewport minus 40px; scrolls inside): the search row (32px mark, search field, account avatar), the chip row with a hairline under it, the summary (ring line plus any hint), up to three reports in view as 36px-visible rows (level shape, name, "เจอ N · ค้าง D วัน"), and "ดูทั้งหมด N".
+- **Menu capsule**: top-right, 40px tall, 32px tabs: แผนที่ (current), รายการ, the language toggle, ⓘ about.
+- **Control column**: bottom-right, 102px from the bottom, 40px wide: zoom in, zoom out, locate, home, 38px each with 18px hairlines between.
+- **Report pill**: bottom-right, 42px from the bottom so the folded attribution sits below it.
+- **Report detail**: a 380px dense glass panel on the right, 20px from the top, right and bottom; the menu, controls, report pill and MapLibre's corner controls step left of it (to 420px). Under 1180px the side panel folds to its search row while the panel is open; under 1000px the menu drops below the folded side panel.
+- **Toast**: centred, 84px from the top.
+
+**Pages on the backdrop** (`/list`, `/about`, `/me`, `/report`, `/login`, `/admin`): the shared shader backdrop behind one glass card. On phones the card is the whole page (no border, 16px sides, safe areas padded); from 820px a centred 600px card, 24px radius, 20px 24px 28px padding, 24px from the top (`/admin` 760px so facts and the small map sit side by side). The page scrolls, the card does not. The login form also opens as a sheet over the map (a 420px card from 820px).
+
+**Rhythm**: 16px gutters on phones, 20px on desktop, plus safe-area insets; 4–8px between grouped controls, 12px inside the detail panel, 16px between page sections.
 
 ## Elevation & Depth
 
-Two depth systems that never mix. The UI floats with one soft, warm shadow. The toy map has physical depth made of stacked soil layers offset downward (8 / 16 / 24px at zoom 6), which flatten to zero by zoom 8 so the coast never ghosts as the toy fades.
+Two depth systems that never mix. The UI is glass: depth comes from the blur, the light edge and one long soft shadow, not from stacked cards. The toy map has physical depth from stacked soil layers offset downward (8 / 16 / 24px at zoom 6) that flatten to zero by zoom 8.
+
+In the dark theme the glass also dims what is behind it to 55% brightness, and its shadow gains a 1px inner top highlight; in the light theme the glass leaves brightness alone. Over the map page sit a peach dawn glow from the bottom-right corner (screen blend) and a breath of grain (5%, half that in light).
 
 ### Shadow Vocabulary
-- **Float** (`box-shadow: 0 8px 28px rgba(60,50,40,.18)`): every floating card, the chip tray, icon buttons, tooltip, detail panel and sheets.
-- **Pill** (`box-shadow: 0 2px 8px rgba(0,0,0,.15)`): beacon short labels.
-- **Glow** (`box-shadow: 0 0 0 6px color-mix(in srgb, <level> 30%, transparent), 0 0 28px <level>`): beacon and cluster discs only; it is the light the beam gives off.
-- **Selected** (`box-shadow: 0 0 0 3px <surface>, 0 0 0 6px <Trust Blue>, 0 0 28px <level>`): the beacon whose detail panel is open; a solid blue ring replaces the level halo, the glow stays.
+- **Glass, night** (`box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 16px 36px -20px rgba(3,8,25,.9)`): every glass panel in the dark theme.
+- **Glass, day** (`box-shadow: 0 16px 36px -20px rgba(40,40,80,.45)`): the same in the light theme.
+- **Dawn lift** (`box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 12px 30px -10px rgba(244,180,154,.65)`): the report pill; the round + uses `inset 0 0 0 1px rgba(255,255,255,.4), 0 8px 22px -6px rgba(244,180,154,.75)`, a page's primary button the -14px variant.
+- **Pill** (`box-shadow: 0 2px 8px rgba(0,0,0,.15)`): beacon short labels and the cluster's critical pill.
+- **Glow** (`box-shadow: 0 0 0 6px color-mix(in srgb, <level> 30%, transparent), 0 0 28px <level>`): beacon and cluster discs only.
+- **Selected** (`box-shadow: 0 0 0 3px <surface>, 0 0 0 6px <accent>, 0 0 28px <level>`): the beacon whose detail is open.
+
 ### Named Rules
-**The One Light Rule.** Only beacons glow. No other element gets a coloured shadow or glow.
+**The One Material Rule.** Every floating surface takes its look from the glass tokens (`--glass-bg`, `-sheen`, `-edge`, `-blur`, `-shadow`, `-dim`, `--glass-bg-dense`, `--noise`) through the `.glass` class; the few that cannot carry the class (the sheet's scrolling layer, the attribution strip, chips) apply the same tokens, never new values.
+
+**The No Glass In Glass Rule.** A second blur inside a glass panel sees only the panel. Anything set inside glass uses an ink wash and no backdrop filter; hint bubbles inside a glass pill go near-opaque instead.
+
+**The Dense For Reading Rule.** A panel of running text (report detail, sheet, tooltip) uses dense glass so ink keeps 4.5:1 over the brightest toy land; in the dark theme the backdrop dimming does the rest.
+
+**The Two Lights Rule.** Only beacons glow, and only the dawn casts a warm shadow. No other element gets a coloured shadow.
 
 ## Shapes
 
-Soft and rounded, like toys: 9px level badges, 10px label pills, 12px picture tiles, 14px chips, buttons and toast, 18px cards, tooltip and detail panel, 24px sheets, perfect circles for discs and pulse rings. The beam is a narrow cone (a polygon from the full width at the top to 8% at the base). Pulse rings are flattened ellipses, as if light falls on the ground.
+Round and soft, scaled to the thing: 9px level badges, 10px tags and label pills, 12px picture tiles and list hover grounds, 15px chip pills, 16px buttons, fields, rows, tooltip and toast, 22px side and detail panels, 24px page cards, 26px sheet tops. Controls that live in a capsule are capsules (half their height: 20px for 40px, 23px for 46px, 30px for the dock); single icon controls are circles (locate, back, close, avatar, more filters, the round +). The beam is a narrow cone (full width at the top to 8% at the base); pulse rings are flattened ellipses, as if light falls on the ground.
 
-The four level shapes are one solid SVG set on a 12-unit grid: a filled circle (ทั่วไป), triangle (ควรระวัง), diamond (อันตราย), and a triangle with a cut-out exclamation (วิกฤต). They fill with currentColor at 0.85em inline and 10px inside badges, so their weight matches wherever they appear. Every other icon is Lucide (`apps/web/src/app/features/map/icons.ts`, `<app-icon>`): 22px in icon buttons, 24px in beacon discs, stroke 2, round caps, currentColor.
+The four level shapes are one solid SVG set on a 12-unit grid: a filled circle (ทั่วไป), triangle (ควรระวัง), diamond (อันตราย), and a triangle with a cut-out exclamation (วิกฤต). On glass they carry a 1px dark rim (the level colour mixed 45% into Slate Ink, painted under the fill) so the shape keeps 3:1 even where butter alone would not. Every other icon is Lucide (`<app-icon>`), stroke 2, round caps, currentColor: 18px in map controls and the dock, 20px in menus, 24px in the report control and beacon discs.
 
 ### Named Rules
-**The One Shape Set Rule.** A danger level's shape is always drawn from the SVG set, never typed as a character, so chips, badges and meta lines show the same weight on every device.
+**The One Shape Set Rule.** A danger level's shape is always drawn from the SVG set, never typed as a character, and on glass it always has its dark rim.
+
+**The Small Visible, Full Target Rule.** Glass controls may look small (30px chips, 32px tabs and avatar, 36px list rows, 40px circles and column buttons) but every one presses at 44 × 44px through an invisible extension.
 
 ## Components
 
 ### Buttons
-- **Shape:** gently rounded (14px), at least 44 × 44 px.
-- **Primary:** Trust Blue fill, white Prompt 500 15px label.
-- **Secondary:** Card White with a 1px Sand Line border.
-- **Icon button:** 44px square, Card White, 1px Sand Line border, Float shadow, a 22px line icon; hover fills Cream Ground. The account button shows the first letter of the signed-in name (Prompt 600, 19px, Trust Blue on a 14% Trust Blue tint) instead of the person icon, so signed in reads by shape as well as colour. Over the detail panel's picture the close button keeps its own white fill and has no shadow.
-- **Focus:** 3px Trust Blue outline with 2px offset on every interactive element (4px offset on discs).
+- **Shape:** 16px radius (the detail panel's own buttons keep 14px), at least 44px tall; the one action of a step is 52px and 16px type.
+- **Primary (dawn):** the dawn gradient with Dawn Ink, the Dawn lift shadow; hover brightens (1.06) and saturates; disabled keeps the gradient at 45% opacity without the shadow. Its focus ring is the theme ink, because an accent ring would vanish on the gradient.
+- **Secondary:** a 6% ink wash with the 1px glass edge, ink label; hover 12%.
+- **Glass controls** (map tabs, column buttons, dock tabs): transparent until hovered (8% ink wash), press scales to 0.96 in 120ms; focus is a 3px accent ring set inside the shape (-3px offset).
+- **Back / close circle:** a 40px glass circle (sheen, glass ground, edge, glass shadow) inside its 44px target, used for step back and close on pages; the detail panel's close is the same circle on dense glass.
+- **Focus:** a 3px accent outline everywhere (2px offset on free-standing controls, inset on glass controls, 4px on discs).
+
+### Report control
+The one warm control on the map, in two variants of the same button (`aria-label` "แจ้งเรื่องใหม่"): on desktop a 46px dawn pill with a 24px `plus` and "แจ้ง" (600, 15px); in the phone dock a 46px dawn circle with the `plus` alone. Signed out it opens the login sheet and goes on to `/report` only after a successful login.
 
 ### Chips
-- **Tray:** the four level chips sit in one Card White tray (18px radius, 6px padding and gap, Float shadow).
-- **On:** fill is the level colour mixed 55% into white (75% on hover), Slate Ink label, led by the level's solid shape. Same fill and ink in both themes.
-- **Off:** transparent fill, a 1px Sand Line inner outline, Muted Ink label with a line-through, `aria-pressed="false"`. The shape stays, so off reads without colour.
+- **Style:** no tray. Each level chip is a 30px glass pill (15px radius, glass edge, glass ground with its own 16px blur) inside a 44px target, the level's solid shape at 14px in its colour, then the name in Chip type. Inside the side panel or a page card the pill takes a 6% ink wash and no blur.
+- **On:** full pill, ink label, coloured shape. Hover deepens the ground by 10% ink; press scales 0.96.
+- **Off:** the pill at 55% opacity, Muted Ink label with a line-through, the shape drained to Muted Ink at 55%; `aria-pressed="false"`. The shape and the strike say it without colour.
+- **More filters:** a 30px glass circle at the end (`slidersHorizontal`); open gives it an accent edge; an accent count pill (20px, On Accent text) shows how many extras are on.
+
+### Stats ring and numbers line
+The summary's one line: a 26px ring (a conic fill in Dawn Peach for the share fixed this month over a 14% ink track, cut to a 2px band by a radial mask) that is decorative, then "N ค้างอยู่" (500) and "· แก้แล้ว M" in Muted Ink, ellipsised. "—" while loading, hidden on failure (the phone pill then says "รายการ"). The full form, where there is room, is two tabular Label lines led by `circleCheck` and `clock`.
+
+### Search
+On desktop a field well in the side panel's search row (6%-ish ink wash, no line, 16px radius, accent edge and 2px ring on focus); on phones a pill in the top bar that opens a full-width glass card. Results float under the field as their own 18px glass card (phones: inside the card), in two groups: "สถานที่" (`mapPin`, name, muted district) and "เรื่อง" (a 40px tile on the level colour 45% into white with a Slate Ink icon, the title clamped to two lines, level shape and word · status). Hover and the active row take an 8% ink wash; the active row adds a 3px accent inner edge. Captions for loading, nothing found, places offline and failure (an underlined accent "ลองอีกครั้ง").
+
+### Account button
+Two variants of one control. In the desktop search row a 32px avatar circle (10% ink wash, 18% on hover) inside 44px: `circleUser` signed out, the name's first grapheme (600, 15px) signed in, when the circle takes a 24% accent tint, so signed in reads by shape and colour. In the phone dock a tab like the others: a 22px face over "ของฉัน", the same initial and tint when signed in. The menu is a 240px popover on the theme surface (18px radius): the name (and a "ผู้ดูแล" tag), then 44px rows with 20px icons: เรื่องของฉัน, หน้าผู้ดูแล for admins, the other language (keeps the menu open), เกี่ยวกับแจ้ง, สลับผู้ใช้, ออกจากระบบ.
+
+### Navigation
+- **Dock (phones):** four 56 × 44px slots, an 18px icon over a 10px word; Muted Ink at rest, ink when current (`aria-current="page"`) or hovered; the round dawn + sits third.
+- **Menu capsule (desktop):** 32px tabs in Chip type at 13px, Muted Ink; the current tab gets a 10% ink wash and ink text; ⓘ is a 36px icon tab. The language toggle wears the same tab look.
 
 ### Cards / Containers
-- **Floating card:** Card White, 18px radius, Float shadow, 8–14px padding (brand card 8px 16px 10px).
-- **Tooltip:** Card White, 18px radius, Float shadow, 240px wide, no pointer events. Top to bottom, 4px apart: a 120px picture tile (cover photo, else the category's Lucide icon at 40px in ink on the level colour mixed 45% into the surface), the title, a meta line (level shape, level name · status · เจอเหมือนกัน N), and for open reports an age line.
-- **Detail panel:** Card White, 18px radius, Float shadow, 380px wide (a `role="dialog"` labelled by the report title); on phones the same content fills a bottom sheet (24px top corners, 0.64 / full breakpoints, dragging to the bottom closes it). Top to bottom, 12px apart: a picture (a scroll-snapping strip of photos with ก่อนแก้ / หลังแก้ pills, else the category tile at 48px; 180px high on the panel, 132px in the sheet so the me-too button sits inside the first 64%) with the 44px close button over its corner; the title (Prompt 600 22px, wraps anywhere); tags (level pill with its solid shape, category, status, age, user `#tags`); the description (line breaks kept); a byline "แจ้งโดย {name or ผู้ใช้นิรนาม} · {age}" with the place; for level 3 the emergency box; the me-too row; and the comments. Loading and error states keep the same frame, with a retry button.
-- **Emergency box:** level 3 only. Critical Rose mixed 24% into white, Slate Ink text, 14px radius: "ระบบนี้ไม่ใช่ช่องทางฉุกเฉิน หากมีอันตรายทันที โทร 191 / 199 / 1669", each number a white 44px `tel:` link. This is the one place rose fills an area, because it means danger there.
-- **Me-too button ("เจอเหมือนกัน"):** a 44px secondary button in Trust Blue (outline and label) with a hand icon and the count in tabular figures; pressed (`aria-pressed`) fills Trust Blue with white text. It is disabled at 60% opacity while the request is in flight and always shows the count the server last answered. A resolved report shows "มีคนเจอเหมือนกัน N คน" in Muted Ink instead. It keeps a whole line; the second line holds "แจ้งว่าแก้แล้ว" and the ⋯ button.
-- **"แจ้งว่าแก้แล้ว" and the waiting note:** on an open report a 44px secondary button (`wrench`) that grows to fill the second action line; on `fix_claimed` it gives way to a Muted Ink line "มีคนแจ้งว่าแก้แล้ว รอผู้ดูแลตรวจ" led by `wrench`; resolved shows neither. Signed out it opens the login sheet first.
-- **More menu (⋯):** a 44px icon button (`ellipsis`, "ตัวเลือกเพิ่มเติม") opening a 248px Card White popover (18px radius) of 44px icon + word rows: คัดลอกลิงก์ (`link`), รายงานเนื้อหาไม่เหมาะสม (`flag`) and, for admins only, ซ่อนเรื่องนี้ (`eyeOff`). An admin hide closes the panel with the toast "ซ่อนเรื่องนี้แล้ว".
-- **Inline forms (fix claim, content report):** they replace the action row inside the same panel or sheet (no second overlay): a 14px-radius Cream Ground inset with a Prompt 500 15px heading (focused on open), a one-line lede, then the fields and a send row (primary + "ยกเลิก"); errors in `role="alert"` inside the form. Fix claim: optional single photo ("ถ่ายรูป" / "เลือกจากคลัง", then a 96px tile with a 44px remove button), the caption "รูปหลังแก้จะขึ้นหลังผู้ดูแลยืนยัน", a note textarea with `n/500`, "ส่งให้ผู้ดูแลตรวจ". Content report: a radio group of five 44px rows (chosen = 2px Trust Blue edge, 10% tint and a `check`), an optional note, "ส่งรายงาน" (disabled until a reason is chosen). Thanks go to the panel's status line; a report never says it hid anything. Cancel or success puts focus back on the opener (⋯ when the opener is gone).
-- **Comment report button:** a quiet 44px `flag` icon button (Muted Ink, no border, "รายงานความคิดเห็นนี้") at the end of every comment's name line; its form opens right under that comment.
-- **Comments:** a hairline above, heading "ความคิดเห็น · N" (Prompt 500 15px), then each comment as name (500), a "ผู้แจ้ง" badge (9px radius, Sand Line outline) when the author is the reporter, the age, and the body (Body, line breaks kept, user text only through text interpolation). The composer is a 14px-radius textarea with a `n/500` counter and a 44px Trust Blue send icon button, disabled while blank. Signed out, a secondary button "เข้าสู่ระบบเพื่อแสดงความคิดเห็น" takes its place. Hidden author names show as "ผู้ใช้นิรนาม", never the real name.
-- **Login form:** the same form in a bottom sheet over the map and on the `/login` page: heading, a short lede, one field per step (email, then the 6-digit code with `autocomplete="one-time-code"`), a 44px Trust Blue primary button, "เปลี่ยนอีเมล" and "ส่งรหัสใหม่" (locked for 60 seconds with a countdown) as text links, and errors in `role="alert"` directly under the field. When quick login is configured, a "สลับผู้ใช้สำหรับเดโม" section lists one secondary button per demo user.
-- **Account button and menu:** the account icon button above (person icon when signed out, opens the login sheet; the name's initial when signed in, opens the menu). The menu is an 18px-radius Card White popover, 240px wide, with the name (and a "ผู้ดูแล" tag for admins), then 44px rows: "เรื่องของฉัน", for admins "หน้าผู้ดูแล" (`shieldCheck`), "สลับผู้ใช้" and "ออกจากระบบ".
-- **Report button (FAB):** a Trust Blue pill, 56px tall and 116px wide, 14px radius, Float shadow, a Lucide `plus` and the word "แจ้ง" (Prompt 600 17px, white), `aria-label="แจ้งเรื่องใหม่"`. Signed out it opens the login sheet and goes on to `/report` only after a successful login.
-- **Report flow (three steps):** a short form, not a wizard. Each step has a 44px icon button on the left (`x` back to the map on step 1, `chevronLeft` after), the caption "ขั้น N จาก 3" above the step title (Prompt 600 22px), and a decorative three-segment track (done and current segments Trust Blue, the current one wider, future ones a Sand Line outline) so the words, not the colour, carry the state. Focus moves to the step title on every change. Step 1, "ถ่ายรูปปัญหา": a primary "ถ่ายรูป" and a secondary "เลือกจากคลัง", a four-column strip of square 12px-radius tiles (preview, an upload overlay, a retry button on error, a 44px remove button in the corner, a `check` badge when ready), and the caption "รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ". Step 2, "เป็นเรื่องอะไร": the eight categories as large buttons (2 columns on phones, 4 from 820px, at least 96px tall, a 32px icon over the Thai name); the chosen one gets a 2px Trust Blue edge, a 10% tint and a `check`, and a tap moves straight on. Step 3, "ปักหมุดตรงไหน": a street-map picker with a fixed centre pin (Lucide `mapPin`, 44px, Trust Blue), 44px zoom buttons, a caption saying where the pin came from, then the 52px "ส่งเรื่อง" button with "เล่าที่ปัญหา ไม่ระบุชื่อหรือกล่าวหาบุคคล" directly under it, and a collapsed "เพิ่มรายละเอียด" fold (title, description, a level radio group in the chip style, up to five tags, the "ไม่แสดงชื่อฉัน" switch). Send stays disabled below zoom 14 for every pin source.
-- **Duplicate card:** replaces the step 3 body. Heading "เรื่องนี้ใช่ไหม?", up to three rows, each with a 72px tile (cover photo, else the category icon on the level colour mixed 45% into white), the title, a meta line (level shape and name, status, เจอเหมือนกัน N) and a Trust Blue outline "ใช่ กดเจอเหมือนกันแทน" button in the me-too style; under the list a secondary "ไม่ใช่ แจ้งเป็นเรื่องใหม่". A note says the first photo will be attached as a comment.
-- **Sent card:** replaces the whole flow. A 64px disc in a 14% Trust Blue tint holding a `check`, "ส่งแล้ว รอผู้ดูแลตรวจ", a line promising the beam appears after review, then a primary "ดูเรื่องของฉัน" and a secondary "กลับไปแผนที่".
-- **My reports (`/me`):** the same page grammar as the report flow (a 600px card from 820px). Top to bottom: the name row (the display name in Prompt 500 18px, a 44px "แก้ชื่อ" button that swaps the row for an input with an `n/30` counter, save and cancel, errors in `role="alert"`), the list "เรื่องที่แจ้ง · N" and a secondary "ออกจากระบบ".
-- **Report row:** Card White, 18px radius, 12px apart. A 72px tile at the left (thumb, else the category icon on the level colour mixed 45% into white), then the title, a status line, and a muted meta line (level shape and name, place, age, เจอเหมือนกัน N for public ones). The status line is always a Lucide icon plus a word, six pairs with none shared: `clock` รอผู้ดูแลตรวจ, `eye` เปิดอยู่, `wrench` รอตรวจว่าแก้แล้ว, `circleCheck` แก้แล้ว, `circleX` ไม่ผ่านการตรวจ, `eyeOff` ถูกซ่อน, all in Slate Ink so status never rests on colour. A rejected row adds "ไม่ผ่านเพราะ: {reason}". Public reports (`open`, `fix_claimed`, `resolved`) are whole-card links to `/r/:id` that fill Cream Ground on hover; the rest are plain rows because nothing public exists to open.
-- **Comment photo:** a comment with a photo shows its thumbnail under the text, at most 160px wide, 12px radius, `alt="รูปที่แนบในความคิดเห็น"`, lazy loaded; no lightbox.
-- **Toast:** Slate Ink fill, Cream Ground text, 14px radius, `role="status"`. With an action (plan 6) it carries one 44px underlined text button in its own colours ("ลองใหม่") and stays 8 s; a plain toast stays 3.2 s.
-- **Language toggle (plan 6):** a 44px Card White button in the brand card showing the other language in itself ("EN" with `lang="en"`, "ไทย" with `lang="th"`), labelled in the target language. It swaps every word in place; nothing closes and focus stays on it. Signed in, the account keeps the choice.
-- **Language and theme choices (plan 6):** segmented radiogroups on Cream Ground with a hairline; the chosen segment is Card White with the Float shadow and weight 600 (`aria-checked`); 44px segments, arrow keys move and choose. Language: "ไทย" / "English". Theme: ตามเครื่อง (`sunMoon`), สว่าง (`sun`), มืด (`moon`). On `/me` (section "การแสดงผล" between the name and the list) and `/about`. The account menu adds a row naming the other language (`languages`, keeps the menu open) and "เกี่ยวกับแจ้ง" (`info`).
-- **Search (plan 6):** an ARIA 1.2 combobox; from 820px a 300px field card, on phones a `search` icon that lays a full-width card over the top group. Results are a Card White listbox in two groups, "สถานที่" (`mapPin`, name, muted district/province or address) and "เรื่อง" (a 40px tile on the level colour 45% into white, the title clamped to two lines, level shape and word · status); the active row fills Cream Ground with a 3px Trust Blue inner edge. Captions for loading, nothing found (the query quoted as text), places offline and failure ("ลองอีกครั้ง").
-- **More filters (plan 6):** a 44px `slidersHorizontal` button at the end of the chip tray, a Trust Blue count pill when extras are on; its panel is a 320px Card White popover from 820px and a full-width bottom card over a dimmed backdrop on phones: eight category toggles (the chosen style of the report flow: 2px Trust Blue edge, 10% tint, `check`), a "แสดงเรื่องที่แก้แล้ว" switch, "ล้างตัวกรอง" and a primary "เสร็จ".
-- **Numbers line (plan 6):** the first line of the hint card, Slate Ink Plex 500 14px, tabular: `circleCheck` "เดือนนี้แก้แล้ว N เรื่อง" and `clock` "ค้างอยู่ M เรื่อง" for the visible area (Bangkok calendar month), "—" while loading, hidden on failure, not live.
-- **List page (`/list`, plan 6):** header (44px `map` button back to the same map view, h1 "รายการเรื่อง", caption with the area and count), the map's chip tray, a sort radiogroup (ใกล้ฉัน `navigation` · ใหม่สุด · เจอเหมือนกันมากสุด · ค้างนานสุด, one row that scrolls sideways on phones), the "รวมเรื่องที่แก้แล้วเกิน 30 วัน" checkbox while fixed reports show, then report rows (the `/me` row with the public status words, "ค้างมา N วัน", me-too count and, for ใกล้ฉัน, the distance), "ดูเพิ่มอีก" for the next 50.
-- **About page (`/about`, plan 6):** a reading page: h1 "เกี่ยวกับแจ้ง", then six h2 sections (what it is, the four rules, the emergency box, five privacy bullets including "รูปยังไม่ได้เบลอ", display choices, credits as what/who pairs), body at most 62ch.
+- **Side panel:** see Layout. Its in-view rows read 36px with a 12px-radius hover ground inside a 44px target; focus is a 3px accent inner ring on that ground.
+- **Tooltip:** dense glass, 16px radius, 240px, no pointer events: a 120px picture tile (cover photo, else the category's Lucide icon at 40px on the level colour at 45%), the title, a meta line (level shape, level name · status · เจอเหมือนกัน N), and for open reports an age line.
+- **Detail panel / sheet:** dense glass. Desktop a 380px, 22px-radius `role="dialog"` that slides 16px in from the right over 320ms and scrolls inside its own layer so the grain covers the whole panel. Phones a bottom sheet (26px top corners, a 30% ink handle, 0.64 / full breakpoints, a 0.2 backdrop, dragging down closes it) whose scrolling layer is the glass. Content top to bottom, 12px apart: the picture (a scroll-snapping strip of 180px photos with ก่อนแก้ / หลังแก้ pills, 132px in the sheet, else the category tile) under the 44px close circle; the title (Headline, wraps anywhere); tags (level pill with its solid shape on the level colour 55% into white, category, status, age, user `#tags`); the description; the byline and place; for level 3 the emergency box (Critical Rose into white, Slate Ink, tappable 191 / 199 / 1669); the me-too row; the comments.
+- **Me-too ("เจอเหมือนกัน"):** a 44px secondary button with an accent outline and label, a hand icon and the tabular count, on a whole line; pressed fills the accent with On Accent text; 60% while in flight. "แจ้งว่าแก้แล้ว" and the ⋯ menu share the second line. A resolved report shows "มีคนเจอเหมือนกัน N คน" in Muted Ink instead.
+- **Inline forms (fix claim, content report), comments, composer:** unchanged in behaviour from plan 5–6; on glass their grounds are ink washes, their fields the field well below, their send button the accent.
+- **Toast:** glass at 85% of the ground colour (denser than panels; it is read in passing over anything), 16px radius, ink text, `role="status"`. With an action it carries one 44px underlined accent text button ("ลองใหม่") and stays 8s; a plain toast stays 3.2s.
+- **Page card:** see Layout. Rows inside it (`/me`, `/list`) are 16px-radius ink-wash rows (5%, 10% on hover) with the 1px glass edge, a 72px tile on the level colour 45% into white with a Slate Ink icon, the title (Title), a status line that is always a Lucide icon plus a word, and a muted meta line. The first twelve rows rise in 30ms apart.
 
-### Admin (`/admin`, plan 5)
-- **Tabs:** `role="tablist"`, five 44px tabs, each Lucide icon + word, the first three with a live count ("รอตรวจ · 2", "แจ้งว่าแก้แล้ว · 4", "ถูกรายงาน · 0"; zero shows 0): `inbox`, `wrench`, `flag`, `users`, `history`. Selected = a 2px Trust Blue underline and weight 600 (not colour alone); arrow keys, Home and End move between them; `?tab=` keeps the choice.
-- **Review queue:** one report at a time with "เรื่องที่ N จาก M" between 44px previous/next buttons; photos 220px tall (180px on phones) in a scroll-snap strip, else the category tile; the title (Prompt 600 20px), tags (level pill with its shape, category, and when they apply "ขอปิดชื่อ", "มีคำที่อาจไม่เหมาะสม", "ถูกแบน", each with an icon), then facts (description, tags, place, time, the reporter's real name and e-mail) beside the small map. The decision row has a secondary "ปฏิเสธ…" (`circleX`) at the left end and a primary "อนุมัติ…" (`circleCheck`) at the right end; each opens its own Cream Ground section (approve: category buttons, level chips, title with `n/120`, four location radios, a 52px "อนุมัติ ขึ้นแผนที่"; reject: five reason rows, a note with `n/200` for "อื่นๆ", "ยืนยันปฏิเสธ"). Every button is disabled while a request runs; the result goes to one `role="status"` line.
-- **Small map:** the page's only MapLibre map (12px radius, 240px tall beside the facts, 200px on phones), moved between reports instead of rebuilt. Two HTML markers told apart by shape and word: the true point is a `mapPin` with "จุดจริง", the shown point a 14px ink disc with a white rim and "จุดที่แสดง"; when they coincide one marker reads "จุดจริง (แสดงตรงนี้)". "ปักหมุดเอง" swaps the markers for a fixed 40px Trust Blue centre pin that starts on the shown point, never the true one.
-- **Before and after:** each fix claim shows the two photos as equal square tiles side by side, labelled "ก่อนแก้" / "หลังแก้" with white pills; no after photo is a dashed Sand Line tile "ไม่ได้แนบรูปหลังแก้". Secondary "ยังไม่แก้" left, primary "ยืนยันว่าแก้แล้ว" right.
-- **Report card (ถูกรายงาน):** tags for the kind (เรื่อง / ความคิดเห็น), the report status (word + its `/me` icon), "ซ่อนอยู่" and "N รายงาน"; the comment body as quoted text; one bordered row per flag (reason word, note, reporter, time); the owner with "ถูกแบน" when banned. Actions: "ยกเลิกรายงาน" (or "ยกเลิกรายงานและคืน" when hidden, `undo2`), "ซ่อน" (`eyeOff`, absent when hidden), "ซ่อนและแบนเจ้าของ" (`ban`, absent for an admin owner). A "ซ่อนอยู่ · N" list below has a "คืน" button per row.
-- **Ban confirmation:** every ban is two presses in place: the button turns into "ยกเลิก" + "แน่ใจ แบนเลย".
-- **User row:** name (Prompt 500 16px), "ผู้ดูแล" tag, status as a word with an icon ("ใช้งานได้" `circleCheck` / "ถูกแบน" `ban`), e-mail, counts and join date; "แบน" (two-step) or "ยกเลิกแบน"; admins have no ban button. The search field (`search` icon, 300ms debounce) finds a name or e-mail.
-- **Log row:** the action as a Thai word, the target kind and its name (user name or report title), a "เปิดเรื่องนี้" link for reports, known details (reason, note, location mode) as text, then "{admin or ระบบ} · {age}". "ดูเก่ากว่านี้" loads 50 more and disappears on a short page.
+### Inputs / Fields
+- **Style:** a 6% ink wash with the 1px glass edge, 14–16px radius, ink text, Muted Ink placeholder.
+- **Focus:** the edge turns accent with a 2px accent outline at 0 offset.
+- **Status lines:** a live region that, when it has something to say, becomes a 12px-radius 6% ink-wash box with the glass edge.
+- **Segmented choices** (sort, language, theme): a 16px-radius track (6% ink wash, glass edge inset), 44px options in Label type, Muted Ink; chosen is a 14% ink wash with a faint top highlight, ink and weight 600, never colour alone.
 
 ### Beacon (signature component)
-The Bat-Signal beacon. Bottom to top: a 14px base dot in the level colour with a white rim at the true point; one or two flattened pulse rings (3s / 2.4s / 1.6s / 1s for levels 0–3, two rings half a period apart for levels 2–3); the cone beam, level colour fading to transparent at 80% opacity, height `beamHeight(confirm_count)` from `packages/shared`, rising over 400ms; a 54px surface disc with a 3px level-colour border, the Glow, and the category's Lucide icon at 24px in ink; a level badge at its lower right; a short label pill above.
-- **Level badge:** 18px pill in the level colour holding the level's solid shape in Slate Ink.
-- **fix_claimed:** beam at 28% opacity, dashed disc border, no pulse.
-- **resolved:** no beam, no pulse; mint border, a tick in place of the icon and the badge shape, disc at 85% opacity.
-- **Compact:** below zoom 12 an isolated report draws a 60px beam, an 82% disc and no label; it becomes full height at zoom ≥ 12.
-- **Selected:** the Selected ring (see Elevation) while its detail panel is open.
-- **Labels:** at most 12 labels on screen, kept for the reports with the most "เจอเหมือนกัน".
+The Bat-Signal beacon, unchanged in grammar: a 14px base dot in the level colour with a white rim; one or two flattened pulse rings (3s / 2.4s / 1.6s / 1s for levels 0–3, two rings half a period apart for 2–3); the cone beam, level colour fading to transparent at 80% opacity, height `beamHeight(confirm_count)`, growing over 400ms when the count rises; a 54px glass-toned disc (Night Surface at 82%, no blur because up to 150 markers repaint every frame) with a 3px level border, the Glow, and the category icon at 24px in ink; a level badge at its lower right (18px pill in the level colour, the shape in Slate Ink); a short label pill above. A new beacon pops up from its base (scale 0.4 to 1, 520ms).
+- **fix_claimed:** beam at 28%, dashed disc border, no pulse. **resolved:** no beam, no pulse, mint border, a tick, disc at 85%. **Compact:** below zoom 12 an isolated report draws a short beam and an 82% disc with no label. **Selected:** the Selected ring.
 
 ### Cluster
-A 52px surface disc with the count in Count type, a 3px border and one pulse ring in the highest level inside, the Glow, and that level's badge at the lower right. Its label names the count and the highest level. Clicking flies in. When the group holds critical reports (plan 6) a 22px pill at its upper left shows the critical shape and how many, Slate Ink on Critical Rose 55% into white, and the label adds "วิกฤต N เรื่อง".
+A 52px glass-toned disc with the count in Count type, a 3px border and one pulse ring in the highest level inside, the Glow, that level's badge, and the same pop. With critical reports inside, a 22px pill at its upper left shows the critical shape and how many, Slate Ink on Critical Rose 55% into white.
 
-### Toy map
-Province polygons on real coordinates, three soil layers that flatten with zoom, one flat Cel Land colour per region, faint Land Ink province lines (30%, 0.6px), and a 6px sand rim under the Land Ink outline. Nothing stands on it: no names, landmarks, vehicles or compass. Every toy layer fades from 100% at zoom 6 to 0% at zoom 8; the street map's place names start at zoom 7.5.
+### Toy map, sea and attribution
+Province polygons on real coordinates, three soil layers that flatten with zoom, one flat Cel Land colour per region, faint province lines, a sand rim under the Land Ink outline, nothing standing on it; every toy layer fades from zoom 6 to 8 and street names start at 7.5. The sea is a custom WebGL layer (a coast glow, a few soft ripple lines, foam, rare wave marks) capped at 30 fps and stopped only in a hidden tab. The attribution is a strip of dense glass with a 12px blur and Muted Ink links; folded, a faint glass ⓘ (inverted to light in the dark theme) with an accent focus ring.
 
-### Sea
-A MapLibre custom WebGL layer (`features/map/sea/`) over everything outside Thailand at every zoom, with the flat Toy Sea fill under it as the fallback. An animated ocean (owner, 2026-10-17): a smooth glow around the coast (from a softened coast distance, so it follows the shore in clean curves) fading from the Shallow Glow through Mid to Deep, its reach 38 km or 26 px, whichever is wider; thin (~1 px, soft) ripple lines in the Line colour rolling out from the shore, about three at a time, each fading as it travels; soft foam that washes up the coast and drains back; and out on the open sea only a few small wave marks (two little crests), each fading in, drifting and fading out over about 10 s. No contour lines, wave strokes or glints (owner, 2026-10-17). Patterns are fixed to the ground and drawn at the two whole zooms around the camera, crossfaded, so nothing pops while zooming. Ripples and foam fade out between zoom 8 and 10 (the coast texture is too coarse past that); a white line on the mask edge stands in from zoom 8 and is gone by 11.5. Animation is capped at 30 fps (each frame repaints the whole map) and stops only in a hidden tab. Motion never switches off for `prefers-reduced-motion` (owner, 2026-10-17): the app does not read it at all. The camera centre is held inside Thailand plus about 2 degrees, and the zoom floor is the whole country.
+### Backdrop and intro
+- **Backdrop:** every page that is not the map stands on a fixed, pointer-free shader mesh gradient in the four backdrop colours of the theme, drawn at half resolution and at most 30 fps, with 5% grain over it; it pauses in a hidden tab or off-screen and gives its GPU context back when the page goes. With no WebGL, or when the context is lost, the same picture in CSS: a lavender glow top-left, a peach dawn bottom-right, over a 170-degree navy (light: lilac and blush over pale lavender).
+- **Intro:** once per visit (session), 1.8s, decorative and skippable by any tap or key: a point of light grows with a peach glow (0–400ms), a 3px beam rises from it (250–900ms), "แจ้ง" in Display is written bottom-up as its letters close in (700–1300ms), the dawn blooms from the bottom-right (1000–1600ms), then the whole view scales up 6%, blurs and fades into the app (1400–1800ms).
 
-### Attribution
-MapLibre's strip on the surface at 88%, Muted Ink text and links, Trust Blue focus ring on its ⓘ toggle.
+### Motion
+- **One easing:** `cubic-bezier(0.2, 0.8, 0.2, 1)` for panels, pages, markers and the intro. Camera: `flyTo` 1600ms with curve 1.3, `fitBounds` 1200ms, both `essential`.
+- **Rise:** panels rise into place once on mount (from 10px lower, transparent and 6px blurred, 700ms, fill backwards only so a panel with no animation is simply there), staggered 60ms by their order: bar or side panel, chips, summary, controls and menu, dock or report pill. Page cards rise the same way; list rows 600ms, 30ms apart.
+- **Page change:** the new page rises 12px out of an 8px blur over 420ms while the old fades in 220ms; going back comes down from above.
+- **Small:** hovers 160ms ease-out, presses scale 0.96–0.97 in 120ms, the selected ring 240ms, the phone search card slides 8px in 220ms, the detail panel 16px in 320ms.
+- **Motion always plays** (owner decision): nothing reads a reduced-motion setting; motion only pauses with the tab.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** encode every danger level with colour, the solid SVG shape and pulse speed together.
-- **Do** keep text on pastel fills in Slate Ink (#2B2A33), with the pastel mixed into white, in both themes.
-- **Do** show an off filter chip as an outline (transparent, 1px Sand Line, Muted Ink, line-through), not as a faded chip.
-- **Do** keep every target at least 44 × 44 px and give every beacon an `aria-label` of "{title} ระดับ{level} {status}" (in English "{title} {level} level, {status}").
-- **Do** take every word the app shows from `i18n/th.ts` / `en.ts` (user-written content and place names stay as written), and check every screen in English at 375px.
-- **Do** check both themes: every token pair passes AA in light and dark (`a11y.spec.ts`); pastel fills keep Slate Ink in both.
-- **Do** use Lucide SVG icons for pictograms so they look the same on every device; never emoji.
-- **Do** say a report's status in words with its own Lucide icon, and say only what is true about photos ("รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ").
-- **Do** credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution.
+- **Do** build every floating surface from the glass tokens and the `.glass` class, dense for running text.
+- **Do** keep the dawn gradient to the brand mark, the report control, a page's primary action and the stats ring.
+- **Do** set anything inside a glass panel on an ink wash with no blur of its own.
+- **Do** encode every danger level with colour, the solid SVG shape (with its dark rim on glass) and pulse speed together.
+- **Do** keep text on pastel fills in Slate Ink, with the pastel mixed into white, in both themes.
+- **Do** show an off chip drained and struck through, so it reads without colour.
+- **Do** keep every target at least 44 × 44px, even when the visible part is 30–40px, and give every beacon an `aria-label` of "{title} ระดับ{level} {status}".
+- **Do** use the dark theme as the default and check both themes; every token pair passes AA in light and dark.
+- **Do** use the one easing and the rise for anything that appears; let motion always play.
+- **Do** take every word from `i18n/th.ts` / `en.ts` and check every screen in English at 375px.
+- **Do** use Lucide SVG icons for pictograms; say a report's status in words with its own icon; say only what is true about photos.
+- **Do** credit OpenStreetMap, OpenFreeMap, OCHA COD-AB, Lucide (ISC) and Anuphan (OFL).
 
 ### Don't:
-- **Don't** look like a dark game or a cold government form.
-- **Don't** copy or store the reference poster by ครูหนิง & Gemini; draw everything from real geometry and MIT emoji.
+- **Don't** look like a neon gaming screen or a cold government form.
+- **Don't** pile white cards over the map; a new control joins an existing glass piece before it becomes a new one.
+- **Don't** put a blurred panel inside another, or set running text on thin glass.
+- **Don't** use the dawn gradient, or a warm shadow, on anything outside its four uses.
 - **Don't** show status with colour; status is beam shape.
 - **Don't** let anything except beacons glow.
 - **Don't** type level shapes as characters (● ▲ ◆ ⚠); draw them from the SVG set.
-- **Don't** move a map name away from its town to make it fit; hide it.
+- **Don't** copy or store the reference poster; draw everything from real geometry.
 - **Don't** claim photos are blurred until blurring exists.
-- **Do** say plainly that the first photo of a duplicate merge shows as a comment at once, with no reviewer check; **Don't** promise review for it (the "after the reviewer checks" caption is for new reports only).

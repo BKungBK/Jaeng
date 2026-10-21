@@ -38,7 +38,7 @@ import { ReportDetailService } from './report-detail.service';
       border-radius: 12px;
       background: var(--surf);
       color: var(--ink);
-      font: 400 15px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 400 15px/1.4 var(--font);
       text-align: left;
       cursor: pointer;
 

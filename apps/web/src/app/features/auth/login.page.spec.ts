@@ -31,6 +31,12 @@ async function setup(next: string | null, signedIn = false) {
 }
 
 describe('LoginPage', () => {
+  it('sits on the shared backdrop', async () => {
+    const { root } = await setup(null);
+    expect(root.querySelector('app-backdrop')).not.toBeNull();
+    expect(root.querySelector('.wrap .card')?.classList).toContain('glass');
+  });
+
   it('shows the login form', async () => {
     const { root } = await setup(null);
     expect(root.querySelector('app-login-form')).not.toBeNull();

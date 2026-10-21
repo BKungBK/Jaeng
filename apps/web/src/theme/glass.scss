@@ -1,0 +1,97 @@
+// The one material of plan 6b: frosted, grain-textured glass. Every floating panel uses the
+// global .glass class; nothing else writes its own backdrop-filter for a panel. Values from the
+// map surface brief's direction contract and .impeccable/mocks/decision/fused-*.html.
+
+:root {
+  // light theme: white frosted glass
+  --glass-bg: rgba(255, 255, 255, 0.58);
+  --glass-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12) 60%);
+  --glass-edge: rgba(255, 255, 255, 0.75);
+  --glass-shadow: 0 16px 36px -20px rgba(40, 40, 80, 0.45);
+  // panels of running text (report detail, sheet, toast): denser, so ink keeps 4.5:1 over bright toy land
+  --glass-bg-dense: rgba(255, 255, 255, 0.84);
+
+  // what the glass does to the map behind it, after the blur (dark: dims it, see below)
+  --glass-dim: brightness(1);
+
+  // both themes
+  --glass-blur: 24px;
+  --dawn: linear-gradient(135deg, #ffe3c4 0%, #f4b49a 45%, #c9a0dc 100%);
+  --dawn-ink: #2a1f3a;
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --font: 'Anuphan', system-ui, sans-serif;
+  // native controls (checkboxes, scrollbars) follow the app's theme, not the OS one
+  color-scheme: light;
+}
+
+@mixin dark-glass {
+  --glass-bg: rgba(16, 26, 54, 0.45);
+  --glass-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 60%);
+  --glass-edge: rgba(255, 255, 255, 0.13);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 16px 36px -20px rgba(3, 8, 25, 0.9);
+  --glass-bg-dense: rgba(16, 26, 54, 0.8);
+  // the toy land is bright pastel: dimmed behind the glass, ink keeps 4.5:1 over it too
+  --glass-dim: brightness(0.55);
+  color-scheme: dark;
+}
+
+// same selectors as dark-tokens in tokens.scss
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-glass;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include dark-glass;
+}
+
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-sheen), var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass.dense {
+  background: var(--glass-sheen), var(--glass-bg-dense);
+}
+
+// the grain: sits under the panel's content, clipped to its corners
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--noise);
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+// panels rise into place once, on mount (core/motion.ts EASE). Only a `from` frame: with no animation
+// the panel is simply there.
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+}
+
+// visually hidden, still read aloud
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

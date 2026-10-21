@@ -31,8 +31,8 @@ type More = 'idle' | 'loading' | 'done';
 let nextId = 0;
 
 /**
- * Search reports and places (spec 3.9): an ARIA 1.2 combobox. A field from 820 px; below it an icon
- * that opens a full-width card over the top of the map (`collapsed`). Choosing a place flies the map
+ * Search reports and places (spec 3.9): an ARIA 1.2 combobox. A field from 820 px; below it a pill
+ * showing the field's text that opens a full-width glass card over the top of the map (`collapsed`). Choosing a place flies the map
  * there; choosing a report opens it. Answers for an older query are dropped. OpenStreetMap is asked only
  * from the "search more places" row or Enter with no row chosen (its policy forbids auto-complete).
  */
@@ -96,7 +96,7 @@ export class SearchBoxComponent {
     this.reset();
     this.cardOpen.set(false);
     this.opened.emit(false);
-    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.search-icon')?.focus());
+    setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.search-pill')?.focus());
   }
 
   protected onInput(e: Event) {

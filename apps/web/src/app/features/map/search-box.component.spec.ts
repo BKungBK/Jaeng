@@ -155,6 +155,13 @@ describe('SearchBoxComponent', () => {
     expect(document.activeElement).toBe(root.querySelector('button[aria-label="ค้นหา"]'));
   });
 
+  it('shows the field text inside the phone pill', async () => {
+    const { root } = await setup({ collapsed: true });
+    const pill = root.querySelector<HTMLButtonElement>('button.search-pill[aria-label="ค้นหา"]');
+    expect(pill).not.toBeNull();
+    expect(pill!.querySelector('.ph')?.textContent?.trim()).toBe('ค้นหาเรื่องหรือสถานที่');
+  });
+
   it('asks OpenStreetMap only from the "more places" row, keeping the reports on screen', async () => {
     let more!: (a: PlacesAnswer) => void;
     const { type, settle, root, options, places } = await setup();

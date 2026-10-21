@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
@@ -9,12 +10,13 @@ import { safeNext } from './safe-next';
 @Component({
   selector: 'app-login-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LoginFormComponent, TPipe],
+  imports: [BackdropComponent, LoginFormComponent, TPipe],
   host: { class: 'ion-page' },
   template: `
+    <app-backdrop />
     <main class="wrap">
       <h1 class="brand">{{ 'app.title' | t }}</h1>
-      <div class="card">
+      <div class="card glass">
         <app-login-form (done)="finish()" />
       </div>
       <a class="back" href="/" (click)="home($event)">{{ 'auth.backToMap' | t }}</a>
@@ -22,8 +24,7 @@ import { safeNext } from './safe-next';
   `,
   styles: `
     :host {
-      background: var(--bg);
-      color: var(--ink);
+      color: var(--ink); /* the backdrop is the ground */
     }
     .wrap {
       box-sizing: border-box;
@@ -37,15 +38,14 @@ import { safeNext } from './safe-next';
     }
     .brand {
       margin: 0;
-      font: 600 32px/1.2 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 32px/1.2 var(--font);
     }
     .card {
       box-sizing: border-box;
       width: min(420px, 100%);
       padding: 24px 20px 20px;
       border-radius: 24px;
-      background: var(--surf);
-      box-shadow: var(--sh);
+      animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
     }
     .back {
       display: inline-flex;
@@ -54,7 +54,7 @@ import { safeNext } from './safe-next';
       padding: 0 8px;
       border-radius: 10px;
       color: var(--pri);
-      font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 14px/1.4 var(--font);
       text-underline-offset: 3px;
     }
     .back:focus-visible {

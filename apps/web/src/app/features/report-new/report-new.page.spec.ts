@@ -88,6 +88,12 @@ async function setup(opts: { position?: { lng: number; lat: number } | null; dup
 describe('ReportNewPage', () => {
   afterEach(() => TestBed.inject(ReportDraftService).reset());
 
+  it('sits on the shared backdrop', async () => {
+    const { root } = await setup();
+    expect(root.querySelector('app-backdrop')).not.toBeNull();
+    expect(root.querySelector('main.card')?.classList).toContain('glass');
+  });
+
   it('starts on step 1 of 3 with "ไปต่อ" disabled until there is a photo', async () => {
     const { root, title, button } = await setup();
     expect(title()).toBe('ถ่ายรูปปัญหา');

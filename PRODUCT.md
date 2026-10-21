@@ -46,7 +46,7 @@ Every problem is a signal light (Bat-Signal style): a beam rising from the pin t
 ## Brand Commitments
 
 - Name: **แจ้ง** (a pun on "to report" and "bright/dawn"). One word, no suffix.
-- Feel: pastel, warm, trustworthy. Neither a dark gaming look nor a cold government form.
+- Feel: กระจกฝ้ามี noise บนกลางคืนสู่รุ่งเช้า อบอุ่น น่าเชื่อถือ ไม่ใช่ลุคเกมนีออนหรือฟอร์มราชการ (frosted, grain-textured glass over night-into-dawn; warm and trustworthy; neither a neon gaming look nor a cold government form).
 - Voice: **เพื่อนบ้านใจดี** (kind neighbor). Casual, short, warm Thai; thanks people for reporting; never bureaucratic. Example: "ขอบคุณที่แจ้งนะ เดี๋ยวผู้ดูแลตรวจให้".
 - Map illustration must evoke the owner's reference poster ("Thailand ดินแดนแห่งความสุข" by ครูหนิง & Gemini): thick toy-like 3D land, green regions with an orange Isan, small 3D landmarks, boats, planes, a train, clouds, a compass. Use it as style reference only. Never copy it or store it in the repo.
 - Existing prototype: `docs/prototype/thai-map-v2.html` (palette, fonts Prompt + IBM Plex Sans Thai, beacon anatomy, level chips, bottom sheet).

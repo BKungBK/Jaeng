@@ -1,8 +1,8 @@
-// /list: a flat page on phones, a centred 600 px card from 820 px (the /me grammar); rows as on /me.
+// /list: a full-screen glass page on phones, a centred 600 px glass card from 820 px (the /me grammar),
+// both over the shared backdrop (plan 6b); rows as on /me.
 @use '../report-new/flow';
 
 :host {
-  background: var(--bg);
   color: var(--ink);
   font: 400 16px/1.6 flow.$plex;
 }
@@ -13,7 +13,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--glass-edge) transparent;
 }
 
 .card {
@@ -23,7 +23,8 @@
   gap: 16px;
   min-height: 100%;
   padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
-  background: var(--surf);
+  border-width: 0; // phones: the glass is the whole page
+  animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 
 @media (min-width: 820px) {
@@ -36,8 +37,8 @@
     min-height: 0;
     margin: 0 auto;
     padding: 20px 24px 28px;
-    border-radius: 18px;
-    box-shadow: var(--sh);
+    border-width: 1px;
+    border-radius: 24px;
   }
 }
 
@@ -78,8 +79,16 @@ h1 {
 }
 
 // the chips share the map's tray; on this page it sits flat in the card
+// the chip row scrolls sideways on narrow phones instead of widening the page
+.card {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 app-filter-bar {
   justify-self: start;
+  max-width: 100%;
+  --chip-bg: color-mix(in srgb, var(--ink) 6%, transparent); // already on glass
+  --chip-blur: none;
 }
 
 // ---- sort: one row of segments, sideways scroll on narrow phones ----
@@ -94,8 +103,8 @@ app-filter-bar {
   overflow-x: auto;
   padding: 4px;
   border-radius: 16px;
-  background: var(--bg);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
   scrollbar-width: none;
 }
 
@@ -119,8 +128,8 @@ app-filter-bar {
   }
 
   &[aria-checked='true'] {
-    background: var(--surf);
-    box-shadow: var(--sh);
+    background: color-mix(in srgb, var(--ink) 14%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
     color: var(--ink);
     font-weight: 600;
   }
@@ -165,16 +174,16 @@ app-filter-bar {
   box-sizing: border-box;
   min-height: 44px;
   padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surf);
+  border: 1px solid var(--glass-edge);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent); // a row on glass, not glass in glass
   color: inherit;
   text-decoration: none;
   cursor: pointer;
   transition: background-color 160ms ease-out;
 
   &:hover {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 
   &:focus-visible {
@@ -182,6 +191,8 @@ app-filter-bar {
     outline-offset: 2px;
   }
 }
+
+@include flow.rise-rows('.reports:not(.wait) > li');
 
 .thumb {
   display: grid;
@@ -242,8 +253,8 @@ app-filter-bar {
 
 .ghost {
   height: 94px;
-  border-radius: 14px;
-  background: var(--bg);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
 .note,
@@ -274,7 +285,7 @@ app-filter-bar {
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--pri) 14%, var(--surf));
+    background: color-mix(in srgb, var(--pri) 18%, transparent);
     color: var(--pri);
   }
 }

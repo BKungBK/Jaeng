@@ -9,6 +9,9 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+/* The glass material, the dawn accent and the grain (plan 6b); tokens.scss holds the colours */
+@use 'theme/glass';
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -30,8 +33,8 @@
 
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
-/* Fonts served locally (spec 4.2): Prompt for headings, IBM Plex Sans Thai for body */
-@import '@fontsource/prompt/500.css';
-@import '@fontsource/prompt/600.css';
-@import '@fontsource/ibm-plex-sans-thai/400.css';
-@import '@fontsource/ibm-plex-sans-thai/500.css';
+/* Fonts served locally (spec 4.2): Anuphan throughout (plan 6b) */
+@import '@fontsource/anuphan/300.css';
+@import '@fontsource/anuphan/400.css';
+@import '@fontsource/anuphan/500.css';
+@import '@fontsource/anuphan/600.css';

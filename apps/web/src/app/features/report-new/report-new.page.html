@@ -1,5 +1,6 @@
+<app-backdrop />
 <div class="scroller" #scroller>
-  <main class="card">
+  <main class="card glass">
     <header class="head">
       @let closes = view() === 'sent' || (view() === 'flow' && step() === 1);
       <button type="button" class="ctl" [attr.aria-label]="(closes ? 'common.close' : 'newReport.back') | t" (click)="backOrClose()">

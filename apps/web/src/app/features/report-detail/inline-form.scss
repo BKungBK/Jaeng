@@ -1,6 +1,6 @@
 // The inline forms of the report detail (fix claim, content report): a Cream Ground inset that
 // takes the place of the action row (.impeccable/surfaces/report-detail-*.md, plan 5 additions).
-$prompt: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+$prompt: var(--font);
 
 :host {
   display: block;

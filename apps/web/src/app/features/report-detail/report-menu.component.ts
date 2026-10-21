@@ -56,7 +56,7 @@ export type ReportMenuRole = 'copy' | 'flag' | 'hide';
       border-radius: 12px;
       background: none;
       color: var(--ink);
-      font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 15px/1.4 var(--font);
       text-align: left;
       cursor: pointer;
     }

@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, signal, untracked } from '@angular/core';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { THAILAND_BBOX } from '@jaeng/shared/report';
@@ -32,7 +33,7 @@ const SORT_ICON: Partial<Record<ListSort, 'navigation'>> = { near: 'navigation' 
 @Component({
   selector: 'app-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TPipe, IconComponent, LevelShapeComponent, FilterBarComponent],
+  imports: [BackdropComponent, TPipe, IconComponent, LevelShapeComponent, FilterBarComponent],
   templateUrl: 'list.page.html',
   styleUrl: 'list.page.scss',
   host: { class: 'ion-page' },

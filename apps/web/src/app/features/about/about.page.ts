@@ -1,3 +1,4 @@
+import { BackdropComponent } from '../../shared/backdrop.component';
 import { ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
@@ -16,14 +17,14 @@ const CREDITS: { what: MessageKey; who: string; href: string }[] = [
   { what: 'about.creditAreas', who: 'OCHA COD-AB (HDX)', href: 'https://data.humdata.org/dataset/cod-ab-tha' },
   { what: 'about.creditEngine', who: 'MapLibre GL JS (BSD-3)', href: 'https://maplibre.org' },
   { what: 'about.creditIcons', who: 'Lucide (ISC)', href: 'https://lucide.dev' },
-  { what: 'about.creditFonts', who: 'Prompt · IBM Plex Sans Thai (OFL)', href: 'https://fonts.google.com' },
+  { what: 'about.creditFonts', who: 'Anuphan (OFL)', href: 'https://fonts.google.com' },
 ];
 
 /** `/about` (spec 3.11, handoff "/about"): what Jaeng is, its rules, emergency numbers, privacy, display, credits. */
 @Component({
   selector: 'app-about',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TPipe, IconComponent, EmergencyBoxComponent, LanguageChoiceComponent, ThemeChoiceComponent],
+  imports: [BackdropComponent, TPipe, IconComponent, EmergencyBoxComponent, LanguageChoiceComponent, ThemeChoiceComponent],
   templateUrl: 'about.page.html',
   styleUrl: 'about.page.scss',
   host: { class: 'ion-page' },

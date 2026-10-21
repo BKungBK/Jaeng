@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
@@ -83,7 +83,7 @@ export function initialOf(name: string): string {
       gap: 6px;
       padding: 8px; /* room for the 3 px + 2 px focus ring inside the popover's clipped content */
       color: var(--ink);
-      font: 400 16px/1.6 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 400 16px/1.6 var(--font);
     }
     .account-menu-who {
       display: flex;
@@ -95,7 +95,7 @@ export function initialOf(name: string): string {
       border-bottom: 1px solid var(--line);
     }
     .account-menu-name {
-      font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 15px/1.4 var(--font);
       overflow-wrap: anywhere;
     }
     .account-menu-body .tag {
@@ -103,7 +103,7 @@ export function initialOf(name: string): string {
       border-radius: 10px;
       background: color-mix(in srgb, var(--pri) 14%, var(--surf));
       color: var(--ink);
-      font: 500 13px/1.5 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 13px/1.5 var(--font);
     }
     .account-menu-item {
       display: flex;
@@ -115,7 +115,7 @@ export function initialOf(name: string): string {
       border-radius: 12px;
       background: none;
       color: var(--ink);
-      font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 500 15px/1.4 var(--font);
       text-align: left;
       cursor: pointer;
     }
@@ -147,18 +147,31 @@ export class AccountMenuComponent {
   }
 }
 
-/** The account control in the map's control column: log in when signed out, the account menu when signed in. */
+/** The account control: log in when signed out, the account menu when signed in. An avatar circle in
+ *  the desktop search row (`icon`), or the "ของฉัน" slot of the phone dock (`tab`). */
 @Component({
   selector: 'app-account-button',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, TPipe],
   template: `
-    <button type="button" class="ctl" [class.in]="auth.signedIn()" [attr.aria-label]="label()" (click)="open($event)">
+    <button
+      type="button"
+      class="ctl"
+      [class.tab]="variant() === 'tab'"
+      [class.in]="auth.signedIn()"
+      [attr.aria-label]="ariaLabel()"
+      (click)="open($event)"
+    >
       <!-- signed in shows the name's initial, so the state is told by shape as well as colour -->
-      @if (initial(); as letter) {
-        <span class="initial" aria-hidden="true">{{ letter }}</span>
-      } @else {
-        <app-icon name="circleUser" [size]="22" />
+      <span class="face" aria-hidden="true">
+        @if (initial(); as letter) {
+          <span class="initial">{{ letter }}</span>
+        } @else {
+          <app-icon name="circleUser" [size]="variant() === 'tab' ? 18 : 20" />
+        }
+      </span>
+      @if (variant() === 'tab') {
+        <span class="word" aria-hidden="true">{{ 'nav.mine' | t }}</span>
       }
     </button>
   `,
@@ -172,40 +185,78 @@ export class AccountMenuComponent {
       width: 44px;
       height: 44px;
       padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--surf);
+      border: 0;
+      background: transparent;
       color: var(--ink);
-      box-shadow: var(--sh);
       cursor: pointer;
     }
     /* the click target is the button, so the popover lines up with it, not with the icon */
-    .ctl app-icon,
-    .initial {
+    .ctl > * {
       pointer-events: none;
     }
-    .initial {
-      font: 600 19px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+    /* icon: a 32 px avatar circle inside the 44 px target */
+    .face {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--ink) 10%, transparent);
+      transition: background-color 160ms ease-out;
     }
-    .ctl:hover {
-      background: var(--bg);
+    .initial {
+      font: 600 15px/1 var(--font);
+    }
+    .ctl:hover .face {
+      background: color-mix(in srgb, var(--ink) 18%, transparent);
     }
     .ctl:focus-visible {
       outline: 3px solid var(--pri);
-      outline-offset: 2px;
+      outline-offset: -2px;
+      border-radius: 50%;
     }
-    /* signed in: the icon takes the "me" blue, like the my-location dot */
-    .ctl.in {
-      border-color: color-mix(in srgb, var(--pri) 45%, var(--line));
-      background: color-mix(in srgb, var(--pri) 14%, var(--surf));
-      color: var(--pri);
+    /* signed in: the circle takes the accent, so it differs by shape (initial) and colour */
+    .ctl.in .face {
+      background: color-mix(in srgb, var(--pri) 24%, transparent);
+      color: var(--ink);
     }
-    .ctl.in:hover {
-      background: color-mix(in srgb, var(--pri) 22%, var(--surf));
+    /* tab: icon over a 10 px word, like the other dock slots */
+    .ctl.tab {
+      width: 56px;
+      align-content: center;
+      gap: 2px;
+      color: var(--ink2);
+    }
+    .ctl.tab .face {
+      width: 22px;
+      height: 22px;
+      background: none;
+    }
+    .ctl.tab.in .face {
+      background: color-mix(in srgb, var(--pri) 24%, transparent);
+      color: var(--ink);
+    }
+    .ctl.tab .initial {
+      font-size: 12px;
+    }
+    .word {
+      max-width: 56px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font: 400 10px/1.2 var(--font);
+    }
+    .ctl.tab:hover {
+      color: var(--ink);
+    }
+    .ctl.tab:focus-visible {
+      border-radius: 14px;
     }
   `,
 })
 export class AccountButtonComponent {
+  /** 'icon' = avatar circle; 'tab' = icon + "ของฉัน" in the phone dock */
+  readonly variant = input<'icon' | 'tab'>('icon');
   protected readonly auth = inject(AuthService);
   private prompt = inject(LoginPromptService);
   private popovers = inject(PopoverController);
@@ -218,6 +269,11 @@ export class AccountButtonComponent {
     const name = this.auth.profile()?.display_name;
     return name ? this.i18n.t('account.of', { name }) : this.i18n.t('account.mine');
   });
+
+  /** the tab names its dock slot first: "ของฉัน: เข้าสู่ระบบ" */
+  protected readonly ariaLabel = computed(() =>
+    this.variant() === 'tab' ? `${this.i18n.t('nav.mine')}: ${this.label()}` : this.label(),
+  );
 
   /** Empty while signed out or while the profile loads: the icon shows instead. */
   protected readonly initial = computed(() => {

@@ -19,7 +19,7 @@
   --surf: #ffffff;
   --ink: #2b2a33;
   --ink2: #6b6878;
-  --pri: #3f6fa8;
+  --pri: #a6522f; // plan 6b: the dawn's dark tone (was Trust Blue): one accent family in both themes
   --onpri: #ffffff;
   --line: #e8e0d5;
   --land: #f3ebdd;
@@ -38,19 +38,19 @@
 }
 
 @mixin dark-tokens {
-  --bg: #23212b;
-  --surf: #2e2b38;
+  --bg: #0f1f44;
+  --surf: #1b2a52;
   --ink: #f3eff7;
-  --ink2: #b7b2c4;
-  --pri: #9cc0ee;
-  --onpri: #1d1b24;
-  --line: #433f52;
+  --ink2: #b9b5cc;
+  --pri: #f4b49a;
+  --onpri: #2a1f3a;
+  --line: #2f3d66;
   --land: #383444;
   --block: #403b4e;
   --road: #4c475c;
   --water: #34506b;
   --sea: #1f5a6e;
-  --ion-background-color-rgb: 35, 33, 43;
+  --ion-background-color-rgb: 15, 31, 68;
   --ion-text-color-rgb: 243, 239, 247;
   @include ion-steps;
 }
@@ -74,12 +74,12 @@
   --ion-toolbar-background: var(--surf);
   --ion-item-background: var(--surf);
   --ion-border-color: var(--line);
-  --ion-font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
+  --ion-font-family: var(--font);
 }
 
 h1,
 h2,
 h3,
 .brand {
-  font-family: 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+  font-family: var(--font);
 }

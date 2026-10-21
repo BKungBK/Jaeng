@@ -15,8 +15,8 @@ describe('web app manifest', () => {
       lang: 'th',
       start_url: '/',
       display: 'standalone',
-      background_color: '#FBF7F2',
-      theme_color: '#3F6FA8',
+      background_color: '#0F1F44',
+      theme_color: '#0F1F44',
     });
   });
 

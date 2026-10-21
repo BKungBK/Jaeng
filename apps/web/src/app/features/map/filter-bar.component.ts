@@ -7,9 +7,8 @@ import { FiltersPanelComponent } from './filters-panel.component';
 import { TPipe } from '../../i18n/t.pipe';
 import { LevelShapeComponent } from './level-shape';
 
-// The four danger-level chips (spec 3.9, DESIGN.md "Chips"). Off is struck through and drained of
-// colour, so it reads without colour. Text on pastel is always Slate Ink (DESIGN.md "Ink On Pastel"),
-// in both themes.
+// The four danger-level chips (spec 3.9, DESIGN.md "Chips"): small glass pills led by the level's
+// shape in its colour (plan 6b). Off is struck through and drained of colour, so it reads without colour.
 @Component({
   selector: 'app-filter-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,70 +47,106 @@ import { LevelShapeComponent } from './level-shape';
     }
   `,
   styles: `
+    /* plan 6b: no card behind the chips; each chip is a small glass pill (30 px seen, 44 px to press) */
     .chips {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      padding: 6px;
-      border-radius: 18px;
-      background: var(--surf);
-      box-shadow: var(--sh);
     }
-    .chip {
+    .chip,
+    .more {
+      position: relative;
+      isolation: isolate;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 5px;
+      flex: none;
       min-height: 44px;
-      padding: 0 12px;
+      padding: 0 11px;
       border: 0;
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--c) 55%, #fff);
-      color: #2b2a33;
-      font: 500 14px/1.4 'IBM Plex Sans Thai', system-ui, sans-serif;
-      cursor: pointer;
-    }
-    .chip:hover {
-      background: color-mix(in srgb, var(--c) 75%, #fff);
-    }
-    .chip[aria-pressed='false'] {
       background: transparent;
-      box-shadow: inset 0 0 0 1px var(--line);
+      color: var(--ink);
+      font: 500 12px/1 var(--font);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 120ms ease-out;
+    }
+    .chip::before,
+    .more::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      inset: 7px 0;
+      border: 1px solid var(--glass-edge);
+      border-radius: 15px;
+      /* the map page sets a quieter ground for chips that already sit inside a glass panel */
+      background: var(--chip-bg, var(--glass-bg));
+      /* inside a glass panel a second blur sees nothing but the panel: those parents set none */
+      backdrop-filter: var(--chip-blur, blur(16px) var(--glass-dim));
+      -webkit-backdrop-filter: var(--chip-blur, blur(16px) var(--glass-dim));
+      transition:
+        background-color 160ms ease-out,
+        opacity 160ms ease-out;
+    }
+    .chip:hover::before,
+    .more:hover::before {
+      background-color: color-mix(in srgb, var(--ink) 10%, transparent);
+    }
+    .chip:active,
+    .more:active {
+      transform: scale(0.96);
+    }
+    .chip app-level-shape {
+      color: var(--c);
+      font-size: 14px;
+    }
+    /* a dark rim keeps the shape (the cue that is not colour) at 3:1 on white glass: butter alone is 1.3:1 */
+    .chip ::ng-deep app-level-shape svg {
+      stroke: color-mix(in srgb, var(--c) 45%, #2b2a33);
+      stroke-width: 1;
+      paint-order: stroke;
+    }
+    /* off: drained and struck through, so it reads without colour */
+    .chip[aria-pressed='false'] {
       color: var(--ink2);
       text-decoration: line-through;
     }
+    .chip[aria-pressed='false']::before {
+      opacity: 0.55;
+    }
+    .chip[aria-pressed='false'] app-level-shape {
+      color: var(--ink2);
+      opacity: 0.55;
+    }
     .chip:focus-visible,
     .more:focus-visible {
-      outline: 3px solid var(--pri);
-      outline-offset: 2px;
+      outline: none;
+    }
+    .chip:focus-visible::before,
+    .more:focus-visible::before {
+      box-shadow: 0 0 0 3px var(--pri);
     }
     :host {
       position: relative;
       display: block;
     }
+    /* "more filters": a glass circle, 30 px seen inside the 44 px target */
     .more {
-      position: relative;
-      display: grid;
-      place-items: center;
-      flex: none;
       width: 44px;
-      min-height: 44px;
       padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--surf);
-      color: var(--ink);
-      cursor: pointer;
     }
-    .more:hover {
-      background: var(--bg);
+    .more::before {
+      inset: 7px;
+      border-radius: 50%;
     }
-    .more[aria-expanded='true'] {
+    .more[aria-expanded='true']::before {
       border-color: var(--pri);
     }
     .count {
       position: absolute;
-      top: -6px;
-      right: -6px;
+      top: 1px;
+      right: 1px;
       min-width: 20px;
       height: 20px;
       padding: 0 5px;
@@ -119,23 +154,27 @@ import { LevelShapeComponent } from './level-shape';
       border-radius: 10px;
       background: var(--pri);
       color: var(--onpri);
-      font: 600 12px/20px 'Prompt', sans-serif;
+      font: 600 12px/20px var(--font);
       text-align: center;
     }
+    /* narrow phones: one row that scrolls sideways */
     @media (max-width: 419px) {
       .chips {
         flex-wrap: nowrap;
         gap: 4px;
-        padding: 4px;
+        padding: 0 3px; /* room for the focus ring at both ends */
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .chips::-webkit-scrollbar {
+        display: none;
       }
       .chip {
-        gap: 4px;
-        padding: 0 8px;
-        font-size: 13px;
-        white-space: nowrap;
+        padding: 0 10px;
       }
     }
   `,
+  host: { '[class.open]': 'panelOpen()', '(document:pointerdown)': 'onPressAnywhere($event)' },
 })
 export class FilterBarComponent {
   protected readonly filters = inject(FilterState);
@@ -147,6 +186,12 @@ export class FilterBarComponent {
   protected toggle(level: DangerLevel) {
     const on = this.filters.levels();
     this.filters.levels.set(on.includes(level) ? on.filter((l) => l !== level) : [...on, level].sort((a, b) => a - b));
+  }
+
+  /** A press outside the tray and its panel closes the panel. The panel's own full-screen backdrop
+   *  cannot do it inside a glass parent: backdrop-filter makes that parent the box of fixed children. */
+  protected onPressAnywhere(e: Event) {
+    if (this.panelOpen() && !this.host.nativeElement.contains(e.target as Node)) this.closePanel();
   }
 
   /** Done, Escape or a press outside: focus goes back to the button that opened it. */

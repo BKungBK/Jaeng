@@ -1,6 +1,9 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-router-outlet [animation]="glassNav"></ion-router-outlet>
 </ion-app>
+
+<!-- once per visit: a point of light becomes a beam, writes the name and falls into the map -->
+<app-intro />
 
 <!-- the installed app found a newer build: reloading is the reader's call -->
 @if (update.ready()) {

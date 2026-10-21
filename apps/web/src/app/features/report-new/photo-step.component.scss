@@ -48,7 +48,7 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 12px;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
 
   img {
     display: block;
@@ -109,7 +109,7 @@
   color: flow.$slate;
 
   &:hover {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
   }
 }
 

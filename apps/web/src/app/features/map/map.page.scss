@@ -1,5 +1,44 @@
+// Plan 6b: frosted glass over the toy map (.impeccable/mocks/decision/fused-mobile.html and
+// fused-desktop.html). Phones: top bar, chip row, summary pill, locate, dock. Wide: side panel, menu
+// capsule, control column, the "+ report" pill.
+$safe-top: env(safe-area-inset-top, 0px);
+$safe-bottom: env(safe-area-inset-bottom, 0px);
+$dock: 60px;
+$dock-gap: 16px;
+// the summary pill and the locate button stand 14 px above the dock
+$above-dock: calc(#{$dock-gap} + #{$dock} + 14px + #{$safe-bottom});
+
 :host {
   background: var(--sea);
+}
+
+// a peach dawn glow from the bottom-right corner and a breath of grain over the map, under the panels
+:host::before,
+:host::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+:host::before {
+  background: radial-gradient(45% 40% at 90% 100%, rgba(244, 180, 154, 0.16), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+:host::after {
+  background: var(--noise);
+  opacity: 0.05;
+}
+
+:host-context([data-theme='light'])::before,
+:host-context([data-theme='light'])::after {
+  opacity: 0.5;
+}
+
+:host-context([data-theme='light'])::after {
+  opacity: 0.025;
 }
 
 .map {
@@ -9,45 +48,21 @@
   background: var(--sea);
 }
 
-.card {
-  background: var(--surf);
-  color: var(--ink);
-  border-radius: 18px;
-  box-shadow: var(--sh);
-}
-
-.top {
-  position: absolute;
-  z-index: 5;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  left: 12px;
-  right: 72px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-start;
-  pointer-events: none;
-
-  > * {
-    pointer-events: auto;
-  }
-}
-
-// the first stop for keyboard users: out of sight until focused, then over the brand card
+// the first stop for keyboard users: out of sight until focused, then over the top bar
 .skip {
   position: absolute;
   z-index: 10;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  left: 12px;
+  top: calc(12px + #{$safe-top});
+  left: 16px;
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   padding: 0 16px;
-  border-radius: 14px;
+  border-radius: 22px;
   background: var(--surf);
-  color: var(--pri);
-  box-shadow: var(--sh);
-  font: 500 15px/1.4 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+  color: var(--ink);
+  box-shadow: var(--glass-shadow);
+  font: 500 15px/1.4 var(--font);
   transform: translateY(calc(-100% - 24px));
 
   &:focus-visible {
@@ -57,116 +72,564 @@
   }
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 8px 10px 16px;
-
-  h1 {
-    margin: 0;
-    font: 600 24px/1.2 'Prompt', sans-serif;
-  }
-
-  p {
-    margin: 0;
-    color: var(--ink2);
-    font-size: 13px;
-    line-height: 1.5;
-  }
-}
-
-.brand-text {
-  min-width: 0;
-}
-
-// phones, while the search card is open: everything else in the top group steps aside
-.top.searching > * {
-  visibility: hidden;
-}
-
-.top.searching app-search-box {
-  visibility: visible;
-}
-
-.brand-actions {
-  display: flex;
-  gap: 4px;
-}
-
-// a control inside a card: no float of its own
-.ctl.flat {
-  box-shadow: none;
-}
-
-.controls {
-  position: absolute;
-  z-index: 5;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: grid;
-  gap: 8px;
-}
-
-.ctl {
+// the brand: a dawn circle with "แ" (the word itself is read aloud)
+.mark {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--dawn);
+  color: var(--dawn-ink);
+  font: 600 15px/1 var(--font);
+
+  &::before {
+    content: '\0E41';
+  }
+}
+
+.hint-line {
+  margin: 0;
+}
+
+// the panels rise in once, staggered by their --i (set in the template): bar/side 0, chips 1,
+// summary 2, controls/menu 3, dock/report 4
+.bar,
+.side,
+.phone-chips,
+.summary.glass,
+.controls,
+.menu,
+.dock,
+.fab {
+  animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 60ms) backwards;
+}
+
+// every glass button: lighter on hover, a small press
+.ctl,
+.tab {
+  position: relative;
+  display: grid;
+  place-items: center;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surf);
+  border: 0;
+  background: transparent;
   color: var(--ink);
-  box-shadow: var(--sh);
   cursor: pointer;
+  transition:
+    background-color 160ms ease-out,
+    color 160ms ease-out,
+    transform 120ms ease-out;
 
   &:hover {
-    background: var(--bg);
+    background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 
   &:focus-visible {
     outline: 3px solid var(--pri);
-    outline-offset: 2px;
-  }
-
-  svg {
-    width: 22px;
-    height: 22px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
+    outline-offset: -3px;
   }
 }
 
-// the floating "แจ้ง" button (surface brief pp-features-report-new-*): bottom-right, 48 px up on
-// desktop so the attribution strip stays readable under it; phones below
+// ---- phones (< 820 px) ----
+.bar {
+  position: absolute;
+  z-index: 5;
+  top: calc(12px + #{$safe-top});
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 46px;
+  padding: 0 4px 0 6px;
+  border-radius: 23px;
+
+  app-search-box {
+    flex: 1;
+  }
+}
+
+// while the search card is open the bar gives up its glass (a blurred parent would trap the
+// card's own blur and its fixed position) and everything but the card steps aside
+.bar.searching {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  &::after,
+  > .mark {
+    visibility: hidden;
+  }
+}
+
+.phone-chips {
+  position: absolute;
+  z-index: 4;
+  top: calc(12px + 46px + 12px - 7px + #{$safe-top}); // 7 px: the chip's 44 px target around its 30 px pill
+  left: 16px;
+  right: 16px;
+
+  &.searching {
+    visibility: hidden;
+  }
+
+  // its "more filters" card covers the screen bottom: lift the row over the summary, locate and dock
+  &.open {
+    z-index: 9;
+  }
+}
+
+.summary:not(.glass) {
+  display: contents; // wide: the side panel lays it out
+}
+
+.summary.glass {
+  position: absolute;
+  z-index: 4;
+  left: 16px;
+  right: 72px;
+  bottom: $above-dock;
+  height: 40px;
+  border-radius: 20px;
+}
+
+.open-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px 0 7px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease-out;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--pri);
+    outline-offset: -3px;
+  }
+
+  app-stats-line {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .list-word {
+    flex: 1;
+    padding-left: 8px;
+    font: 500 13px/1.4 var(--font);
+  }
+
+  .chev {
+    flex: none;
+    color: var(--ink2);
+  }
+}
+
+// a state worth saying (every level off, nothing here) floats above the pill
+.summary.glass .hint-line:not(.sr-only) {
+  position: absolute;
+  left: 0;
+  right: -56px;
+  bottom: calc(100% + 8px);
+  padding: 8px 14px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 16px;
+  // inside the pill's glass a second blur cannot reach the map, so this one is nearly opaque
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  color: var(--ink);
+  box-shadow: var(--glass-shadow);
+  font: 400 13px/1.5 var(--font);
+}
+
+.controls:not(.glass) {
+  position: absolute;
+  z-index: 4;
+  right: 16px;
+  bottom: $above-dock;
+
+  .ctl {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+
+    // a 44 px target around the 40 px circle (::after is the glass grain)
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+    }
+  }
+}
+
+.dock {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: calc(#{$dock-gap} + #{$safe-bottom});
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: min(300px, calc(100% - 32px));
+  height: $dock;
+  margin-inline: auto;
+  padding: 0 8px;
+  border-radius: 30px;
+
+  .tab {
+    align-content: center;
+    gap: 2px;
+    width: 56px;
+    height: 44px;
+    border-radius: 14px;
+    color: var(--ink2);
+
+    &[aria-current='page'] {
+      color: var(--ink);
+    }
+
+    &:hover {
+      color: var(--ink);
+    }
+
+    // the same 22 px icon box as the account tab's face, so the words line up
+    app-icon {
+      display: grid;
+      place-items: center;
+      height: 22px;
+    }
+  }
+
+  .word {
+    max-width: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 400 10px/1.2 var(--font);
+  }
+}
+
+// MapLibre's attribution, folded to its info button, stands above the locate button
+@media (max-width: 819px) {
+  :host ::ng-deep .maplibregl-ctrl-bottom-right {
+    right: 6px;
+    bottom: calc(#{$dock-gap} + #{$dock} + 14px + 40px + 4px + #{$safe-bottom});
+  }
+}
+
+// ---- wide screens (≥ 820 px) ----
+.side {
+  position: absolute;
+  z-index: 5;
+  top: calc(20px + #{$safe-top});
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-height: calc(100% - 40px - #{$safe-top});
+  padding: 8px;
+  border-radius: 22px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-edge) transparent;
+
+  // the side panel is already glass: its chips get a quieter ground and no blur of their own
+  --chip-bg: color-mix(in srgb, var(--ink) 6%, transparent);
+  --chip-blur: none;
+
+  .mark {
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+    font-size: 14px;
+  }
+
+  app-filter-bar {
+    padding: 2px 2px 4px;
+    border-bottom: 1px solid var(--glass-edge);
+  }
+
+  // four chips and the more button in one row of the 324 px panel
+  // (English runs ~17 px wider than Thai: tighter chips, and the row scrolls rather than spill)
+  app-filter-bar ::ng-deep .chips {
+    flex-wrap: nowrap;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  app-filter-bar ::ng-deep .chip {
+    padding: 0 5px;
+  }
+
+  .summary {
+    display: grid;
+    gap: 4px;
+    padding: 10px 10px 6px;
+    color: var(--ink);
+
+    .hint-line {
+      color: var(--ink2);
+      font: 400 13px/1.5 var(--font);
+    }
+  }
+}
+
+// the search results float out of the panel, so the panel must not clip them
+.side:has(app-search-box.open),
+.side:has(.results:not([hidden])),
+.side:has(app-filter-bar.open) {
+  overflow: visible;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  app-search-box {
+    flex: 1;
+  }
+}
+
+// the detail panel is open and the screen is under 1180 px: only the search row stays
+.side.compact > :not(.search-row) {
+  display: none;
+}
+
+.in-view {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  button {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+
+    // the row reads 36 px tall; the target is the full 44
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      inset: 4px 0;
+      border-radius: 12px;
+      transition: background-color 160ms ease-out;
+    }
+
+    &:hover::before {
+      background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      &::before {
+        box-shadow: inset 0 0 0 3px var(--pri);
+      }
+    }
+  }
+
+  // one mark per row: the level's shape in its colour (with a rim for the light theme)
+  .shape {
+    flex: none;
+    color: var(--c);
+    font-size: 13px;
+  }
+
+  .shape ::ng-deep svg {
+    stroke: color-mix(in srgb, var(--c) 45%, #2b2a33);
+    stroke-width: 1;
+    paint-order: stroke;
+  }
+
+  .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 500 13px/1.4 var(--font);
+  }
+
+  .facts {
+    flex: none;
+    color: var(--ink2);
+    font: 400 12px/1.4 var(--font);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.all {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border-radius: 14px;
+  color: var(--ink2);
+  font: 400 12px/1.4 var(--font);
+  text-decoration: none;
+  transition: color 160ms ease-out;
+
+  &:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--pri);
+    outline-offset: -3px;
+  }
+}
+
+.menu {
+  position: absolute;
+  z-index: 5;
+  top: calc(20px + #{$safe-top});
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  padding: 0 4px;
+  border-radius: 20px;
+
+  .tab {
+    height: 32px;
+    min-width: 32px;
+    padding: 0 12px;
+    border-radius: 16px;
+    color: var(--ink2);
+    font: 400 13px/1 var(--font);
+
+    &.icon {
+      padding: 0;
+      width: 36px;
+    }
+
+    &[aria-current='page'] {
+      background-color: color-mix(in srgb, var(--ink) 10%, transparent);
+      color: var(--ink);
+    }
+
+    &:hover {
+      color: var(--ink);
+    }
+  }
+
+  // the language toggle keeps its own button; here it wears the capsule's tab look
+  ::ng-deep .lang {
+    position: relative;
+    min-width: 36px;
+    height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--ink2);
+    font: 500 13px/1 var(--font);
+
+    &:hover {
+      background: color-mix(in srgb, var(--ink) 8%, transparent);
+      color: var(--ink);
+    }
+
+    &:focus-visible {
+      outline-offset: -3px;
+    }
+  }
+}
+
+// a 44 px target around each 32 px capsule tab
+.menu .tab::before,
+.menu ::ng-deep .lang::before {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+.controls.glass {
+  position: absolute;
+  z-index: 5;
+  right: 20px;
+  bottom: 102px;
+  display: flex;
+  flex-direction: column;
+  width: 40px;
+  border-radius: 20px;
+
+  .ctl {
+    width: 40px;
+    height: 38px;
+    border-radius: 0;
+
+    &:first-child {
+      border-radius: 20px 20px 0 0;
+    }
+
+    &:last-child {
+      border-radius: 0 0 20px 20px;
+    }
+
+    // 18 px hairlines between the buttons
+    & + .ctl::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 11px;
+      width: 18px;
+      height: 1px;
+      background: var(--glass-edge);
+    }
+
+    // a 44 px target around the 40 × 38 button
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -3px -2px;
+    }
+  }
+}
+
+// the "+ report" pill: bottom-right, under the control column
 .fab {
   position: absolute;
   z-index: 5;
-  right: 12px;
-  bottom: calc(48px + env(safe-area-inset-bottom, 0px));
-}
-
-.hint {
-  position: absolute;
-  z-index: 4;
-  left: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  display: grid;
-  gap: 2px;
-  max-width: 340px;
-  margin: 0;
-  padding: 8px 14px;
-  color: var(--ink2);
-  font-size: 13px;
-  line-height: 1.5;
-
-  .hint-line {
-    margin: 0;
-  }
+  right: 20px;
+  bottom: 42px; // the folded attribution ⓘ sits below
 }
 
 .tip {
@@ -176,37 +639,55 @@
   gap: 4px;
   width: 240px;
   padding: 10px 12px 12px;
+  border-radius: 16px;
+  color: var(--ink);
   pointer-events: none;
 }
 
 // ---- report detail: right panel (≥ 820 px) ----
 $panel: 380px;
-$beside: calc(#{$panel} + 24px); // the panel and its two 12 px gutters
+$beside: calc(#{$panel} + 40px); // the panel and its two 20 px gutters
 
 .panel {
   position: absolute;
   z-index: 7;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  top: calc(20px + #{$safe-top});
+  right: 20px;
+  bottom: calc(20px + #{$safe-bottom});
   width: $panel;
+  border-radius: 22px;
+  color: var(--ink);
+  animation: panel-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+.panel-scroll {
+  height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  border-radius: inherit;
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--glass-edge) transparent;
 }
 
-// while it is open the controls, the chip group and MapLibre's corner controls step left of it
-.controls.beside {
-  right: $beside;
-}
-
-.top.beside {
-  right: calc(#{$beside} + 8px);
-}
-
+// while it is open the menu, the controls, the report pill and MapLibre's corner controls step left of it
+.menu.beside,
+.controls.beside,
 .fab.beside {
   right: $beside;
+}
+
+// under ~1000 px the menu beside the panel would meet the folded side panel: it drops below it
+@media (max-width: 1000px) {
+  .menu.beside {
+    top: calc(20px + 62px + 12px + #{$safe-top});
+  }
 }
 
 :host.with-panel ::ng-deep .maplibregl-ctrl-bottom-right {
@@ -214,22 +695,47 @@ $beside: calc(#{$panel} + 24px); // the panel and its two 12 px gutters
 }
 
 // ---- report detail: bottom sheet (< 820 px) ----
+// the band between the top bar + chips and the sheet's 64% edge is short: a tall beam would put its
+// head (the disc) under the search pill, so beams are capped while the sheet is open
+:host.sheet-open ::ng-deep .beacon .stand {
+  height: min(var(--h), 96px);
+}
+
+// the summary pill and locate would show through the sheet's glass: they step away like the dock
+:host.sheet-open .summary.glass,
+:host.sheet-open .controls:not(.glass) {
+  visibility: hidden;
+}
+
+// the panel or sheet already shows the title: the selected beacon drops its label
+:host.sheet-open ::ng-deep .beacon:has(.disc.selected) .lbl,
+:host.with-panel ::ng-deep .beacon:has(.disc.selected) .lbl {
+  display: none;
+}
+
+// the sheet's own ground is clear; its scrolling layer is the glass
 ion-modal.detail-sheet {
-  --border-radius: 24px 24px 0 0;
-  --background: var(--surf);
-  --box-shadow: var(--sh);
-  --backdrop-opacity: 0.32;
+  --border-radius: 26px 26px 0 0;
+  --background: transparent;
+  --box-shadow: var(--glass-shadow);
+  --backdrop-opacity: 0.2;
   --max-height: calc(100% - env(safe-area-inset-top, 0px));
 }
 
 ion-modal.detail-sheet::part(handle) {
-  background: var(--line);
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
 .sheet-scroll {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  border-top: 1px solid var(--glass-edge);
+  border-radius: 26px 26px 0 0;
+  background: var(--glass-sheen), var(--glass-bg-dense);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%) var(--glass-dim);
+  color: var(--ink);
   padding-top: 8px; // clear of the drag handle
   box-sizing: border-box;
 }
@@ -240,7 +746,7 @@ ion-modal.detail-sheet::part(handle) {
   height: 120px;
   overflow: hidden;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--c) 45%, var(--surf));
+  background: color-mix(in srgb, var(--c) 45%, transparent);
 
   img {
     width: 100%;
@@ -255,7 +761,7 @@ ion-modal.detail-sheet::part(handle) {
 
 
 .title {
-  font: 500 15px/1.4 'Prompt', sans-serif;
+  font: 500 15px/1.4 var(--font);
   overflow-wrap: anywhere;
 }
 
@@ -282,9 +788,10 @@ ion-modal.detail-sheet::part(handle) {
   align-items: center;
   gap: 4px 12px;
   padding: 8px 16px;
-  border-radius: 14px;
-  background: var(--ink);
-  color: var(--bg);
+  border-radius: 16px;
+  // a denser glass than the panels: a toast is read in passing, over anything
+  background: var(--glass-sheen), color-mix(in srgb, var(--bg) 85%, transparent);
+  color: var(--ink);
   font-size: 14px;
 
   &:has(.toast-action) {
@@ -292,7 +799,14 @@ ion-modal.detail-sheet::part(handle) {
   }
 }
 
-// the toast's one action: a text button in the toast's own colours, underlined, 44 px tall
+// phones: under the top bar and the chip row
+@media (max-width: 819px) {
+  .toast {
+    top: calc(124px + #{$safe-top});
+  }
+}
+
+// the toast's one action: a text button in the accent, underlined, 44 px tall
 .toast-action {
   flex: none;
   min-height: 44px;
@@ -300,8 +814,8 @@ ion-modal.detail-sheet::part(handle) {
   border: 0;
   border-radius: 10px;
   background: none;
-  color: var(--bg);
-  font: 600 14px/1.4 'IBM Plex Sans Thai', sans-serif;
+  color: var(--pri);
+  font: 600 14px/1.4 var(--font);
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -309,41 +823,5 @@ ion-modal.detail-sheet::part(handle) {
   &:focus-visible {
     outline: 3px solid var(--pri);
     outline-offset: 2px;
-  }
-}
-
-@media (max-width: 819px) {
-  .top {
-    right: 12px;
-  }
-
-  // phones: the two buttons sit under the name, so the card stays narrow beside nothing
-  .brand {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 8px 12px 8px 16px;
-  }
-
-  .brand-actions {
-    margin-left: -4px;
-  }
-
-  // the FAB takes the thumb's corner, 52 px up so the folded attribution fits beneath; the controls
-  // column stands 8 px above it and the hint card stops 8 px left of it
-  .fab {
-    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .controls {
-    top: auto;
-    bottom: calc(116px + env(safe-area-inset-bottom, 0px));
-    transform: none;
-  }
-
-  .hint {
-    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
-    right: 136px;
-    max-width: none;
   }
 }

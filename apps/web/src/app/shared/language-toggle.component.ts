@@ -30,7 +30,7 @@ import { LOCALE_SWITCH, type Locale } from '../i18n/keys';
       border-radius: 14px;
       background: var(--surf);
       color: var(--ink);
-      font: 600 14px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 14px/1 var(--font);
       cursor: pointer;
     }
     .lang:hover {

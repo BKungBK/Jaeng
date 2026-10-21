@@ -5,7 +5,7 @@ import { AuthService } from '../../core/auth.service';
 import { LoginPromptService } from '../auth/login-prompt.service';
 import { ReportFabComponent } from './report-fab.component';
 
-async function setup(opts: { signedIn?: boolean; ask?: boolean } = {}) {
+async function setup(opts: { signedIn?: boolean; ask?: boolean; variant?: 'pill' | 'round' } = {}) {
   const auth = { signedIn: signal(opts.signedIn ?? false) };
   const prompt = { ask: vi.fn().mockResolvedValue(opts.ask ?? false) };
   const router = { navigate: vi.fn().mockResolvedValue(true) };
@@ -17,6 +17,7 @@ async function setup(opts: { signedIn?: boolean; ask?: boolean } = {}) {
     ],
   });
   const fixture = TestBed.createComponent(ReportFabComponent);
+  if (opts.variant) fixture.componentRef.setInput('variant', opts.variant);
   await fixture.whenStable();
   const button = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!;
   return { fixture, button, prompt, router };
@@ -56,5 +57,12 @@ describe('ReportFabComponent', () => {
     const style = getComputedStyle(button);
     expect(parseFloat(style.minHeight)).toBeGreaterThanOrEqual(44);
     expect(parseFloat(style.minWidth)).toBeGreaterThanOrEqual(44);
+  });
+
+  it('round: only the plus shows, the label stays', async () => {
+    const { button } = await setup({ variant: 'round' });
+    expect(button.getAttribute('aria-label')).toBe('แจ้งเรื่องใหม่');
+    expect(button.querySelector('app-icon svg.icon-plus')).not.toBeNull();
+    expect(button.textContent?.trim()).toBe('');
   });
 });

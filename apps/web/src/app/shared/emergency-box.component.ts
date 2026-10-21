@@ -34,7 +34,7 @@ import { IconComponent } from './icon.component';
       gap: 10px;
       align-items: flex-start;
       padding: 12px 14px;
-      border-radius: 14px;
+      border-radius: 18px; /* plan 6b: rounder like the glass around it; the warning colours stay */
       background: color-mix(in srgb, var(--s3) 24%, #fff);
       color: #2b2a33;
       font-size: 14px;
@@ -49,20 +49,22 @@ import { IconComponent } from './icon.component';
       place-items: center;
       min-width: 56px;
       min-height: 44px;
-      padding: 0 10px;
-      border-radius: 14px;
-      background: #fff;
+      padding: 0 6px;
+      border-radius: 12px;
+      background: transparent; /* plain links, not white pills inside the card (finish review) */
       color: #2b2a33;
-      font: 600 16px/1 'Prompt', 'IBM Plex Sans Thai', system-ui, sans-serif;
+      font: 600 18px/1 var(--font);
       font-variant-numeric: tabular-nums;
       text-decoration: underline;
-      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+      transition: background-color 160ms ease-out;
     }
     a:hover {
-      background: color-mix(in srgb, var(--s3) 10%, #fff);
+      background: color-mix(in srgb, var(--s3) 18%, transparent);
     }
     a:focus-visible {
-      outline: 3px solid var(--pri);
+      outline: 3px solid #2b2a33;
       outline-offset: 2px;
     }
     .numbers {

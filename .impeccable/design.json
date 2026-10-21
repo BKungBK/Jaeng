@@ -1,433 +1,299 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-20T07:13:21.306Z",
+  "generatedAt": "2026-10-21T00:00:00.000Z",
   "title": "Design System: แจ้ง",
   "extensions": {
     "colorMeta": {
-      "trust-blue": {
+      "dawn-peach": {
         "role": "primary",
-        "displayName": "Trust Blue",
-        "canonical": "#3F6FA8",
-        "tonalRamp": [
-          "#14243a",
-          "#1f3858",
-          "#2b4c77",
-          "#3f6fa8",
-          "#5f89bd",
-          "#87a7cf",
-          "#b3c8e2",
-          "#e0e9f4"
-        ]
+        "displayName": "Dawn",
+        "canonical": "linear-gradient(135deg, #FFE3C4 0%, #F4B49A 45%, #C9A0DC 100%)",
+        "tonalRamp": ["#4a2414", "#6e3720", "#934d30", "#b96846", "#db8b6a", "#f4b49a", "#f8d0bf", "#fdeee7"]
+      },
+      "night-accent": {
+        "role": "primary",
+        "displayName": "Accent (dark theme)",
+        "canonical": "#F4B49A",
+        "tonalRamp": ["#4a2414", "#6e3720", "#934d30", "#b96846", "#db8b6a", "#f4b49a", "#f8d0bf", "#fdeee7"]
+      },
+      "dawn-lilac": {
+        "role": "primary",
+        "displayName": "Dawn Lilac",
+        "canonical": "#C9A0DC",
+        "tonalRamp": ["#3a2246", "#553266", "#714689", "#8f5fab", "#ad7fc6", "#c9a0dc", "#dfc7ea", "#f4ecf8"]
+      },
+      "dawn-cream": {
+        "role": "primary",
+        "displayName": "Dawn Cream",
+        "canonical": "#FFE3C4",
+        "tonalRamp": ["#4d3315", "#704b22", "#94663a", "#b88656", "#d9a97a", "#f2c9a0", "#ffe3c4", "#fff5ea"]
       },
       "level-minor-mint": {
         "role": "secondary",
         "displayName": "Level Minor Mint",
         "canonical": "#8FD3B6",
-        "tonalRamp": [
-          "#173d2e",
-          "#245a45",
-          "#36785e",
-          "#4f9a7b",
-          "#6db897",
-          "#8fd3b6",
-          "#bde5d3",
-          "#e8f6f0"
-        ]
+        "tonalRamp": ["#173d2e", "#245a45", "#36785e", "#4f9a7b", "#6db897", "#8fd3b6", "#bde5d3", "#e8f6f0"]
       },
       "level-caution-butter": {
         "role": "secondary",
         "displayName": "Level Caution Butter",
         "canonical": "#F6D983",
-        "tonalRamp": [
-          "#4a3a0c",
-          "#6b5516",
-          "#8e7224",
-          "#b39136",
-          "#d6b44f",
-          "#f6d983",
-          "#f9e7b3",
-          "#fdf6e2"
-        ]
+        "tonalRamp": ["#4a3a0c", "#6b5516", "#8e7224", "#b39136", "#d6b44f", "#f6d983", "#f9e7b3", "#fdf6e2"]
       },
       "level-danger-peach": {
         "role": "secondary",
         "displayName": "Level Danger Peach",
         "canonical": "#F4A582",
-        "tonalRamp": [
-          "#4d2312",
-          "#70341c",
-          "#94482a",
-          "#b9603d",
-          "#db8059",
-          "#f4a582",
-          "#f8c9b4",
-          "#fdeee7"
-        ]
+        "tonalRamp": ["#4d2312", "#70341c", "#94482a", "#b9603d", "#db8059", "#f4a582", "#f8c9b4", "#fdeee7"]
       },
       "level-critical-rose": {
         "role": "secondary",
         "displayName": "Level Critical Rose",
         "canonical": "#E57373",
-        "tonalRamp": [
-          "#4a1515",
-          "#6d2020",
-          "#922d2d",
-          "#b84141",
-          "#e57373",
-          "#ec9a9a",
-          "#f4c4c4",
-          "#fbeaea"
-        ]
+        "tonalRamp": ["#4a1515", "#6d2020", "#922d2d", "#b84141", "#e57373", "#ec9a9a", "#f4c4c4", "#fbeaea"]
       },
       "toy-sea": {
         "role": "tertiary",
         "displayName": "Toy Sea",
-        "canonical": "#4FB3EA",
-        "tonalRamp": [
-          "#0d3348",
-          "#154b69",
-          "#1f658c",
-          "#2b80b0",
-          "#3d9bd2",
-          "#4fb3ea",
-          "#93d0f2",
-          "#dcf0fb"
-        ]
+        "canonical": "#9FCFDD",
+        "tonalRamp": ["#123a45", "#1d5363", "#2b6e82", "#428aa0", "#6aaabd", "#9fcfdd", "#c8e5ee", "#eef7fa"]
       },
-      "cream-ground": {
+      "night-ground": {
         "role": "neutral",
-        "displayName": "Cream Ground",
+        "displayName": "Night Ground",
+        "canonical": "#0F1F44",
+        "tonalRamp": ["#070f22", "#0f1f44", "#1b2f60", "#2b437c", "#46609a", "#6f86b6", "#a3b3d4", "#d9e0ef"]
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "#F3EFF7",
+        "tonalRamp": ["#1c1a21", "#34313d", "#4f4b5b", "#6c687a", "#8c889b", "#b9b5cc", "#dcd8e6", "#f3eff7"]
+      },
+      "day-ground": {
+        "role": "neutral",
+        "displayName": "Day Ground (Cream)",
         "canonical": "#FBF7F2",
-        "tonalRamp": [
-          "#2b2722",
-          "#4a443c",
-          "#6b6358",
-          "#8f8577",
-          "#b3a999",
-          "#d6cdc0",
-          "#ede6dc",
-          "#fbf7f2"
-        ]
+        "tonalRamp": ["#2b2722", "#4a443c", "#6b6358", "#8f8577", "#b3a999", "#d6cdc0", "#ede6dc", "#fbf7f2"]
       },
       "slate-ink": {
         "role": "neutral",
         "displayName": "Slate Ink",
         "canonical": "#2B2A33",
-        "tonalRamp": [
-          "#141319",
-          "#2b2a33",
-          "#43414e",
-          "#5b5969",
-          "#757385",
-          "#9391a1",
-          "#b4b2bf",
-          "#dcdbe2"
-        ]
+        "tonalRamp": ["#141319", "#2b2a33", "#43414e", "#5b5969", "#757385", "#9391a1", "#b4b2bf", "#dcdbe2"]
       }
     },
     "typographyMeta": {
-      "headline": {
-        "displayName": "Headline",
-        "purpose": "Brand word แจ้ง and sheet titles, Prompt 600."
+      "display": { "displayName": "Display", "purpose": "The word แจ้ง in the intro only." },
+      "headline": { "displayName": "Headline", "purpose": "Page h1s and the report title in the detail panel." },
+      "title": { "displayName": "Title", "purpose": "Buttons, row and tooltip titles, menu rows, search result names." },
+      "body": { "displayName": "Body", "purpose": "Descriptions, comments, the search input, about text (62ch)." },
+      "label": { "displayName": "Label", "purpose": "Numbers line, status lines, segmented options, toast." },
+      "caption": { "displayName": "Caption", "purpose": "Summary pill words, meta and age lines, hints." },
+      "chip": { "displayName": "Chip", "purpose": "Level chips; menu capsule tabs at 13px." },
+      "dock-word": { "displayName": "Dock Word", "purpose": "The word under each phone dock icon." },
+      "count": { "displayName": "Count", "purpose": "Cluster counts in tabular figures." },
+      "map-label": { "displayName": "Map Label", "purpose": "Beacon short labels on a 22px glass-toned pill." }
+    },
+    "material": {
+      "class": ".glass / .glass.dense (apps/web/src/theme/glass.scss)",
+      "dark": {
+        "--glass-bg": "rgba(16, 26, 54, 0.45)",
+        "--glass-bg-dense": "rgba(16, 26, 54, 0.8)",
+        "--glass-sheen": "linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 60%)",
+        "--glass-edge": "rgba(255, 255, 255, 0.13)",
+        "--glass-shadow": "inset 0 1px 0 rgba(255,255,255,.16), 0 16px 36px -20px rgba(3,8,25,.9)",
+        "--glass-dim": "brightness(0.55)",
+        "color-scheme": "dark"
       },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Buttons, card headings and report titles in tooltip and detail panel, Prompt 500."
+      "light": {
+        "--glass-bg": "rgba(255, 255, 255, 0.58)",
+        "--glass-bg-dense": "rgba(255, 255, 255, 0.84)",
+        "--glass-sheen": "linear-gradient(160deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 60%)",
+        "--glass-edge": "rgba(255, 255, 255, 0.75)",
+        "--glass-shadow": "0 16px 36px -20px rgba(40,40,80,.45)",
+        "--glass-dim": "brightness(1)",
+        "color-scheme": "light"
       },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Descriptions and comments in Thai and English."
+      "both": {
+        "--glass-blur": "24px",
+        "backdrop-filter": "blur(var(--glass-blur)) saturate(150%) var(--glass-dim)",
+        "--noise": "SVG feTurbulence fractalNoise, baseFrequency .85, 2 octaves, 160px tile; on panels at 15% opacity, overlay blend",
+        "--dawn": "linear-gradient(135deg, #ffe3c4 0%, #f4b49a 45%, #c9a0dc 100%)",
+        "--dawn-ink": "#2a1f3a",
+        "--font": "'Anuphan', system-ui, sans-serif"
       },
-      "label": {
-        "displayName": "Label",
-        "purpose": "Level chips and toast."
-      },
-      "caption": {
-        "displayName": "Caption",
-        "purpose": "Tagline, hint card, meta and age lines."
-      },
-      "map-label": {
-        "displayName": "Map Label",
-        "purpose": "Toy province names, white with a Slate Ink halo, 13px at zoom 4 growing to 21px by zoom 6.5."
-      },
-      "count": {
-        "displayName": "Count",
-        "purpose": "Cluster counts in tabular figures."
-      }
+      "defaultTheme": "dark (theme.service.ts DEFAULT_CHOICE; index.html boot script applies it before first paint; theme-color #0F1F44 dark / #FBF7F2 light)"
     },
     "shadows": [
-      {
-        "name": "float",
-        "value": "0 8px 28px rgba(60,50,40,.18)",
-        "purpose": "Every floating card, chip tray, icon button, tooltip, detail panel and sheets."
-      },
-      {
-        "name": "pill",
-        "value": "0 2px 8px rgba(0,0,0,.15)",
-        "purpose": "Beacon short labels."
-      },
-      {
-        "name": "glow",
-        "value": "0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px var(--c)",
-        "purpose": "Beacon and cluster discs only."
-      },
-      {
-        "name": "selected",
-        "value": "0 0 0 3px var(--surf), 0 0 0 6px var(--pri), 0 0 28px var(--c)",
-        "purpose": "The beacon whose detail panel is open."
-      },
-      {
-        "name": "prop-lift",
-        "value": "drop-shadow(0 6px 6px rgba(40,60,80,.25))",
-        "purpose": "Filter on moving toy props (planes, clouds, train, ships) only."
-      }
+      { "name": "glass-night", "value": "inset 0 1px 0 rgba(255,255,255,.16), 0 16px 36px -20px rgba(3,8,25,.9)", "purpose": "Every glass panel, dark theme." },
+      { "name": "glass-day", "value": "0 16px 36px -20px rgba(40,40,80,.45)", "purpose": "Every glass panel, light theme." },
+      { "name": "dawn-lift", "value": "inset 0 0 0 1px rgba(255,255,255,.35), 0 12px 30px -10px rgba(244,180,154,.65)", "purpose": "Report pill (primary buttons use the -14px spread)." },
+      { "name": "dawn-round", "value": "inset 0 0 0 1px rgba(255,255,255,.4), 0 8px 22px -6px rgba(244,180,154,.75)", "purpose": "The round + in the phone dock." },
+      { "name": "pill", "value": "0 2px 8px rgba(0,0,0,.15)", "purpose": "Beacon short labels and the cluster critical pill." },
+      { "name": "glow", "value": "0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px var(--c)", "purpose": "Beacon and cluster discs only." },
+      { "name": "selected", "value": "0 0 0 3px var(--surf), 0 0 0 6px var(--pri), 0 0 28px var(--c)", "purpose": "The beacon whose detail is open." },
+      { "name": "float-legacy", "value": "0 8px 28px rgba(60,50,40,.18)", "purpose": "--sh; still under the account menu popover only." }
     ],
     "motion": [
-      {
-        "name": "pulse-l0",
-        "value": "3s ease-out infinite",
-        "purpose": "Level 0 pulse ring."
-      },
-      {
-        "name": "pulse-l1",
-        "value": "2.4s ease-out infinite",
-        "purpose": "Level 1 pulse ring."
-      },
-      {
-        "name": "pulse-l2",
-        "value": "1.6s ease-out infinite",
-        "purpose": "Level 2 pulse rings (two, half-period offset)."
-      },
-      {
-        "name": "pulse-l3",
-        "value": "1s ease-out infinite",
-        "purpose": "Level 3 pulse rings (two, half-period offset)."
-      },
-      {
-        "name": "beam-grow",
-        "value": "height 400ms cubic-bezier(.3,.7,.2,1)",
-        "purpose": "Beam rising after a me-too."
-      },
-      {
-        "name": "sheet",
-        "value": "transform 350ms cubic-bezier(.3,.7,.2,1)",
-        "purpose": "Detail sheet and panel entrance."
-      },
-      {
-        "name": "toy-fade",
-        "value": "zoom 6 → 8, linear",
-        "purpose": "Toy land, mask, landmarks, movers and compass fade out; soil offsets flatten over the same range."
-      },
-      {
-        "name": "toy-label-fade",
-        "value": "zoom 6 → 7, linear",
-        "purpose": "Toy province names leave before the street map's names arrive."
-      }
+      { "name": "ease", "value": "cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "EASE in core/motion.ts: panels, pages, markers, intro." },
+      { "name": "fly", "value": "flyTo 1600ms, curve 1.3, essential", "purpose": "FLY: camera moves to a place or report." },
+      { "name": "fit", "value": "fitBounds 1200ms, essential", "purpose": "FIT: camera fits an area." },
+      { "name": "glass-nav", "value": "enter 420ms (translateY 12px, scale .985, blur 8px → 0), leave fade 220ms", "purpose": "glassNav: page changes in ion-router-outlet; back rises from above." },
+      { "name": "rise", "value": "700ms ease, delay var(--i) × 60ms, fill backwards", "purpose": "@keyframes rise (glass.scss): panels and page cards on mount, from 10px lower, transparent, 6px blur." },
+      { "name": "rise-rows", "value": "600ms ease, 30ms apart, first twelve", "purpose": "List rows on /me and /list." },
+      { "name": "panel-in", "value": "320ms ease, from translateX(16px)", "purpose": "Desktop detail panel." },
+      { "name": "search-in", "value": "220ms ease, from translateY(-8px)", "purpose": "Phone search card." },
+      { "name": "pop", "value": "520ms ease, from scale(.4)", "purpose": "New beacons (from the base) and clusters." },
+      { "name": "pulse", "value": "3s / 2.4s / 1.6s / 1s ease-out infinite", "purpose": "Level 0–3 pulse rings; two rings half a period apart for 2–3." },
+      { "name": "beam-grow", "value": "height 400ms cubic-bezier(.3,.7,.2,1)", "purpose": "Beam rising after a me-too." },
+      { "name": "hover-press", "value": "160ms ease-out / scale .96 in 120ms", "purpose": "Every glass control." },
+      { "name": "intro", "value": "1800ms once per session: dot 0–400, beam 250–900, word 700–1300, dawn 1000–1600, out 1400–1800", "purpose": "shared/intro.component.ts." },
+      { "name": "backdrop", "value": "shader mesh at ≤30 fps, half resolution; CSS gradient fallback", "purpose": "shared/backdrop.component.ts; pauses hidden or off-screen." },
+      { "name": "toy-fade", "value": "zoom 6 → 8, linear", "purpose": "Toy land fades and soil offsets flatten." },
+      { "name": "always-on", "value": "no reduced-motion query", "purpose": "Owner decision: motion always plays, pauses only with the tab." }
     ],
     "breakpoints": [
-      {
-        "name": "narrow",
-        "value": "420px"
-      },
-      {
-        "name": "wide",
-        "value": "820px"
-      }
+      { "name": "narrow", "value": "420px" },
+      { "name": "wide", "value": "820px" },
+      { "name": "menu-drop", "value": "1000px" },
+      { "name": "roomy", "value": "1180px" }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Main action such as เจอเหมือนกัน.",
-      "html": "<button class=\"ds-btn-primary\">เจอเหมือนกัน · 12</button>",
-      "css": ".ds-btn-primary{min-height:44px;min-width:44px;border-radius:14px;border:1px solid transparent;background:#3F6FA8;color:#fff;padding:0 14px;font:500 15px 'Prompt','IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-btn-primary:hover{background:#355f91}.ds-btn-primary:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+      "name": "Glass Panel",
+      "kind": "card",
+      "refersTo": "glass-panel",
+      "description": "The one material: sheen over a translucent navy, 24px blur, 1px light edge, long soft shadow and grain. Dense variant for running text.",
+      "html": "<div class=\"ds-wrap\"><div class=\"ds-glass\"><strong>34 ค้างอยู่</strong><span>แก้แล้ว 4 เดือนนี้</span></div><div class=\"ds-glass ds-dense\"><strong>ฝาท่อหายกลางทางเท้า</strong><span>วิกฤต · เปิดอยู่ · เจอเหมือนกัน 27</span></div></div>",
+      "css": ".ds-wrap{display:flex;gap:16px;padding:24px;background:radial-gradient(70% 60% at 90% 100%,rgba(244,180,154,.35),transparent 70%),linear-gradient(170deg,#0e1d40,#13264d 50%,#0f1f44)}.ds-glass{position:relative;display:grid;gap:4px;width:200px;padding:14px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 60%),rgba(16,26,54,.45);backdrop-filter:blur(24px) saturate(150%) brightness(.55);-webkit-backdrop-filter:blur(24px) saturate(150%) brightness(.55);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 36px -20px rgba(3,8,25,.9);color:#F3EFF7;font:400 13px/1.5 'Anuphan',system-ui,sans-serif}.ds-glass strong{font:500 15px/1.4 'Anuphan',system-ui,sans-serif}.ds-glass span{color:#B9B5CC}.ds-dense{background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 60%),rgba(16,26,54,.8)}"
     },
     {
-      "name": "Icon Button",
+      "name": "Primary Button (Dawn)",
       "kind": "button",
-      "refersTo": "button-icon",
-      "description": "Map controls (zoom, locate, account) and the detail panel's close: 44px, line icon.",
-      "html": "<button class=\"ds-ctl\" aria-label=\"ซูมเข้า\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
-      "css": ".ds-ctl{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;box-shadow:0 8px 28px rgba(60,50,40,.18);cursor:pointer}.ds-ctl:hover{background:#FBF7F2}.ds-ctl:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-ctl svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}"
+      "refersTo": "button-primary",
+      "description": "The one warm control of a page: the dawn gradient, Dawn Ink label, warm lift; focus ring in ink.",
+      "html": "<button class=\"ds-dawn\">ส่งเรื่อง</button>",
+      "css": ".ds-dawn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#ffe3c4 0%,#f4b49a 45%,#c9a0dc 100%);color:#2a1f3a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 12px 30px -14px rgba(244,180,154,.65);font:500 15px/1.4 'Anuphan',system-ui,sans-serif;cursor:pointer;transition:filter 160ms ease-out,transform 120ms ease-out}.ds-dawn:hover{filter:brightness(1.06) saturate(1.05)}.ds-dawn:active{transform:scale(.97)}.ds-dawn:focus-visible{outline:3px solid #F3EFF7;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A 6% ink wash with the glass edge: buttons sit on glass, so their ground is a tint, not a card.",
+      "html": "<button class=\"ds-btn\">กลับไปแผนที่</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.13);border-radius:16px;background:rgba(243,239,247,.06);color:#F3EFF7;font:500 15px/1.4 'Anuphan',system-ui,sans-serif;cursor:pointer;transition:background-color 160ms ease-out,transform 120ms ease-out}.ds-btn:hover{background:rgba(243,239,247,.12)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #F4B49A;outline-offset:2px}"
+    },
+    {
+      "name": "Report Control",
+      "kind": "button",
+      "refersTo": "report-pill",
+      "description": "The map's one warm control: a 46px dawn pill on desktop, a 46px dawn circle in the phone dock.",
+      "html": "<div class=\"ds-row\"><button class=\"ds-fab\" aria-label=\"แจ้งเรื่องใหม่\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>แจ้ง</button><button class=\"ds-fab ds-round\" aria-label=\"แจ้งเรื่องใหม่\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button></div>",
+      "css": ".ds-row{display:flex;gap:16px;align-items:center}.ds-fab{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:46px;min-height:46px;padding:0 20px 0 16px;border:0;border-radius:23px;background:linear-gradient(135deg,#ffe3c4 0%,#f4b49a 45%,#c9a0dc 100%);color:#2a1f3a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 12px 30px -10px rgba(244,180,154,.65);font:600 15px/1 'Anuphan',system-ui,sans-serif;cursor:pointer;transition:filter 160ms ease-out,transform 120ms ease-out}.ds-fab:hover{filter:brightness(1.06) saturate(1.05)}.ds-fab:active{transform:scale(.96)}.ds-fab:focus-visible{outline:3px solid #F3EFF7;outline-offset:2px}.ds-fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.ds-round{width:46px;padding:0;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 8px 22px -6px rgba(244,180,154,.75)}"
     },
     {
       "name": "Level Chips",
       "kind": "chip",
       "refersTo": "chip-level",
-      "description": "Toggle filter for the four danger levels; an off chip is outlined and struck through.",
-      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" style=\"--c:#8FD3B6\" aria-pressed=\"true\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 1a5 5 0 1 1 0 10A5 5 0 1 1 6 1z\"/></svg>ทั่วไป</button><button class=\"ds-chip\" style=\"--c:#F6D983\" aria-pressed=\"true\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 1.2l5.3 9.4H.7z\"/></svg>ควรระวัง</button><button class=\"ds-chip\" style=\"--c:#F4A582\" aria-pressed=\"false\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 .6L11.4 6 6 11.4.6 6z\"/></svg>อันตราย</button><button class=\"ds-chip\" style=\"--c:#E57373\" aria-pressed=\"true\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg>วิกฤต</button></div>",
-      "css": ".ds-chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px;background:#fff;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18)}.ds-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;border:0;border-radius:14px;padding:0 12px;background:color-mix(in srgb,var(--c) 55%,#fff);color:#2B2A33;font:500 14px/1.4 'IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-chip svg{width:.85em;height:.85em;fill:currentColor}.ds-chip:hover{background:color-mix(in srgb,var(--c) 75%,#fff)}.ds-chip[aria-pressed=false]{background:transparent;box-shadow:inset 0 0 0 1px #E8E0D5;color:#6B6878;text-decoration:line-through}.ds-chip:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+      "description": "30px glass pills inside 44px targets, led by the level shape with a dark rim; off is drained and struck through.",
+      "html": "<div class=\"ds-stage\"><div class=\"ds-chips\"><button class=\"ds-chip\" style=\"--c:#8FD3B6\" aria-pressed=\"true\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 1a5 5 0 1 1 0 10A5 5 0 1 1 6 1z\"/></svg>ทั่วไป</button><button class=\"ds-chip\" style=\"--c:#F6D983\" aria-pressed=\"true\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 1.2l5.3 9.4H.7z\"/></svg>ควรระวัง</button><button class=\"ds-chip\" style=\"--c:#F4A582\" aria-pressed=\"false\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 .6L11.4 6 6 11.4.6 6z\"/></svg>อันตราย</button><button class=\"ds-chip\" style=\"--c:#E57373\" aria-pressed=\"true\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg>วิกฤต</button></div></div>",
+      "css": ".ds-stage{padding:16px;background:linear-gradient(170deg,#0e1d40,#13264d)}.ds-chips{display:flex;flex-wrap:wrap;gap:6px}.ds-chip{position:relative;isolation:isolate;display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 11px;border:0;background:transparent;color:#F3EFF7;font:500 12px/1 'Anuphan',system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:transform 120ms ease-out}.ds-chip::before{content:'';position:absolute;z-index:-1;inset:7px 0;border:1px solid rgba(255,255,255,.13);border-radius:15px;background:rgba(16,26,54,.45);backdrop-filter:blur(16px);transition:background-color 160ms ease-out,opacity 160ms ease-out}.ds-chip:hover::before{background-color:rgba(243,239,247,.1)}.ds-chip:active{transform:scale(.96)}.ds-chip svg{width:14px;height:14px;fill:var(--c);stroke:color-mix(in srgb,var(--c) 45%,#2b2a33);stroke-width:1;paint-order:stroke}.ds-chip[aria-pressed=false]{color:#B9B5CC;text-decoration:line-through}.ds-chip[aria-pressed=false]::before{opacity:.55}.ds-chip[aria-pressed=false] svg{fill:#B9B5CC;opacity:.55}.ds-chip:focus-visible{outline:none}.ds-chip:focus-visible::before{box-shadow:0 0 0 3px #F4B49A}"
     },
     {
-      "name": "Floating Card",
-      "kind": "card",
-      "refersTo": "card-floating",
-      "description": "Brand card and hint card floating over the map.",
-      "html": "<div class=\"ds-card\"><strong>แจ้ง</strong><div class=\"ds-sub\">ทุกเรื่องคือสัญญาณไฟ</div></div>",
-      "css": ".ds-card{background:#fff;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);padding:8px 16px 10px;color:#2B2A33;font:400 16px/1.6 'IBM Plex Sans Thai',sans-serif;max-width:320px}.ds-card strong{display:block;font:600 24px/1.2 'Prompt',sans-serif}.ds-sub{color:#6B6878;font-size:13px;line-height:1.5}"
+      "name": "Summary Pill",
+      "kind": "nav",
+      "refersTo": "summary-pill",
+      "description": "Phones: the stats ring and one line of numbers in a 40px glass capsule that opens the list.",
+      "html": "<div class=\"ds-stage\"><button class=\"ds-sum\"><span class=\"ds-ring\" style=\"--p:.12\" aria-hidden=\"true\"></span><b>34 ค้างอยู่</b><span class=\"ds-fx\">· แก้แล้ว 4</span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M9 6l6 6-6 6\"/></svg></button></div>",
+      "css": ".ds-stage{padding:16px;background:linear-gradient(170deg,#0e1d40,#13264d)}.ds-sum{display:flex;align-items:center;gap:10px;width:300px;height:40px;padding:0 12px 0 7px;border:1px solid rgba(255,255,255,.13);border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 60%),rgba(16,26,54,.45);backdrop-filter:blur(24px) saturate(150%) brightness(.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 36px -20px rgba(3,8,25,.9);color:#F3EFF7;font:400 13px/1.4 'Anuphan',system-ui,sans-serif;text-align:left;cursor:pointer;transition:background-color 160ms ease-out}.ds-sum:hover{background-color:rgba(243,239,247,.06)}.ds-sum:focus-visible{outline:3px solid #F4B49A;outline-offset:-3px}.ds-ring{flex:none;width:26px;height:26px;border-radius:50%;background:conic-gradient(#f4b49a 0 calc(var(--p)*100%),rgba(243,239,247,.14) 0);-webkit-mask:radial-gradient(circle,transparent 9px,#000 10px);mask:radial-gradient(circle,transparent 9px,#000 10px)}.ds-sum b{font-weight:500;white-space:nowrap}.ds-fx{flex:1;color:#B9B5CC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-sum svg{width:16px;height:16px;fill:none;stroke:#B9B5CC;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"
     },
     {
-      "name": "Detail Panel",
-      "kind": "card",
-      "refersTo": "detail-panel",
-      "description": "Report detail dialog: 380px panel on desktop, the same content in a 64% bottom sheet on phones. The tooltip uses a smaller summary of the same report.",
-      "html": "<aside class=\"ds-detail\" role=\"dialog\" aria-labelledby=\"ds-detail-t\" style=\"--c:#E57373\"><button class=\"ds-close\" aria-label=\"ปิด\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg></button><div class=\"ds-thumb\"></div><strong class=\"ds-t\" id=\"ds-detail-t\">ฝาท่อหายกลางทางเท้า</strong><span class=\"ds-meta\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg> วิกฤต · ยังไม่ได้แก้ · ค้างมา 2 วัน</span><button class=\"ds-metoo\">เจอเหมือนกัน · 27</button></aside>",
-      "css": ".ds-detail{position:relative;display:grid;gap:12px;width:380px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif}.ds-close{position:absolute;top:20px;right:20px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;cursor:pointer}.ds-close:hover{background:#FBF7F2}.ds-close:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-close svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.ds-thumb{height:180px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-t{font:600 22px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-meta{color:#6B6878;font-size:13px;line-height:1.5}.ds-meta svg{width:.85em;height:.85em;fill:currentColor;vertical-align:-.1em}.ds-metoo{min-height:44px;border:1px solid #3F6FA8;border-radius:14px;background:#fff;color:#3F6FA8;font:500 15px 'Prompt',sans-serif;cursor:pointer}.ds-metoo:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
-    },
-    {
-      "name": "Report Button",
-      "kind": "button",
-      "refersTo": "fab-report",
-      "description": "The floating \"แจ้ง\" pill, bottom-right on every screen size (12px from the right, 52px above the bottom on phones, 48px from the bottom from 820px).",
-      "html": "<button class=\"ds-fab\" aria-label=\"แจ้งเรื่องใหม่\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>แจ้ง</button>",
-      "css": ".ds-fab{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:116px;height:56px;border:0;border-radius:14px;background:#3F6FA8;color:#fff;font:600 17px 'Prompt','IBM Plex Sans Thai',sans-serif;box-shadow:0 8px 28px rgba(60,50,40,.18);cursor:pointer}.ds-fab:hover{background:#355f91}.ds-fab:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}.ds-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}"
-    },
-    {
-      "name": "Duplicate Row",
-      "kind": "card",
-      "refersTo": "report-card",
-      "description": "One candidate in the \"เรื่องนี้ใช่ไหม?\" card: a 72px tile, the title, a meta line with the level shape, and the me-too style \"ใช่\" button.",
-      "html": "<div class=\"ds-dup\" style=\"--c:#F4A582\"><div class=\"ds-dup-tile\"></div><div class=\"ds-dup-body\"><strong>หลุมลึกกลางถนน</strong><span class=\"ds-dup-meta\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 .6L11.4 6 6 11.4.6 6z\"/></svg> อันตราย · เปิดอยู่ · เจอเหมือนกัน 4</span><button class=\"ds-dup-yes\">ใช่ กดเจอเหมือนกันแทน</button></div></div>",
-      "css": ".ds-dup{display:flex;gap:12px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif;max-width:420px}.ds-dup-tile{flex:none;width:72px;height:72px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-dup-body{display:grid;gap:4px;min-width:0}.ds-dup-body strong{font:500 15px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-dup-meta{color:#6B6878;font-size:13px;line-height:1.5}.ds-dup-meta svg{width:.85em;height:.85em;fill:currentColor;vertical-align:-.1em}.ds-dup-yes{min-height:44px;border:1px solid #3F6FA8;border-radius:14px;background:#fff;color:#3F6FA8;font:500 15px 'Prompt',sans-serif;cursor:pointer}.ds-dup-yes:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
+      "name": "Dock",
+      "kind": "nav",
+      "refersTo": "dock",
+      "description": "Phones: a 60px glass capsule, four 56px slots, the round dawn + third.",
+      "html": "<div class=\"ds-stage\"><nav class=\"ds-dock\"><button class=\"ds-tab\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15\"/></svg><span>แผนที่</span></button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01\"/></svg><span>รายการ</span></button><button class=\"ds-plus\" aria-label=\"แจ้งเรื่องใหม่\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button><button class=\"ds-tab\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/><path d=\"M7 20.7a6 6 0 0 1 10 0\"/></svg><span>ของฉัน</span></button></nav></div>",
+      "css": ".ds-stage{padding:16px;background:linear-gradient(170deg,#0e1d40,#13264d)}.ds-dock{display:flex;align-items:center;justify-content:space-around;width:300px;height:60px;padding:0 8px;box-sizing:border-box;border:1px solid rgba(255,255,255,.13);border-radius:30px;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 60%),rgba(16,26,54,.45);backdrop-filter:blur(24px) saturate(150%) brightness(.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 36px -20px rgba(3,8,25,.9)}.ds-tab{display:grid;place-items:center;align-content:center;gap:2px;width:56px;height:44px;padding:0;border:0;border-radius:14px;background:transparent;color:#B9B5CC;font:400 10px/1.2 'Anuphan',system-ui,sans-serif;cursor:pointer;transition:background-color 160ms ease-out,color 160ms ease-out}.ds-tab[aria-current=page],.ds-tab:hover{color:#F3EFF7}.ds-tab:hover{background:rgba(243,239,247,.08)}.ds-tab:focus-visible,.ds-plus:focus-visible{outline:3px solid #F4B49A;outline-offset:-3px}.ds-tab svg,.ds-plus svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ds-plus{display:grid;place-items:center;width:46px;height:46px;border:0;border-radius:50%;background:linear-gradient(135deg,#ffe3c4 0%,#f4b49a 45%,#c9a0dc 100%);color:#2a1f3a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 8px 22px -6px rgba(244,180,154,.75);cursor:pointer}.ds-plus svg{width:24px;height:24px}"
     },
     {
       "name": "Report Row",
       "kind": "card",
       "refersTo": "report-row",
-      "description": "A row of the /me list: tile, title, a status line that is always an icon plus a word, and a muted meta line. Public reports are whole-card links.",
-      "html": "<div class=\"ds-row\" style=\"--c:#F4A582\"><div class=\"ds-row-tile\"></div><div class=\"ds-row-body\"><strong>หลุมลึกกลางถนน</strong><span class=\"ds-row-status\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg>รอผู้ดูแลตรวจ</span><span class=\"ds-row-meta\">อันตราย · เขตบางรัก · 2 ชั่วโมงก่อน</span></div></div>",
-      "css": ".ds-row{display:flex;gap:12px;padding:12px;background:#fff;color:#2B2A33;border-radius:18px;box-shadow:0 8px 28px rgba(60,50,40,.18);font-family:'IBM Plex Sans Thai',sans-serif;max-width:420px}.ds-row-tile{flex:none;width:72px;height:72px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff)}.ds-row-body{display:grid;gap:4px;min-width:0}.ds-row-body strong{font:500 15px/1.4 'Prompt',sans-serif;overflow-wrap:anywhere}.ds-row-status{display:inline-flex;align-items:center;gap:6px;font-size:14px}.ds-row-status svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ds-row-meta{color:#6B6878;font-size:13px;line-height:1.5}"
+      "description": "A row on a glass page card: ink wash, glass edge, a 72px pastel tile with Slate Ink, a status that is always an icon plus a word.",
+      "html": "<div class=\"ds-stage\"><a class=\"ds-rrow\" href=\"#\" style=\"--c:#F4A582\"><span class=\"ds-tile\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg></span><span class=\"ds-txt\"><strong>หลุมลึกกลางถนน</strong><span class=\"ds-st\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>เปิดอยู่</span><span class=\"ds-meta\">อันตราย · เขตบางรัก · ค้างมา 3 วัน</span></span></a></div>",
+      "css": ".ds-stage{padding:16px;background:linear-gradient(170deg,#0e1d40,#13264d)}.ds-rrow{display:grid;grid-template-columns:72px 1fr;gap:12px;width:420px;padding:10px;box-sizing:border-box;border:1px solid rgba(255,255,255,.13);border-radius:16px;background:rgba(243,239,247,.05);color:#F3EFF7;text-decoration:none;font-family:'Anuphan',system-ui,sans-serif;transition:background-color 160ms ease-out}.ds-rrow:hover{background:rgba(243,239,247,.1)}.ds-rrow:focus-visible{outline:3px solid #F4B49A;outline-offset:2px}.ds-tile{display:grid;place-items:center;width:72px;height:72px;border-radius:12px;background:color-mix(in srgb,var(--c) 45%,#fff);color:#2b2a33}.ds-tile svg,.ds-st svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2}.ds-txt{display:grid;gap:2px;min-width:0}.ds-txt strong{font:500 15px/1.4 'Anuphan',system-ui,sans-serif}.ds-st{display:inline-flex;align-items:center;gap:6px;font:500 14px/1.5 'Anuphan',system-ui,sans-serif}.ds-st svg{width:16px;height:16px}.ds-meta{color:#B9B5CC;font-size:13px;line-height:1.6}"
     },
     {
       "name": "Beacon",
       "kind": "custom",
       "refersTo": "beacon-disc",
-      "description": "Bat-Signal beacon: base, pulse ring, cone beam, disc with category icon and level badge, short label.",
-      "html": "<div class=\"ds-pin\" style=\"--c:#F4A582;--d:1.6s;--h:132px\"><i class=\"ds-ring\"></i><i class=\"ds-base\"></i><div class=\"ds-stand\"><div class=\"ds-beam\"></div><div class=\"ds-disc\" role=\"button\" tabindex=\"0\" aria-label=\"หลุมลึกกลางถนน ระดับอันตราย ยังไม่ได้แก้\"><span class=\"ds-ico\"></span><i class=\"ds-sym\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 .6L11.4 6 6 11.4.6 6z\"/></svg></i><span class=\"ds-lbl\">หลุมลึกกลางถนน</span></div></div></div>",
-      "css": ".ds-pin{position:relative;width:0;height:0;margin:180px 80px 40px}.ds-ring{position:absolute;left:-36px;top:-36px;width:72px;height:72px;box-sizing:border-box;border-radius:50%;border:3px solid var(--c);animation:ds-pulse var(--d) ease-out infinite}@keyframes ds-pulse{from{transform:scale(.3,.14);opacity:.85}to{transform:scale(1.5,.68);opacity:0}}.ds-base{position:absolute;left:-7px;top:-7px;width:14px;height:14px;box-sizing:border-box;border-radius:50%;background:var(--c);border:2px solid #fff}.ds-stand{position:absolute;left:-30px;bottom:0;width:60px;height:var(--h)}.ds-beam{position:absolute;inset:0;background:linear-gradient(to top,var(--c),transparent 95%);opacity:.8;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%)}.ds-disc{position:absolute;left:3px;top:-30px;width:54px;height:54px;box-sizing:border-box;border-radius:50%;background:#fff;border:3px solid var(--c);display:grid;place-items:center;cursor:pointer;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}.ds-disc:focus-visible{outline:3px solid #3F6FA8;outline-offset:4px}.ds-ico{width:30px;height:30px;border-radius:50%;background:#6B6878}.ds-sym{position:absolute;right:-8px;bottom:-4px;display:grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--c);color:#2B2A33}.ds-sym svg{width:10px;height:10px;fill:currentColor}.ds-lbl{position:absolute;left:50%;top:-28px;transform:translateX(-50%);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;color:#2B2A33;padding:0 8px;border-radius:10px;font:400 12px/22px 'IBM Plex Sans Thai',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.15)}"
-    },
-    {
-      "name": "Cluster",
-      "kind": "custom",
-      "refersTo": "cluster-disc",
-      "description": "Count disc for grouped reports; border, pulse and badge in the highest level inside.",
-      "html": "<button class=\"ds-cl\" style=\"--c:#E57373\" aria-label=\"7 เรื่องในพื้นที่นี้ ระดับสูงสุดวิกฤต\">7<i class=\"ds-cl-sym\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg></i></button>",
-      "css": ".ds-cl{position:relative;width:52px;height:52px;box-sizing:border-box;padding:0;border-radius:50%;background:#fff;border:3px solid var(--c);font:600 18px/1 'Prompt',sans-serif;font-variant-numeric:tabular-nums;color:#2B2A33;cursor:pointer;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}.ds-cl:focus-visible{outline:3px solid #3F6FA8;outline-offset:4px}.ds-cl-sym{position:absolute;right:-6px;bottom:-2px;display:grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--c);color:#2B2A33}.ds-cl-sym svg{width:10px;height:10px;fill:currentColor}"
-    },
-    {
-      "name": "Before and after",
-      "kind": "custom",
-      "refersTo": "report-card",
-      "description": "Admin claim review: the before and after photos as two equal square tiles side by side, each named by a white label pill; a missing after photo is a dashed Sand Line tile that says so.",
-      "html": "<div class=\"ds-ba\"><figure><span class=\"ds-ba-img\" style=\"background:#CBA582\"></span><figcaption>ก่อนแก้</figcaption></figure><figure><span class=\"ds-ba-none\">ไม่ได้แนบรูปหลังแก้</span><figcaption>หลังแก้</figcaption></figure></div>",
-      "css": ".ds-ba{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:320px}.ds-ba figure{position:relative;margin:0;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#FBF7F2}.ds-ba-img{display:block;width:100%;height:100%}.ds-ba-none{display:grid;place-items:center;height:100%;box-sizing:border-box;padding:12px;border:2px dashed #E8E0D5;border-radius:12px;color:#6B6878;font:400 14px/1.5 'IBM Plex Sans Thai',sans-serif;text-align:center}.ds-ba figcaption{position:absolute;left:8px;bottom:8px;padding:2px 10px;border-radius:10px;background:#fff;color:#2B2A33;font:500 13px/1.5 'IBM Plex Sans Thai',sans-serif}"
-    },
-    {
-      "name": "Language Toggle",
-      "kind": "button",
-      "refersTo": "language-toggle",
-      "description": "Brand card button (plan 6): the other language named in itself, labelled in that language; swaps every word in place.",
-      "html": "<button class=\"ds-lang\" aria-label=\"Switch to English\"><span lang=\"en\">EN</span></button>",
-      "css": ".ds-lang{display:grid;place-items:center;min-width:44px;height:44px;padding:0 8px;border:1px solid #E8E0D5;border-radius:14px;background:#fff;color:#2B2A33;font:600 14px/1 'Prompt','IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-lang:hover{background:#FBF7F2}.ds-lang:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
-    },
-    {
-      "name": "Segmented Choice",
-      "kind": "control",
-      "refersTo": "segmented-choice",
-      "description": "Language, theme and list-sort radiogroups (plan 6): chosen = Card White + Float shadow + weight 600, never colour alone.",
-      "html": "<div class=\"ds-seg\" role=\"radiogroup\" aria-label=\"ธีม\"><button role=\"radio\" aria-checked=\"true\" class=\"ds-opt\">ตามเครื่อง</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-opt\">สว่าง</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-opt\">มืด</button></div>",
-      "css": ".ds-seg{display:flex;gap:4px;padding:4px;border-radius:16px;background:#FBF7F2;box-shadow:inset 0 0 0 1px #E8E0D5}.ds-opt{flex:1 1 auto;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:#6B6878;font:500 14px/1.4 'IBM Plex Sans Thai',sans-serif;cursor:pointer}.ds-opt[aria-checked=true]{background:#fff;box-shadow:0 8px 28px rgba(60,50,40,.18);color:#2B2A33;font-weight:600}.ds-opt:focus-visible{outline:3px solid #3F6FA8;outline-offset:2px}"
-    },
-    {
-      "name": "Cluster Critical Pill",
-      "kind": "badge",
-      "refersTo": "cluster-critical",
-      "description": "Upper-left of a cluster disc when the group holds critical reports (plan 6): critical shape + count, Slate Ink on rose 55% into white.",
-      "html": "<span class=\"ds-crit\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" d=\"M6 .6l5.6 10.2H.4zM5.25 4.1v3.7h1.5V4.1zm0 4.6v1.3h1.5V8.7z\"/></svg>2</span>",
-      "css": ".ds-crit{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px 0 5px;border-radius:11px;background:color-mix(in srgb,#E57373 55%,#fff);color:#2B2A33;box-shadow:0 2px 8px rgba(0,0,0,.15);font:600 12px/1 'Prompt',sans-serif}.ds-crit svg{width:12px;height:12px;fill:currentColor}"
+      "description": "Bat-Signal beacon: base, pulse ring, cone beam, glass-toned disc with category icon and level badge, short label; pops up from its base.",
+      "html": "<div class=\"ds-stage\"><div class=\"ds-pin\" style=\"--c:#F4A582;--d:1.6s;--h:132px\"><i class=\"ds-ring\"></i><i class=\"ds-base\"></i><div class=\"ds-stand\"><div class=\"ds-beam\"></div><div class=\"ds-disc\" role=\"button\" tabindex=\"0\" aria-label=\"หลุมลึกกลางถนน ระดับอันตราย เปิดอยู่\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8\"/></svg><i class=\"ds-sym\"><svg viewBox=\"0 0 12 12\" aria-hidden=\"true\"><path d=\"M6 .6L11.4 6 6 11.4.6 6z\"/></svg></i><span class=\"ds-lbl\">หลุมลึกกลางถนน</span></div></div></div></div>",
+      "css": ".ds-stage{padding:8px 0;background:linear-gradient(170deg,#0e1d40,#13264d)}.ds-pin{position:relative;width:0;height:0;margin:180px 80px 40px}.ds-ring{position:absolute;left:-36px;top:-36px;width:72px;height:72px;box-sizing:border-box;border-radius:50%;border:3px solid var(--c);animation:ds-pulse var(--d) ease-out infinite}@keyframes ds-pulse{from{transform:scale(.3,.14);opacity:.85}to{transform:scale(1.5,.68);opacity:0}}.ds-base{position:absolute;left:-7px;top:-7px;width:14px;height:14px;box-sizing:border-box;border-radius:50%;background:var(--c);border:2px solid #fff}.ds-stand{position:absolute;left:-30px;bottom:0;width:60px;height:var(--h);transform-origin:50% 100%;animation:ds-pop 520ms cubic-bezier(.2,.8,.2,1) both}@keyframes ds-pop{from{transform:scale(.4);opacity:0}}.ds-beam{position:absolute;inset:0;background:linear-gradient(to top,var(--c),transparent 95%);opacity:.8;clip-path:polygon(0 0,100% 0,54% 100%,46% 100%)}.ds-disc{position:absolute;left:3px;top:-30px;width:54px;height:54px;box-sizing:border-box;border-radius:50%;background:color-mix(in srgb,#1B2A52 82%,transparent);border:3px solid var(--c);display:grid;place-items:center;color:#F3EFF7;cursor:pointer;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 30%,transparent),0 0 28px var(--c)}.ds-disc:focus-visible{outline:3px solid #F4B49A;outline-offset:4px}.ds-disc>svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2}.ds-sym{position:absolute;right:-8px;bottom:-4px;display:grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--c);color:#2B2A33}.ds-sym svg{width:10px;height:10px;fill:currentColor}.ds-lbl{position:absolute;left:50%;top:-28px;transform:translateX(-50%);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:color-mix(in srgb,#1B2A52 82%,transparent);color:#F3EFF7;padding:0 8px;border-radius:10px;font:400 12px/22px 'Anuphan',system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.15)}"
     },
     {
       "name": "Action Toast",
       "kind": "feedback",
-      "refersTo": "toast-action",
-      "description": "A toast with one underlined text button in its own colours (plan 6); stays 8 s.",
-      "html": "<div class=\"ds-toast\" role=\"status\"><span>โหลดข้อมูลไม่สำเร็จ</span><button>ลองใหม่</button></div>",
-      "css": ".ds-toast{display:inline-flex;align-items:center;gap:12px;padding:0 4px 0 16px;border-radius:14px;background:#2B2A33;color:#FBF7F2;font:400 14px/1.5 'IBM Plex Sans Thai',sans-serif}.ds-toast button{min-height:44px;padding:0 12px;border:0;background:none;color:#FBF7F2;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}"
+      "refersTo": "toast",
+      "description": "Denser glass than the panels, ink text, one underlined accent text button; stays 8 s.",
+      "html": "<div class=\"ds-stage\"><div class=\"ds-toast\" role=\"status\"><span>โหลดข้อมูลไม่สำเร็จ</span><button>ลองใหม่</button></div></div>",
+      "css": ".ds-stage{padding:16px;background:linear-gradient(170deg,#0e1d40,#13264d)}.ds-toast{display:inline-flex;align-items:center;gap:12px;padding:0 4px 0 16px;border:1px solid rgba(255,255,255,.13);border-radius:16px;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 60%),rgba(15,31,68,.85);backdrop-filter:blur(24px) saturate(150%) brightness(.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 36px -20px rgba(3,8,25,.9);color:#F3EFF7;font:400 14px/1.5 'Anuphan',system-ui,sans-serif}.ds-toast button{min-height:44px;padding:0 12px;border:0;border-radius:10px;background:none;color:#F4B49A;font:600 14px/1.4 'Anuphan',system-ui,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}.ds-toast button:focus-visible{outline:3px solid #F4B49A;outline-offset:2px}"
     }
   ],
   "narrative": {
-    "northStar": "เมืองของเล่นยามฟ้าแจ้ง (Toy Town at First Light)",
-    "overview": "แจ้ง means both \"to report\" and \"the sky turning bright\". The system is a toy model of Thailand seen at dawn: thick, soft-edged land like a painted wooden puzzle, a bright toy sea, small 3D landmarks, and above it the only lights in the scene, pastel signal beams that rise from each reported problem. The toy world is the welcome; the beams are the information. As the visitor zooms in, the toy dissolves into a calm street map and the beams stay, so the map stops being a picture and becomes a place.\n\nEverything around the map is a working app: floating white cards with soft shadows, 44 px targets, Thai-first type, short warm copy. The interface never imitates the toy; it sits on top of it like a friendly guide holding the map open. Danger is said three ways at once (colour, a solid shape from one SVG set, pulse speed), and status is said by the beam's form, never by colour.\n\nConfirmed anti-references: a dark gaming look, glowing neon on black, and the cold grey forms of a government portal. The owner's reference poster is a style reference only; its artwork is never copied or stored.",
+    "northStar": "กระจกฝ้ายามฟ้าแจ้ง (Frosted Glass at First Light)",
+    "overview": "แจ้ง means both \"to report\" and \"the sky turning bright\". The map underneath is still the toy model of Thailand: thick, soft-edged cel land like a painted wooden puzzle, an animated sea, and above it the only lights in the scene, pastel signal beams rising from each reported problem. Since plan 6b everything the visitor touches floats over that world as one material: frosted, grain-textured glass, seen at night turning into dawn. The night is the default (a navy ground, a lavender glow top-left, a peach dawn glow bottom-right); the light theme keeps the same layout with white frosted glass.\n\nThe glass is quiet so the map can speak. Panels are small and few (the owner asked twice for less): a search pill, one row of level chips, a one-line summary, a locate button and a dock on phones; a content-height side panel, a menu capsule, a control column and one report pill on desktop. Exactly one thing is warm: the dawn gradient, on the brand mark, the report control and the page's primary action, and the stats ring. Danger is still said three ways at once (colour, a solid shape from one SVG set, pulse speed), and status by the beam's form, never by colour.\n\nConfirmed anti-references (PRODUCT.md): a neon gaming look and a cold government form. The owner's reference poster is a style reference only; its artwork is never copied or stored.",
     "keyCharacteristics": [
-      "Cel-shaded toy Thailand (flat province tones, ink outline, sand rim, stacked soil layers) that fades out between zoom 6 and 8; its province names leave first, between zoom 6 and 7. Only Thailand is ever shown: everything else is an animated cel sea.",
-      "Pastel beams as the only light source; height grows with \"เจอเหมือนกัน\".",
-      "Floating cards over a full-bleed map; no app chrome bars.",
-      "Lucide (ISC) line icons for every pictogram: landmarks, vehicles, the compass, the controls and the eight category icons. No emoji anywhere (owner decision 2026-10-17); on the map an icon sits on a sticker (cream disc, ink rim).",
-      "One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels everywhere they appear.",
-      "Prompt for voice, IBM Plex Sans Thai for reading."
+      "One material: frosted glass (24px blur, 150% saturation, a 1px light edge, a 160-degree white sheen, fractal-noise grain at 15% overlay) for every floating surface, in a dense variant for running text.",
+      "Night-into-dawn ground: dark theme by default; pages other than the map stand on a slow shader backdrop (navy mesh with a dawn corner, CSS gradient fallback).",
+      "One warm accent, the dawn gradient (cream, peach, lilac), used on four things only.",
+      "Cel-shaded toy Thailand that fades out between zoom 6 and 8 into a calm street map; only Thailand is ever shown, everything else is an animated sea.",
+      "Pastel beams as the only light on the map; height grows with \"เจอเหมือนกัน\".",
+      "Lucide (ISC) line icons for every pictogram; no emoji anywhere (owner, 2026-10-17). One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels.",
+      "Anuphan 300–600 for every word the app sets.",
+      "Small visible parts inside full 44px targets.",
+      "One easing for everything that moves; motion always plays."
     ],
     "rules": [
-      {
-        "name": "The Levels Only Mean Danger Rule",
-        "body": "Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.",
-        "section": "colors"
-      },
-      {
-        "name": "The Ink On Pastel Rule",
-        "body": "Text on any pastel fill is Slate Ink (#2B2A33), never white and never the theme ink, and the pastel is always mixed into white, never into the theme surface. A chip reads the same in light and dark and every one passes WCAG AA.",
-        "section": "colors"
-      },
-      {
-        "name": "The Toy Stays Toy Rule",
-        "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the toy is an object, not a surface.",
-        "section": "colors"
-      },
-      {
-        "name": "The Cel Rule",
-        "body": "The map has no gradients: every colour change is a hard step, every land edge has an ink line, and shadows are flat offsets, never blurs.",
-        "section": "colors"
-      },
-      {
-        "name": "The Thai First Rule",
-        "body": "Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai body text tighter than 1.5 line height.",
-        "section": "typography"
-      },
-      {
-        "name": "The Names Stay Home Rule",
-        "body": "A toy province name sits on its town, else one row below, else one row above (a name may prefer up), clear of clusters, beacons, landmarks and other names. If none of the three spots is free, it hides rather than drift. Names are short forms (กรุงเทพฯ).",
-        "section": "typography"
-      },
-      {
-        "name": "The One Light Rule",
-        "body": "Only beacons glow. No other element gets a coloured shadow or glow.",
-        "section": "elevation"
-      },
-      {
-        "name": "The One Shape Set Rule",
-        "body": "A danger level's shape is always drawn from the SVG set, never typed as a character, so chips, badges and meta lines show the same weight on every device.",
-        "section": "shapes"
-      }
+      { "name": "The One Warm Control Rule", "body": "The dawn gradient appears on the brand mark, the report control, a page's primary action and the stats ring, and nowhere else. If a screen has two dawn buttons, one of them is wrong.", "section": "colors" },
+      { "name": "The Levels Only Mean Danger Rule", "body": "Mint, butter, peach and rose are reserved for the four danger levels. Never use them for decoration, categories or status.", "section": "colors" },
+      { "name": "The Ink On Pastel Rule", "body": "Text and icons on a pastel fill are Slate Ink, never white and never the theme ink, and the pastel is mixed into white, never into the theme surface or transparent. A level tile reads the same on night glass and day glass.", "section": "colors" },
+      { "name": "The Toy Stays Toy Rule", "body": "Illustration colours do not change with the theme. In dark mode the toy keeps its daylight colours and only the sea and the street map darken; the glass dims what is behind it instead.", "section": "colors" },
+      { "name": "The Cel Rule", "body": "The land has no gradients: every colour change is a hard step, every land edge has an ink line, and its depth is flat offsets, never blurs. The sea is the smooth counterpart, and the glass is the only blur in the scene.", "section": "colors" },
+      { "name": "The Thai First Rule", "body": "Sizes and line heights are chosen for Thai with its tall vowels and tone marks; never set Thai running text tighter than 1.5. Single-line controls (chips, tabs) may set 1.", "section": "typography" },
+      { "name": "The One Family Rule", "body": "Every word the app sets is Anuphan; a new surface never brings its own face.", "section": "typography" },
+      { "name": "The One Material Rule", "body": "Every floating surface takes its look from the glass tokens (--glass-bg, -sheen, -edge, -blur, -shadow, -dim, --glass-bg-dense, --noise) through the .glass class; the few that cannot carry the class (the sheet's scrolling layer, the attribution strip, chips) apply the same tokens, never new values.", "section": "elevation" },
+      { "name": "The No Glass In Glass Rule", "body": "A second blur inside a glass panel sees only the panel. Anything set inside glass uses an ink wash and no backdrop filter; hint bubbles inside a glass pill go near-opaque instead.", "section": "elevation" },
+      { "name": "The Dense For Reading Rule", "body": "A panel of running text (report detail, sheet, tooltip) uses dense glass so ink keeps 4.5:1 over the brightest toy land; in the dark theme the backdrop dimming does the rest.", "section": "elevation" },
+      { "name": "The Two Lights Rule", "body": "Only beacons glow, and only the dawn casts a warm shadow. No other element gets a coloured shadow.", "section": "elevation" },
+      { "name": "The One Shape Set Rule", "body": "A danger level's shape is always drawn from the SVG set, never typed as a character, and on glass it always has its dark rim.", "section": "shapes" },
+      { "name": "The Small Visible, Full Target Rule", "body": "Glass controls may look small (30px chips, 32px tabs and avatar, 36px list rows, 40px circles and column buttons) but every one presses at 44 × 44px through an invisible extension.", "section": "shapes" }
     ],
     "dos": [
-      "Do encode every danger level with colour, the solid SVG shape and pulse speed together.",
-      "Do keep text on pastel fills in Slate Ink (#2B2A33), with the pastel mixed into white, in both themes.",
-      "Do show an off filter chip as an outline (transparent, 1px Sand Line, Muted Ink, line-through), not as a faded chip.",
-      "Do keep every target at least 44 × 44 px and give every beacon an aria-label of \"{title} ระดับ{level} {status}\".",
-      "Do use Lucide SVG icons for pictograms so they look the same on every device; never emoji.",
-      "Do say a report's status in words with its own Lucide icon, and say only what is true about photos (\"รูปจะขึ้นแผนที่หลังผู้ดูแลตรวจ\").",
-      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB and Lucide (ISC) in the map attribution.",
-      "Do put an admin's two opposite decisions at opposite ends of their row, different in fill and in word (secondary ปฏิเสธ… / primary อนุมัติ…), and make every ban a second press in place (แน่ใจ แบนเลย).",
-      "Do say only true things about a fix-claim photo: \"รูปหลังแก้จะขึ้นหลังผู้ดูแลยืนยัน\"."
+      "Do build every floating surface from the glass tokens and the .glass class, dense for running text.",
+      "Do keep the dawn gradient to the brand mark, the report control, a page's primary action and the stats ring.",
+      "Do set anything inside a glass panel on an ink wash with no blur of its own.",
+      "Do encode every danger level with colour, the solid SVG shape (with its dark rim on glass) and pulse speed together.",
+      "Do keep text on pastel fills in Slate Ink, with the pastel mixed into white, in both themes.",
+      "Do show an off chip drained and struck through, so it reads without colour.",
+      "Do keep every target at least 44 × 44px, even when the visible part is 30–40px, and give every beacon an aria-label of \"{title} ระดับ{level} {status}\".",
+      "Do use the dark theme as the default and check both themes; every token pair passes AA in light and dark.",
+      "Do use the one easing and the rise for anything that appears; let motion always play.",
+      "Do take every word from i18n/th.ts / en.ts and check every screen in English at 375px.",
+      "Do use Lucide SVG icons for pictograms; say a report's status in words with its own icon; say only what is true about photos.",
+      "Do credit OpenStreetMap, OpenFreeMap, OCHA COD-AB, Lucide (ISC) and Anuphan (OFL)."
     ],
     "donts": [
-      "Don't look like a dark game or a cold government form.",
-      "Don't copy or store the reference poster by ครูหนิง & Gemini; draw everything from real geometry and MIT emoji.",
+      "Don't look like a neon gaming screen or a cold government form.",
+      "Don't pile white cards over the map; a new control joins an existing glass piece before it becomes a new one.",
+      "Don't put a blurred panel inside another, or set running text on thin glass.",
+      "Don't use the dawn gradient, or a warm shadow, on anything outside its four uses.",
       "Don't show status with colour; status is beam shape.",
       "Don't let anything except beacons glow.",
       "Don't type level shapes as characters (● ▲ ◆ ⚠); draw them from the SVG set.",
-      "Don't move a map name away from its town to make it fit; hide it.",
+      "Don't copy or store the reference poster; draw everything from real geometry.",
       "Don't claim photos are blurred until blurring exists."
     ]
   }

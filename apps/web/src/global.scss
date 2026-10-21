@@ -11,6 +11,8 @@
 
 /* The glass material, the dawn accent and the grain (plan 6b); tokens.scss holds the colours */
 @use 'theme/glass';
+/* The motion kit (plan 8): easing, the choosing spring, keyframes shared by every page */
+@use 'theme/motion';
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";

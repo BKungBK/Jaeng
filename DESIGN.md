@@ -320,7 +320,7 @@ Confirmed anti-references (PRODUCT.md): a neon gaming look and a cold government
 - Lucide (ISC) line icons for every pictogram; no emoji anywhere (owner, 2026-10-17). One solid SVG shape set (circle, triangle, diamond, warning triangle) for the four danger levels.
 - Anuphan 300–600 for every word the app sets.
 - Small visible parts inside full 44px targets.
-- One easing for everything that moves; motion always plays.
+- One easing for everything that travels and one spring for choosing; motion always plays.
 
 ## Colors
 
@@ -502,7 +502,10 @@ Province polygons on real coordinates, three soil layers that flatten with zoom,
 - **Intro:** once per visit (session), 1.8s, decorative and skippable by any tap or key: a point of light grows with a peach glow (0–400ms), a 3px beam rises from it (250–900ms), "แจ้ง" in Display is written bottom-up as its letters close in (700–1300ms), the dawn blooms from the bottom-right (1000–1600ms), then the whole view scales up 6%, blurs and fades into the app (1400–1800ms).
 
 ### Motion
-- **One easing:** `cubic-bezier(0.2, 0.8, 0.2, 1)` for panels, pages, markers and the intro. Camera: `flyTo` 1600ms with curve 1.3, `fitBounds` 1200ms, both `essential`.
+- **One easing:** `cubic-bezier(0.2, 0.8, 0.2, 1)` (`--ease`) for panels, pages, markers and the intro. Camera: `flyTo` 1600ms with curve 1.3, `fitBounds` 1200ms, both `essential`.
+- **One spring, for choosing:** a tick, a switch, a chip, a disc that bounces, the me-too button. `visualDuration` 0.35s, bounce 0.3 (`POP_SPRING` in `core/motion.ts`, `--pop` in CSS as a sampled `linear()` that takes `--pop-dur` 620ms to settle). Things that can be pressed again before they finish use the real spring in JS so they keep their speed; the rest use `--pop`.
+- **Feedback kit** (`theme/_motion.scss`, `core/motion.ts`): a tick draws itself in 280ms; a ring pings out once (560ms); the chosen thing settles from 0.82 with the spring; sparks scatter from a confirmed action (`burst`); a row folds away (`collapse`); something leaving drops 6px and fades in 180ms (`leave`); a wrong entry shakes 4px twice; a busy button is swept by a band (`sheen`); a waiting placeholder shimmers (`shimmer`) and stops when its content arrives; a count rolls its digits to the new value (`<app-roll>`).
+- **Theme switch:** the new theme grows as a circle from the button pressed (View Transitions, 520ms); a language switch cross-fades in 200ms. Without the API, or in a hidden tab, the change is simply instant.
 - **Rise:** panels rise into place once on mount (from 10px lower, transparent and 6px blurred, 700ms, fill backwards only so a panel with no animation is simply there), staggered 60ms by their order: bar or side panel, chips, summary, controls and menu, dock or report pill. Page cards rise the same way; list rows 600ms, 30ms apart.
 - **Page change:** the new page rises 12px out of an 8px blur over 420ms while the old fades in 220ms; going back comes down from above.
 - **Small:** hovers 160ms ease-out, presses scale 0.96–0.97 in 120ms, the selected ring 240ms, the phone search card slides 8px in 220ms, the detail panel 16px in 320ms.
@@ -519,7 +522,8 @@ Province polygons on real coordinates, three soil layers that flatten with zoom,
 - **Do** show an off chip drained and struck through, so it reads without colour.
 - **Do** keep every target at least 44 × 44px, even when the visible part is 30–40px, and give every beacon an `aria-label` of "{title} ระดับ{level} {status}".
 - **Do** use the dark theme as the default and check both themes; every token pair passes AA in light and dark.
-- **Do** use the one easing and the rise for anything that appears; let motion always play.
+- **Do** use the one easing and the rise for anything that appears and the one spring for anything chosen; let motion always play.
+- **Do** give every confirmed action a visible answer (a tick, a ring, a rolled count), and keep every effect on `transform` and `opacity` (plus a blur on one isolated panel); markers on the map never animate a filter, backdrop or shadow.
 - **Do** take every word from `i18n/th.ts` / `en.ts` and check every screen in English at 375px.
 - **Do** use Lucide SVG icons for pictograms; say a report's status in words with its own icon; say only what is true about photos.
 - **Do** credit OpenStreetMap, OpenFreeMap, OCHA COD-AB, Lucide (ISC) and Anuphan (OFL).

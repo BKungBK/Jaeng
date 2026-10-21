@@ -1,0 +1,116 @@
+// Plan 8: the motion kit. One easing for travel (--ease, core/motion.ts EASE) and one spring for choosing
+// (--pop, core/motion.ts POP_SPRING: visualDuration 0.35 s, bounce 0.3, sampled into linear(); it takes
+// --pop-dur to settle). Motion always plays (owner decision): nothing here reads a reduced-motion setting.
+// Every entrance has only a `from` frame, so with no animation the element is simply there.
+
+:root {
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --pop-dur: 620ms;
+  --pop: linear(0, 0.026, 0.093, 0.186, 0.292, 0.403, 0.512, 0.613, 0.705, 0.785, 0.852, 0.908, 0.952, 0.985, 1.01, 1.027, 1.038, 1.044, 1.046, 1.045, 1.042, 1.038, 1.033, 1.028, 1);
+}
+
+// a tick drawing itself: the path has pathLength 1
+@keyframes tick-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+// a ring leaving whatever was chosen; play it on a ::after/::before ring that starts invisible
+@keyframes ping {
+  from {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+// the chosen thing landing: a spring from smaller, no overshoot frame of its own (--pop supplies it)
+@keyframes settle {
+  from {
+    transform: scale(0.82);
+  }
+}
+
+// a button at work: a soft band sweeping across it
+@keyframes sheen {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+// a placeholder waiting for its content
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+// something leaving: faster than it came
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+// a sideways shake for "that did not work" (a wrong code, a failed photo)
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+// the sparks of core/motion.ts burst(): little dots flying out of the middle of their host
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+// view transitions (core/motion.ts viewTransition): the old look stays, the new one fades in over it,
+// or, for a theme switch from a button, grows as a circle from that button
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease);
+  mix-blend-mode: normal;
+}
+
+:root[data-vt='reveal'] {
+  &::view-transition-old(root) {
+    animation: none;
+  }
+
+  &::view-transition-new(root) {
+    animation: vt-reveal 520ms var(--ease);
+  }
+}
+
+@keyframes vt-reveal {
+  from {
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}

@@ -45,6 +45,24 @@ describe('theme', () => {
     }
   }, 30_000);
 
+  it('ships the motion kit once, globally: one easing, one spring, the shared keyframes', () => {
+    const motion = read('src/theme/_motion.scss');
+    expect(read('src/global.scss')).toMatch(/@use 'theme\/motion'/);
+    expect(motion).toMatch(/--ease:\s*cubic-bezier\(0\.2,\s*0\.8,\s*0\.2,\s*1\)/);
+    expect(motion).toMatch(/--pop:\s*linear\(/);
+    for (const name of ['tick-draw', 'ping', 'settle', 'sheen', 'shimmer', 'leave', 'shake', 'vt-reveal']) {
+      expect(motion, name).toMatch(new RegExp(`@keyframes ${name}\\b`));
+    }
+    // the mixins file emits nothing by itself, so components can @use it without repeating the keyframes
+    expect(read('src/theme/_motion-mixins.scss')).not.toMatch(/@keyframes/);
+  });
+
+  it('plays one-shot motion from a `from` frame only and never holds its end (a held transform traps fixed children)', () => {
+    for (const file of sourceFiles('src').filter((f) => !f.endsWith('.spec.ts'))) {
+      expect(read(file), file).not.toMatch(/animation:\s*(settle|ping|leave|shake|tick-draw)\b[^;]*\b(both|forwards)\b/);
+    }
+  }, 30_000);
+
   it('uses Anuphan everywhere except MapLibre glyph fonts', () => {
     const files = sourceFiles('src').filter((f) => !f.endsWith('map-style.ts') && !f.endsWith('theme.spec.ts'));
     expect(files.length).toBeGreaterThan(50);

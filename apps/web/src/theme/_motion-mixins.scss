@@ -1,0 +1,11 @@
+// Mixins for the motion kit (plan 8). They emit nothing until used, so a component can @use this file
+// without repeating the keyframes that theme/_motion.scss already ships globally.
+
+// a press: every tappable thing gives a little
+@mixin press($scale: 0.97) {
+  transition: transform 120ms var(--ease);
+
+  &:active:not(:disabled) {
+    transform: scale($scale);
+  }
+}

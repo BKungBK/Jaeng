@@ -87,6 +87,29 @@ export async function collapse(el: HTMLElement, ms = 260): Promise<void> {
   ).finished;
 }
 
+/**
+ * A decided card on an admin queue goes (plan 8). Approving: a tinted veil with a tick that draws and a
+ * scatter of sparks covers it, then it folds away. Anything else (reject, dismiss): it slides 24 px aside,
+ * then folds away. Resolves when the card is gone; the caller drops it from its list afterwards.
+ */
+export async function playDone(el: HTMLElement, kind: 'approve' | 'reject'): Promise<void> {
+  if (!canAnimate(el)) return;
+  if (kind === 'approve') {
+    const veil = document.createElement('div');
+    veil.className = 'done-veil';
+    veil.setAttribute('aria-hidden', 'true');
+    veil.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" pathLength="1" /></svg>';
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    el.appendChild(veil);
+    burst(veil, { count: 12, radius: 70, color: 'var(--pri)' });
+    await animate(veil, { opacity: [0, 1] }, { duration: 0.24, ease: 'easeOut' }).finished;
+    await new Promise((r) => setTimeout(r, 360)); // long enough to see the tick drawn
+  } else {
+    await leave(el, 200, { x: 24 });
+  }
+  await collapse(el);
+}
+
 /** The choosing spring: `el` settles from `from` x its size. Interrupting it starts from where it is. */
 export async function springIn(el: HTMLElement, from = 0.8): Promise<void> {
   if (!canAnimate(el)) return;

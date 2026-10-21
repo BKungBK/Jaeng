@@ -52,6 +52,16 @@ describe('AdminPage', () => {
     expect(root.querySelector('app-review-queue')).not.toBeNull();
   });
 
+  it('has one underline that slides to the open tab, and counts that roll (plan 8)', async () => {
+    const { root } = await open('/admin');
+    const ink = root.querySelector<HTMLElement>('.tabs .ink')!;
+    expect(ink).not.toBeNull();
+    expect(ink.getAttribute('aria-hidden')).toBe('true');
+    expect(ink.style.getPropertyValue('--x')).toMatch(/px$/);
+    expect(root.querySelectorAll('.tab app-roll').length).toBe(3); // reports, claims, flags
+    expect(root.querySelector('.tab[aria-selected="true"]')?.getAttribute('style')).toBeNull(); // no border colour trick
+  });
+
   it('puts the counts on the tabs, 0 included, none on users and log', async () => {
     const { tabs } = await open('/admin');
     expect(tabs()[0].textContent?.replace(/\s+/g, ' ').trim()).toBe('รอตรวจ · 3');

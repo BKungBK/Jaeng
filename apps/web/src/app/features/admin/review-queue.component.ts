@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, output, signal, viewChild } from '@angular/core';
 import { LOCATION_MODES, REJECT_NOTE_MAX, type ApproveBody, type LocationMode, type QueueReport, type RejectBody, type RejectReason } from '@jaeng/shared/admin';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
@@ -6,6 +6,7 @@ import { REJECT_REASONS, TITLE_MAX } from '@jaeng/shared/report';
 import { ApiError } from '../../core/api.service';
 import { CategoriesService, type CategoryInfo } from '../../core/categories.service';
 import { I18nService, type Said } from '../../core/i18n.service';
+import { playDone } from '../../core/motion';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
@@ -58,6 +59,11 @@ export class ReviewQueueComponent {
   protected readonly note = signal('');
 
   protected readonly current = computed(() => this.items()[this.index()] ?? null);
+  /** the card on screen, as a list of one (see the template) */
+  protected readonly shown = computed(() => {
+    const c = this.current();
+    return c ? [c] : [];
+  });
   protected readonly truePoint = computed(() => {
     const r = this.current();
     return r ? { lng: r.lng, lat: r.lat } : null;
@@ -152,7 +158,7 @@ export class ReviewQueueComponent {
   protected async approve() {
     const r = this.current();
     if (!r || !this.canApprove()) return;
-    await this.act(r, () => this.admin.approve(r.id, this.approveBody(r)), 'admin.review.approved');
+    await this.act(r, () => this.admin.approve(r.id, this.approveBody(r)), 'admin.review.approved', 'approve');
   }
 
   protected async reject() {
@@ -162,14 +168,21 @@ export class ReviewQueueComponent {
     const body: RejectBody = { reason };
     const note = this.note().trim();
     if (reason === 'other' && note) body.note = note;
-    await this.act(r, () => this.admin.reject(r.id, body), 'admin.review.rejected');
+    await this.act(r, () => this.admin.reject(r.id, body), 'admin.review.rejected', 'reject');
   }
 
-  private async act(r: QueueReport, run: () => Promise<void>, done: MessageKey) {
+  /** How a decided card leaves (a tick and sparks for an approval, a slide for a rejection). */
+  protected playDone: (el: HTMLElement, kind: 'approve' | 'reject') => Promise<void> = playDone;
+  private card = viewChild<ElementRef<HTMLElement>>('card');
+
+  private async act(r: QueueReport, run: () => Promise<void>, done: MessageKey, kind: 'approve' | 'reject') {
     this.busy.set(true); // before any await: a second quick press is ignored
     this.message.set(null);
     try {
       await run();
+      // only after the server said yes: the card plays its exit, then leaves the list
+      const el = this.card()?.nativeElement;
+      if (el) await this.playDone(el, kind).catch(() => undefined);
       this.items.update((list) => list.filter((x) => x.id !== r.id));
       this.index.update((i) => Math.min(i, Math.max(0, this.items().length - 1)));
       this.mode.set('view');

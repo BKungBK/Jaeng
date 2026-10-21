@@ -3,14 +3,15 @@
 @switch (state()) {
   @case ('loading') {
     <p class="caption">{{ 'load.loading' | t }}</p>
-    <div class="ghost"></div>
+    <div class="ghost skel"></div>
   }
   @case ('error') {
     <p class="caption">{{ 'admin.queueFailed' | t }}</p>
     <button type="button" class="btn retry" (click)="load()"><app-icon name="refreshCw" [size]="18" />{{ 'common.tryAgain' | t }}</button>
   }
   @case ('ready') {
-    @if (current(); as r) {
+    <!-- one card at a time; a new element per report, so the folded-away one never lends its styles to the next -->
+    @for (r of shown(); track r.id) {
       <div class="counter">
         <button type="button" class="ctl" [attr.aria-label]="'admin.review.prev' | t" [disabled]="items().length < 2 || busy()" (click)="step(-1)">
           <app-icon name="chevronLeft" [size]="22" />
@@ -21,7 +22,7 @@
         </button>
       </div>
 
-      <article class="review" [style.--c]="level(r.danger_level).color">
+      <article #card class="review" [style.--c]="level(r.danger_level).color">
         @if (r.photos.length) {
           <ul class="strip" [class.single]="r.photos.length === 1" [attr.aria-label]="'detail.photos' | t">
             @for (p of r.photos; track p.path; let i = $index) {
@@ -162,7 +163,7 @@
 
               <div class="row">
                 <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">{{ 'common.cancel' | t }}</button>
-                <button type="submit" class="btn primary big" [disabled]="!canApprove()">
+                <button type="submit" class="btn primary big" [disabled]="!canApprove()" [attr.aria-busy]="busy()">
                   <app-icon name="circleCheck" [size]="20" />{{ 'admin.review.approveSend' | t }}
                 </button>
               </div>
@@ -197,7 +198,7 @@
               <p class="caption">{{ 'admin.review.rejectHint' | t }}</p>
               <div class="row">
                 <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">{{ 'common.cancel' | t }}</button>
-                <button type="submit" class="btn" [disabled]="!canReject()">
+                <button type="submit" class="btn" [disabled]="!canReject()" [attr.aria-busy]="busy()">
                   <app-icon name="circleX" [size]="18" />{{ 'admin.review.rejectSend' | t }}
                 </button>
               </div>
@@ -205,7 +206,7 @@
           }
         }
       </article>
-    } @else {
+    } @empty {
       <div class="empty">
         <span class="disc"><app-icon name="circleCheck" [size]="30" /></span>
         <p>{{ 'admin.review.empty' | t }}</p>

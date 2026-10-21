@@ -136,6 +136,34 @@ button[aria-busy='true'] {
   }
 }
 
+// a decided admin card (core/motion.ts playDone): a tinted veil with a tick drawing, over the card
+.done-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--pri) 18%, var(--surf));
+  color: var(--pri);
+  pointer-events: none;
+
+  svg {
+    width: 56px;
+    height: 56px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  path {
+    stroke-dasharray: 1;
+    animation: tick-draw 320ms var(--ease) backwards;
+  }
+}
+
 // an empty or failed state: its icon floats up and down three times, then is still
 .empty > .disc {
   animation: bob 2.4s ease-in-out 3;

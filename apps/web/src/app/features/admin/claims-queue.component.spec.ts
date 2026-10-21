@@ -33,7 +33,7 @@ async function setup(items: QueueClaim[] = [claim()], over: Record<string, unkno
   await settle();
   const root = fixture.nativeElement as HTMLElement;
   const btn = (text: string) => [...root.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes(text))!;
-  return { root, admin, changed, settle, btn };
+  return { fixture, root, admin, changed, settle, btn };
 }
 
 describe('ClaimsQueueComponent', () => {
@@ -63,6 +63,32 @@ describe('ClaimsQueueComponent', () => {
     expect(admin.reviewClaim).toHaveBeenCalledWith('c2', false);
     expect(root.querySelector('[role="status"]')?.textContent).toContain('ส่งกลับเป็นยังไม่แก้แล้ว');
     expect(changed).toHaveBeenCalledTimes(2);
+  });
+
+  it('the card plays its exit after the server said yes and leaves the list only when it is over (plan 8)', async () => {
+    let finish!: () => void;
+    const { fixture, admin, btn, settle, root } = await setup([claim(), claim({ id: 'c2' })]);
+    const playDone = vi.fn(() => new Promise<void>((r) => (finish = r)));
+    (fixture.componentInstance as unknown as { playDone: unknown }).playDone = playDone;
+    btn('ยืนยันว่าแก้แล้ว').click();
+    await settle();
+    expect(admin.reviewClaim).toHaveBeenCalledWith('c1', true);
+    expect(playDone).toHaveBeenCalledWith(expect.any(HTMLElement), 'approve');
+    expect(root.querySelectorAll('article.item')).toHaveLength(2); // still both
+    finish();
+    await settle();
+    expect(root.querySelectorAll('article.item')).toHaveLength(1);
+  });
+
+  it('plays nothing when the server says no', async () => {
+    const err = new ApiError(500, 'internal', 'ขัดข้อง', 'en');
+    const { fixture, btn, settle, root } = await setup(undefined, { reviewClaim: vi.fn().mockRejectedValue(err) });
+    const playDone = vi.fn().mockResolvedValue(undefined);
+    (fixture.componentInstance as unknown as { playDone: unknown }).playDone = playDone;
+    btn('ยังไม่แก้').click();
+    await settle();
+    expect(playDone).not.toHaveBeenCalled();
+    expect(root.querySelectorAll('article.item')).toHaveLength(1);
   });
 
   it('a double click sends once', async () => {

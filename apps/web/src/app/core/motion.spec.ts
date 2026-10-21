@@ -1,4 +1,15 @@
-import { burst, burstSpecs, collapse, EASE, FIT, FLY, glassNav, leave, POP_SPRING, springIn, viewTransition } from './motion';
+import { burst, burstSpecs, collapse, EASE, FIT, FLY, glassNav, leave, playDone, POP_SPRING, springIn, viewTransition } from './motion';
+
+describe('playDone', () => {
+  it('resolves at once, and leaves the card untouched, where nothing can animate (jsdom)', async () => {
+    const card = document.createElement('article');
+    card.innerHTML = '<p>x</p>';
+    await playDone(card, 'approve');
+    await playDone(card, 'reject');
+    expect(card.querySelector('.done-veil')).toBeNull();
+    expect(card.getAttribute('style')).toBeNull();
+  });
+});
 
 const page = () => {
   const el = document.createElement('div');

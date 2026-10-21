@@ -178,6 +178,8 @@ textarea {
   gap: 12px;
   padding: 24px 0 8px;
   text-align: center;
+  // the last card is gone: "nothing waiting" floats up (the first time and the last)
+  animation: rise 600ms var(--ease) backwards;
 
   .disc {
     display: grid;
@@ -193,7 +195,6 @@ textarea {
 .ghost {
   height: 160px;
   border-radius: 14px;
-  background: var(--bg);
 }
 
 .retry {

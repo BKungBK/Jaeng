@@ -103,13 +103,41 @@ h1 {
   }
 
   &[aria-selected='true'] {
-    border-bottom-color: var(--pri);
     color: var(--ink);
     font-weight: 600;
   }
 }
 
+// the open tab's underline slides to its tab (a 1 px bar scaled to the tab's width and moved by a transform)
+.tabs {
+  position: relative;
+}
+
+.ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 2px;
+  background: var(--pri);
+  transform-origin: left;
+  transform: translateX(var(--x, 0px)) scaleX(var(--w, 0));
+  transition: transform 320ms var(--ease);
+  pointer-events: none;
+}
+
 .panel {
   display: grid;
   min-width: 0;
+}
+
+// a tab's body fades in when the tab changes (the old one is gone: the switch makes a new component)
+.panel > * {
+  animation: tab-in 200ms var(--ease) backwards;
+}
+
+@keyframes tab-in {
+  from {
+    opacity: 0;
+  }
 }

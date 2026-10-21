@@ -199,6 +199,63 @@ describe('ReviewQueueComponent', () => {
     expect(admin.approve).toHaveBeenCalledTimes(1);
   });
 
+  describe('the card leaves with a motion (plan 8)', () => {
+    /** the exit stays pending until `finish()`, so the test can look at the list meanwhile */
+    function holdExit(fixture: { componentInstance: object }) {
+      let finish!: () => void;
+      const playDone = vi.fn(() => new Promise<void>((r) => (finish = r)));
+      (fixture.componentInstance as { playDone: unknown }).playDone = playDone;
+      return { playDone, finish: () => finish() };
+    }
+
+    it('after a yes from the server the card plays its exit; it is in the list until that is over', async () => {
+      const { fixture, click, root, settle, changed } = await setup();
+      const { playDone, finish } = holdExit(fixture);
+      await click('อนุมัติ…');
+      await click('อนุมัติ ขึ้นแผนที่');
+      expect(playDone).toHaveBeenCalledWith(expect.any(HTMLElement), 'approve');
+      expect(root.querySelector('h2')?.textContent).toContain('หลุมลึกหน้าตลาด'); // still there
+      expect(root.textContent).toContain('เรื่องที่ 1 จาก 2');
+      expect(changed).not.toHaveBeenCalled();
+      finish();
+      await settle();
+      expect(root.querySelector('h2')?.textContent).toContain('ไฟดับ'); // the next one is on screen
+      expect(root.textContent).toContain('เรื่องที่ 1 จาก 1');
+      expect(changed).toHaveBeenCalled();
+    });
+
+    it('a rejection slides away instead of ticking', async () => {
+      const { fixture, click, settle } = await setup();
+      const { playDone, finish } = holdExit(fixture);
+      await click('ปฏิเสธ…');
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[role="radio"]')!.click();
+      await settle();
+      await click('ยืนยันปฏิเสธ');
+      expect(playDone).toHaveBeenCalledWith(expect.any(HTMLElement), 'reject');
+      finish();
+    });
+
+    it('does not play anything when the server says no, and keeps the card with the words', async () => {
+      const err = new ApiError(500, 'internal', 'ขัดข้อง', 'en');
+      const { fixture, click, root } = await setup(undefined, { approve: vi.fn().mockRejectedValue(err) });
+      const { playDone } = holdExit(fixture);
+      await click('อนุมัติ…');
+      await click('อนุมัติ ขึ้นแผนที่');
+      expect(playDone).not.toHaveBeenCalled();
+      expect(root.querySelector('h2')?.textContent).toContain('หลุมลึกหน้าตลาด');
+    });
+
+    it('the last card out shows "nothing waiting"', async () => {
+      const { fixture, click, root, settle } = await setup([item()]);
+      const { finish } = holdExit(fixture);
+      await click('อนุมัติ…');
+      await click('อนุมัติ ขึ้นแผนที่');
+      finish();
+      await settle();
+      expect(root.querySelector('.empty')?.textContent).toContain('ไม่มีเรื่องรอตรวจ เยี่ยมเลย');
+    });
+  });
+
   it('an empty queue says so', async () => {
     const { root } = await setup([]);
     expect(root.textContent).toContain('ไม่มีเรื่องรอตรวจ เยี่ยมเลย');

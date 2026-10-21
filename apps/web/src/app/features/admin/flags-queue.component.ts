@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import type { FlagAction, HiddenItem, QueueFlag } from '@jaeng/shared/admin';
 import { ApiError } from '../../core/api.service';
+import { playDone } from '../../core/motion';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
@@ -28,7 +29,7 @@ const DONE: Record<FlagAction, MessageKey> = {
     @switch (state()) {
       @case ('loading') {
         <p class="caption">{{ 'load.loading' | t }}</p>
-        <div class="ghost"></div>
+        <div class="ghost skel"></div>
       }
       @case ('error') {
         <p class="caption">{{ 'admin.listFailed' | t }}</p>
@@ -77,17 +78,17 @@ const DONE: Record<FlagAction, MessageKey> = {
             @if (confirming() === t.flag_id) {
               <div class="decide confirm">
                 <button type="button" class="btn" [disabled]="busy()" (click)="confirming.set(null)">{{ 'common.cancel' | t }}</button>
-                <button type="button" class="btn" [disabled]="busy()" (click)="resolve(t, 'ban')">
+                <button type="button" class="btn" [disabled]="busy()" [attr.aria-busy]="busy()" (click)="resolve(t, 'ban', $event)">
                   <app-icon name="ban" [size]="18" />{{ 'admin.sureBan' | t }}
                 </button>
               </div>
             } @else {
               <div class="decide actions">
-                <button type="button" class="btn" [disabled]="busy()" (click)="resolve(t, 'dismiss')">
+                <button type="button" class="btn" [disabled]="busy()" (click)="resolve(t, 'dismiss', $event)">
                   <app-icon name="undo2" [size]="18" />{{ (t.hidden ? 'admin.flags.dismissRestore' : 'admin.flags.dismiss') | t }}
                 </button>
                 @if (!t.hidden) {
-                  <button type="button" class="btn" [disabled]="busy()" (click)="resolve(t, 'hide')">
+                  <button type="button" class="btn" [disabled]="busy()" (click)="resolve(t, 'hide', $event)">
                     <app-icon name="eyeOff" [size]="18" />{{ 'admin.flags.hide' | t }}
                   </button>
                 }
@@ -162,22 +163,28 @@ export class FlagsQueueComponent {
     }
   }
 
-  protected async resolve(t: QueueFlag, action: FlagAction) {
+  protected async resolve(t: QueueFlag, action: FlagAction, event?: Event) {
     const done: MessageKey = action === 'dismiss' && t.hidden ? 'admin.flags.done.dismissRestored' : DONE[action];
-    await this.run(() => this.admin.resolveFlags(t.flag_id, action), done);
+    const card = (event?.target as HTMLElement | undefined)?.closest<HTMLElement>('article');
+    // hiding or banning acts on the target (a tick and sparks); dismissing only lets the card go (a slide)
+    await this.run(() => this.admin.resolveFlags(t.flag_id, action), done, card ?? undefined, action === 'dismiss' ? 'reject' : 'approve');
   }
 
   protected async restore(h: HiddenItem) {
     await this.run(() => this.admin.restore(h.target_type, h.target_id), 'admin.flags.done.restored');
   }
 
+  /** How a decided card leaves. */
+  protected playDone: (el: HTMLElement, kind: 'approve' | 'reject') => Promise<void> = playDone;
+
   /** Every action changes both lists (a hide adds to "Hidden"), so both are read again after it. */
-  private async run(act: () => Promise<void>, done: MessageKey) {
+  private async run(act: () => Promise<void>, done: MessageKey, card?: HTMLElement, kind: 'approve' | 'reject' = 'approve') {
     if (this.busy()) return;
     this.busy.set(true);
     this.message.set(null);
     try {
       await act();
+      if (card) await this.playDone(card, kind).catch(() => undefined);
       await this.load();
       this.message.set(done);
       this.changed.emit();

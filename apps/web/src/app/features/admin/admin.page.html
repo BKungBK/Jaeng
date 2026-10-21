@@ -9,6 +9,8 @@
     </header>
 
     <div class="tabs" role="tablist" [attr.aria-label]="'admin.tabs' | t" (keydown)="onKey($event)">
+      <!-- the underline of the open tab: one element that slides to it (a transform, not a border) -->
+      <span class="ink" aria-hidden="true" [style.--x]="ink().x + 'px'" [style.--w]="ink().w"></span>
       @for (t of tabs; track t) {
         <button
           type="button"
@@ -21,7 +23,7 @@
           (click)="select(t)"
         >
           <app-icon [name]="icons[t]" [size]="18" />
-          {{ word(t) | t }}@if (count(t) !== null) { · {{ count(t) }} }
+          {{ word(t) | t }}@if (count(t) !== null) { · <app-roll [value]="count(t)!" /> }
         </button>
       }
     </div>

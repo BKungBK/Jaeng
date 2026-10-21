@@ -3,6 +3,7 @@ import type { QueueClaim } from '@jaeng/shared/admin';
 import { LEVELS, type DangerLevel } from '@jaeng/shared/levels';
 import { ApiError } from '../../core/api.service';
 import { I18nService, type Said } from '../../core/i18n.service';
+import { playDone } from '../../core/motion';
 import { TPipe } from '../../i18n/t.pipe';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { IconComponent } from '../../shared/icon.component';
@@ -22,7 +23,7 @@ type LoadState = 'loading' | 'ready' | 'error';
     @switch (state()) {
       @case ('loading') {
         <p class="caption">{{ 'load.loading' | t }}</p>
-        <div class="ghost"></div>
+        <div class="ghost skel"></div>
       }
       @case ('error') {
         <p class="caption">{{ 'admin.queueFailed' | t }}</p>
@@ -68,10 +69,10 @@ type LoadState = 'loading' | 'ready' | 'error';
               <p class="note-text">{{ c.note }}</p>
             }
             <div class="decide">
-              <button type="button" class="btn" [disabled]="busy()" (click)="review(c, false)">
+              <button type="button" class="btn" [disabled]="busy()" (click)="review(c, false, $event)">
                 <app-icon name="circleX" [size]="18" />{{ 'admin.claims.notFixed' | t }}
               </button>
-              <button type="button" class="btn primary" [disabled]="busy()" (click)="review(c, true)">
+              <button type="button" class="btn primary" [disabled]="busy()" [attr.aria-busy]="busy()" (click)="review(c, true, $event)">
                 <app-icon name="circleCheck" [size]="18" />{{ 'admin.claims.confirm' | t }}
               </button>
             </div>
@@ -111,12 +112,17 @@ export class ClaimsQueueComponent {
     }
   }
 
-  protected async review(c: QueueClaim, approve: boolean) {
+  /** How a decided card leaves (a tick and sparks for a confirmation, a slide for "not fixed"). */
+  protected playDone: (el: HTMLElement, kind: 'approve' | 'reject') => Promise<void> = playDone;
+
+  protected async review(c: QueueClaim, approve: boolean, event?: Event) {
     if (this.busy()) return;
     this.busy.set(true);
     this.message.set(null);
     try {
       await this.admin.reviewClaim(c.id, approve);
+      const card = (event?.target as HTMLElement | undefined)?.closest<HTMLElement>('article');
+      if (card) await this.playDone(card, approve ? 'approve' : 'reject').catch(() => undefined);
       this.items.update((list) => list.filter((x) => x.id !== c.id));
       this.message.set(approve ? 'admin.claims.confirmed' : 'admin.claims.sentBack');
       this.changed.emit();

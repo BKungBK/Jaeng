@@ -1,11 +1,13 @@
 import { BackdropComponent } from '../../shared/backdrop.component';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, Injector, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import type { AdminCounts } from '@jaeng/shared/admin';
 import { map } from 'rxjs';
+import { I18nService } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { RollComponent } from '../../shared/roll.component';
 import { MapReturnService } from '../report-new/map-return.service';
 import { AdminService } from './admin.service';
 import { ADMIN_TABS, TAB_ICON, tabKey, type AdminTab } from './admin-labels';
@@ -24,7 +26,7 @@ const isTab = (v: string | null): v is AdminTab => (ADMIN_TABS as readonly strin
 @Component({
   selector: 'app-admin',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BackdropComponent, IconComponent, TPipe, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent, UsersTabComponent, LogTabComponent],
+  imports: [BackdropComponent, IconComponent, RollComponent, TPipe, ReviewQueueComponent, ClaimsQueueComponent, FlagsQueueComponent, UsersTabComponent, LogTabComponent],
   templateUrl: 'admin.page.html',
   styleUrl: 'admin.page.scss',
   host: { class: 'ion-page' },
@@ -47,8 +49,25 @@ export class AdminPage {
     return isTab(t) ? t : 'reports';
   });
 
+  /** where the underline of the open tab goes (left edge in px, width in px: it is scaled from 1 px) */
+  protected readonly ink = signal({ x: 0, w: 0 });
+  private injector = inject(Injector);
+  private i18n = inject(I18nService);
+
   constructor() {
     void this.refreshCounts();
+    // the open tab, its numbers or the language changed: measure again once the tabs have their new width
+    effect(() => {
+      this.tab();
+      this.counts();
+      this.i18n.locale();
+      afterNextRender(() => this.measure(), { injector: this.injector });
+    });
+  }
+
+  private measure() {
+    const tab = this.host.nativeElement.querySelector<HTMLElement>('.tab[aria-selected="true"]');
+    if (tab) this.ink.set({ x: tab.offsetLeft, w: tab.offsetWidth });
   }
 
   ionViewDidEnter() {

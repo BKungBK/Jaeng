@@ -2,9 +2,31 @@
 	admin off
 }
 
+# The Android app (plan 7) runs at http://localhost and calls this server across origins, so /api
+# answers CORS for that one origin. /sb is Kong's: it already answers on its own, and a second
+# Access-Control-Allow-Origin would make the browser refuse the response (scripts/check-api.mjs checks).
+(app_cors) {
+	@app_origin header Origin http://localhost
+	@app_preflight {
+		method OPTIONS
+		header Origin http://localhost
+	}
+	header @app_origin {
+		Access-Control-Allow-Origin http://localhost
+		+Vary Origin
+	}
+	header @app_preflight {
+		Access-Control-Allow-Methods "GET, POST, PATCH, OPTIONS"
+		Access-Control-Allow-Headers "authorization, content-type"
+		Access-Control-Max-Age 86400
+	}
+	respond @app_preflight 204
+}
+
 # Single origin for the whole app (spec 4.1). Prefixes are stripped before proxying.
 :8000 {
 	handle_path /api/* {
+		import app_cors
 		reverse_proxy api:3000
 	}
 
@@ -21,6 +43,7 @@
 # service worker. Same /api and /sb as the dev site; the worker and index.html are never cached.
 :8100 {
 	handle_path /api/* {
+		import app_cors
 		reverse_proxy api:3000
 	}
 

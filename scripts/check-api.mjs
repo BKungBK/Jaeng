@@ -1025,11 +1025,41 @@ async function plan6() {
   }
 }
 
+// Plan 7: the Android app runs at http://localhost and calls this server across origins.
+async function plan7() {
+  const APP = 'http://localhost';
+  for (const site of ['http://localhost:8000', 'http://localhost:8100']) {
+    const pre = await fetch(`${site}/api/reports`, {
+      method: 'OPTIONS',
+      headers: { origin: APP, 'access-control-request-method': 'POST', 'access-control-request-headers': 'authorization, content-type' },
+    });
+    const h = (name) => pre.headers.get(name) ?? '';
+    check(`plan 7: ${site} preflight for the app -> 204`, pre.status === 204, String(pre.status));
+    check(`plan 7: ${site} preflight allows the app origin, methods and headers`,
+      h('access-control-allow-origin') === APP &&
+        ['GET', 'POST', 'PATCH'].every((m) => h('access-control-allow-methods').includes(m)) &&
+        ['authorization', 'content-type'].every((x) => h('access-control-allow-headers').toLowerCase().includes(x)),
+      JSON.stringify([...pre.headers]));
+    const own = await fetch(`${site}/api/health`, { headers: { origin: APP } });
+    check(`plan 7: ${site} /api answers the app with its origin`, own.headers.get('access-control-allow-origin') === APP);
+    const evil = await fetch(`${site}/api/health`, { headers: { origin: 'http://evil.example' } });
+    check(`plan 7: ${site} /api gives another origin no CORS header`, evil.headers.get('access-control-allow-origin') === null);
+  }
+  // supabase-js (sign-in, storage, realtime setup) calls /sb with its own headers; two values would be refused
+  const sbPre = await fetch(`${BASE}/sb/auth/v1/token`, {
+    method: 'OPTIONS',
+    headers: { origin: 'http://localhost', 'access-control-request-method': 'POST', 'access-control-request-headers': 'apikey, content-type, x-client-info' },
+  });
+  const allowOrigin = sbPre.headers.get('access-control-allow-origin') ?? '';
+  check('plan 7: /sb preflight has exactly one allowed origin', /^(\*|http:\/\/localhost)$/.test(allowOrigin), `${sbPre.status} "${allowOrigin}"`);
+}
+
 try {
   await main();
   await plan4();
   await plan5();
   await plan6();
+  await plan7();
 } catch (e) {
   console.error(e);
   failed++;

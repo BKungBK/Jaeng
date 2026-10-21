@@ -2,6 +2,11 @@
 // Each tab component @uses this file; the buttons and captions come from the report flow.
 @forward '../report-new/flow';
 @use '../report-new/flow';
+@use '../../shared/selectable' as sel;
+// the choosing recipe is part of the admin kit: tabs call `@include admin.selectable(...)`
+@mixin selectable($fill: color-mix(in srgb, var(--pri) 10%, transparent)) {
+  @include sel.selectable($fill);
+}
 
 :host {
   display: grid;
@@ -126,6 +131,7 @@ textarea {
 
 // a radio row: 44 px, the chosen one gets a 2 px Trust Blue edge and a check (shape, not colour)
 .reason {
+  @include sel.selectable(color-mix(in srgb, var(--pri) 10%, var(--surf)));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -153,7 +159,6 @@ textarea {
   &[aria-checked='true'] {
     padding: 0 11px;
     border: 2px solid var(--pri);
-    background: color-mix(in srgb, var(--pri) 10%, var(--surf));
     font-weight: 500;
 
     .mark {

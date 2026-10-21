@@ -1,5 +1,7 @@
 // A small segmented radiogroup (language, theme). Every option is a 44 px target; the chosen one is
 // told by its fill and a heavier weight, never by colour alone (the tick of aria-checked is read out).
+@use 'selectable' as sel;
+
 :host {
   display: block;
 }
@@ -15,6 +17,7 @@
 }
 
 .opt {
+  @include sel.selectable(color-mix(in srgb, var(--ink) 6%, transparent));
   display: inline-flex;
   flex: 1 1 auto;
   align-items: center;
@@ -34,7 +37,6 @@
   }
 
   &[aria-checked='true'] {
-    background: color-mix(in srgb, var(--ink) 6%, transparent);
     box-shadow: var(--sh);
     color: var(--ink);
     font-weight: 600;

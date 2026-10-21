@@ -10,6 +10,7 @@ import { RealtimeService } from '../../core/realtime.service';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { categoryIcon } from '../map/beacon';
 import { FilterBarComponent } from '../map/filter-bar.component';
 import { LevelShapeComponent } from '../map/level-shape';
@@ -33,7 +34,7 @@ const SORT_ICON: Partial<Record<ListSort, 'navigation'>> = { near: 'navigation' 
 @Component({
   selector: 'app-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BackdropComponent, TPipe, IconComponent, LevelShapeComponent, FilterBarComponent],
+  imports: [BackdropComponent, TPipe, IconComponent, TickComponent, LevelShapeComponent, FilterBarComponent],
   templateUrl: 'list.page.html',
   styleUrl: 'list.page.scss',
   host: { class: 'ion-page' },

@@ -1,6 +1,7 @@
 // /list: a full-screen glass page on phones, a centred 600 px glass card from 820 px (the /me grammar),
 // both over the shared backdrop (plan 6b); rows as on /me.
 @use '../report-new/flow';
+@use '../../shared/selectable' as sel;
 
 :host {
   color: var(--ink);
@@ -109,6 +110,7 @@ app-filter-bar {
 }
 
 .opt {
+  @include sel.selectable(color-mix(in srgb, var(--ink) 14%, transparent));
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -128,7 +130,6 @@ app-filter-bar {
   }
 
   &[aria-checked='true'] {
-    background: color-mix(in srgb, var(--ink) 14%, transparent);
     box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
     color: var(--ink);
     font-weight: 600;
@@ -148,11 +149,44 @@ app-filter-bar {
   font: 500 14px/1.4 flow.$plex;
   cursor: pointer;
 
+  position: relative;
+
+  // the real checkbox stays (keyboard, screen reader, the 44 px target); the box and its tick are drawn
   input {
+    position: absolute;
+    left: -11px;
+    top: 0;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .box {
+    display: grid;
+    place-items: center;
+    flex: none;
+    box-sizing: border-box;
     width: 22px;
     height: 22px;
-    margin: 0;
-    accent-color: var(--pri);
+    border: 2px solid var(--ink2);
+    border-radius: 7px;
+    color: var(--onpri);
+    transition:
+      background-color 160ms ease-out,
+      border-color 160ms ease-out;
+  }
+
+  input:checked + .box {
+    border-color: var(--pri);
+    background: var(--pri);
+    animation: settle var(--pop-dur) var(--pop) backwards;
+  }
+
+  input:focus-visible + .box {
+    outline: 3px solid var(--pri);
+    outline-offset: 2px;
   }
 }
 

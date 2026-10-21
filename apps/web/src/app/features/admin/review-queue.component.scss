@@ -156,7 +156,7 @@ h3 {
 }
 
 .pick {
-  position: relative;
+  @include admin.selectable(color-mix(in srgb, var(--pri) 10%, var(--surf)));
   display: grid;
   justify-items: center;
   gap: 4px;
@@ -172,7 +172,6 @@ h3 {
   &[aria-pressed='true'] {
     padding: 9px 5px;
     border: 2px solid var(--pri);
-    background: color-mix(in srgb, var(--pri) 10%, var(--surf));
   }
 
   .tick {
@@ -191,6 +190,7 @@ h3 {
 
 // level chips: on = level colour mixed into white with its shape; off = outline (DESIGN.md Chips)
 .chip {
+  @include admin.selectable(color-mix(in srgb, var(--c) 55%, #fff));
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -202,10 +202,13 @@ h3 {
   color: var(--ink2);
   font: 500 14px/1.4 admin.$plex;
   cursor: pointer;
+  transition:
+    transform 120ms var(--ease),
+    border-color 200ms ease-out,
+    color 200ms ease-out;
 
   &[aria-pressed='true'] {
     border-color: transparent;
-    background: color-mix(in srgb, var(--c) 55%, #fff);
     color: admin.$slate;
   }
 }

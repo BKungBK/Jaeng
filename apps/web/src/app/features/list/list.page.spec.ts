@@ -143,8 +143,10 @@ describe('ListPage', () => {
     const { root, settle, page } = await setup();
     const box = () => root.querySelector<HTMLInputElement>('input.old');
     expect(box()).not.toBeNull();
+    expect(root.querySelector('label.check .box app-tick')).toBeNull(); // unticked: an empty box
     box()!.click();
     await settle();
+    expect(root.querySelector('label.check .box app-tick svg.play')).not.toBeNull(); // a drawn tick, not the browser's
     expect(page).toHaveBeenLastCalledWith(expect.objectContaining({ includeOld: true }));
     TestBed.inject(FilterState).showResolved.set(false);
     await settle();

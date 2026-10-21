@@ -14,6 +14,7 @@ import { FLAG_REASONS, NOTE_MAX, type FlagBody, type FlagReason, type FlagTarget
 import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { flagReasonKey } from './flag-reason';
 import { ReportDetailService } from './report-detail.service';
 
@@ -21,55 +22,8 @@ import { ReportDetailService } from './report-detail.service';
 @Component({
   selector: 'app-flag-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe],
-  styleUrls: ['inline-form.scss'],
-  styles: `
-    .reasons {
-      display: grid;
-      gap: 6px;
-    }
-    .reason {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-height: 44px;
-      padding: 0 12px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--surf);
-      color: var(--ink);
-      font: 400 15px/1.4 var(--font);
-      text-align: left;
-      cursor: pointer;
-
-      .mark {
-        display: grid;
-        place-items: center;
-        flex: none;
-        width: 20px;
-        height: 20px;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        color: var(--pri);
-      }
-
-      &[aria-checked='true'] {
-        border: 2px solid var(--pri);
-        padding: 0 11px;
-        background: color-mix(in srgb, var(--pri) 10%, var(--surf));
-        font-weight: 500;
-
-        .mark {
-          border-color: var(--pri);
-        }
-      }
-
-      &:focus-visible {
-        outline: 3px solid var(--pri);
-        outline-offset: 2px;
-      }
-    }
-  `,
+  imports: [IconComponent, TickComponent, TPipe],
+  styleUrls: ['inline-form.scss', 'flag-form.component.scss'],
   template: `
     <form (submit)="$event.preventDefault(); submit()">
       <h3 #heading tabindex="-1" [id]="headingId">{{ (target().type === 'report' ? 'flagForm.report' : 'flagForm.comment') | t }}</h3>
@@ -86,7 +40,7 @@ import { ReportDetailService } from './report-detail.service';
           >
             <span class="mark" aria-hidden="true">
               @if (reason() === r) {
-                <app-icon name="check" [size]="14" />
+                <app-tick [size]="14" />
               }
             </span>
             {{ word(r) | t }}

@@ -38,6 +38,11 @@
     @if (filters.showResolved()) {
       <label class="check">
         <input type="checkbox" class="old" [checked]="includeOld()" (change)="includeOld.set($any($event.target).checked)" />
+        <span class="box" aria-hidden="true">
+          @if (includeOld()) {
+            <app-tick [size]="14" />
+          }
+        </span>
         {{ 'list.includeOld' | t }}
       </label>
     }

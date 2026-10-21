@@ -20,11 +20,12 @@ import { LevelShapeComponent } from './level-shape';
           type="button"
           class="chip"
           [style.--c]="l.color"
+          [class.back]="backOn() === l.level"
           [attr.aria-pressed]="filters.levels().includes(l.level)"
           (click)="toggle(l.level)"
         >
           <app-level-shape [level]="l.level" />
-          {{ i18n.levelName(l.level) }}
+          <span class="lbl">{{ i18n.levelName(l.level) }}</span>
         </button>
       }
       @let n = filters.extraCount();
@@ -70,7 +71,7 @@ import { LevelShapeComponent } from './level-shape';
       font: 500 12px/1 var(--font);
       white-space: nowrap;
       cursor: pointer;
-      transition: transform 120ms ease-out;
+      transition: transform 200ms var(--ease);
     }
     .chip::before,
     .more::before {
@@ -107,10 +108,32 @@ import { LevelShapeComponent } from './level-shape';
       stroke-width: 1;
       paint-order: stroke;
     }
-    /* off: drained and struck through, so it reads without colour */
+    /* off: drained and struck through, so it reads without colour. The strike is drawn left to right
+       (a scaled line, not text-decoration) and the chip gives up a little; switched back on it settles. */
+    .lbl {
+      position: relative;
+    }
+    .lbl::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 200ms var(--ease);
+    }
     .chip[aria-pressed='false'] {
       color: var(--ink2);
-      text-decoration: line-through;
+      transform: scale(0.96);
+    }
+    .chip[aria-pressed='false'] .lbl::after {
+      transform: scaleX(1);
+    }
+    .chip.back[aria-pressed='true'] {
+      animation: settle var(--pop-dur) var(--pop) backwards;
     }
     .chip[aria-pressed='false']::before {
       opacity: 0.55;
@@ -183,9 +206,15 @@ export class FilterBarComponent {
   protected readonly levelsInfo = LEVELS;
   protected readonly i18n = inject(I18nService);
 
+  /** the chip just switched back on: it settles once (and not when the map first loads with all four on) */
+  protected readonly backOn = signal<DangerLevel | null>(null);
+
   protected toggle(level: DangerLevel) {
     const on = this.filters.levels();
-    this.filters.levels.set(on.includes(level) ? on.filter((l) => l !== level) : [...on, level].sort((a, b) => a - b));
+    const turningOff = on.includes(level);
+    this.filters.levels.set(turningOff ? on.filter((l) => l !== level) : [...on, level].sort((a, b) => a - b));
+    if (!turningOff) this.backOn.set(level);
+    else if (this.backOn() === level) this.backOn.set(null);
   }
 
   /** A press outside the tray and its panel closes the panel. The panel's own full-screen backdrop

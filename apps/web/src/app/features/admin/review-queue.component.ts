@@ -10,6 +10,7 @@ import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { categoryIcon } from '../map/beacon';
 import { LevelShapeComponent } from '../map/level-shape';
 import { AdminService } from './admin.service';
@@ -27,7 +28,7 @@ type LoadState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-review-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, LevelShapeComponent, PlaceMapComponent, ServerUrlPipe, TPipe],
+  imports: [IconComponent, TickComponent, LevelShapeComponent, PlaceMapComponent, ServerUrlPipe, TPipe],
   templateUrl: 'review-queue.component.html',
   styleUrl: 'review-queue.component.scss',
 })

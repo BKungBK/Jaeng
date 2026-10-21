@@ -1,0 +1,37 @@
+// Plan 8: how everything that can be chosen is chosen (chips, cards, radios, segments). One recipe:
+// a fill sweeps in from the left (a scaled ::before, so only a transform moves), the thing settles once
+// with the pop spring, and a press gives a little. `$fill` is the chosen background; the element's own
+// background stays as the unchosen look. Needs a ::before of its own to spare, and `[aria-pressed]` or
+// `[aria-checked]` to tell chosen from not. Keyframes (`settle`) and `--pop` come from theme/_motion.scss.
+@mixin selectable($fill: color-mix(in srgb, var(--pri) 10%, transparent)) {
+  position: relative;
+  isolation: isolate;
+  transition: transform 120ms var(--ease);
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    background: $fill;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 240ms var(--ease);
+    pointer-events: none;
+  }
+
+  &[aria-pressed='true']::before,
+  &[aria-checked='true']::before {
+    transform: scaleX(1);
+  }
+
+  &[aria-pressed='true'],
+  &[aria-checked='true'] {
+    animation: settle var(--pop-dur) var(--pop) backwards;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}

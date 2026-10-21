@@ -45,6 +45,18 @@ describe('FilterBarComponent', () => {
     await fixture.whenStable();
     expect(TestBed.inject(FilterState).levels()).toEqual([0, 1, 2, 3]);
   });
+
+  it('settles a chip only when it is switched back on, not when the map first shows all four', async () => {
+    const { fixture, buttons } = setup();
+    expect(buttons().some((b) => b.classList.contains('back'))).toBe(false);
+    buttons()[1].click();
+    await fixture.whenStable();
+    expect(buttons()[1].classList.contains('back')).toBe(false); // switching off plays no settle
+    buttons()[1].click();
+    await fixture.whenStable();
+    expect(buttons()[1].classList.contains('back')).toBe(true);
+    expect(buttons()[0].classList.contains('back')).toBe(false);
+  });
 });
 
 describe('FilterBarComponent more filters (plan 6)', () => {

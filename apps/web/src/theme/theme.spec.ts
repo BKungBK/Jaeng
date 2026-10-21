@@ -64,6 +64,24 @@ describe('theme', () => {
     }
   }, 30_000);
 
+  it('gives every selectable thing one way to be chosen: a fill sweeping in from the left, a settle, a press', () => {
+    const mixin = read('src/app/shared/_selectable.scss');
+    expect(mixin).toMatch(/@mixin selectable\(/);
+    expect(mixin).toMatch(/scaleX\(0\)/);
+    expect(mixin).toMatch(/transform-origin:\s*left/);
+    expect(mixin).toMatch(/animation:\s*settle\b/);
+    expect(mixin).toMatch(/&:active/);
+    expect(mixin).not.toMatch(/@keyframes/);
+    const users = sourceFiles('src')
+      .filter((f) => f.endsWith('.scss'))
+      .filter((f) => /@use\s+'[^']*selectable'/.test(read(f)));
+    // the choice partial, /list, the filters panel, the admin radios and picks
+    expect(users.length).toBeGreaterThanOrEqual(5);
+    for (const file of users) {
+      expect(read(file), file).not.toMatch(/transition:\s*all\b/);
+    }
+  }, 30_000);
+
   it('uses Anuphan everywhere except MapLibre glyph fonts', () => {
     const files = sourceFiles('src').filter((f) => !f.endsWith('map-style.ts') && !f.endsWith('theme.spec.ts'));
     expect(files.length).toBeGreaterThan(50);

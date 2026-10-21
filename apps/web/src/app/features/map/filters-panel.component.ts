@@ -4,6 +4,7 @@ import { CategoriesService } from '../../core/categories.service';
 import { FilterState } from '../../core/filter-state.service';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { TickComponent } from '../../shared/tick.component';
 import { isIconName, type IconName } from './icons';
 
 let nextId = 0;
@@ -15,7 +16,7 @@ let nextId = 0;
 @Component({
   selector: 'app-filters-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TPipe, IconComponent],
+  imports: [TPipe, IconComponent, TickComponent],
   template: `
     <div class="backdrop" (click)="closed.emit()"></div>
     <section class="panel" role="dialog" [attr.aria-labelledby]="id" (keydown.escape)="$event.stopPropagation(); closed.emit()">
@@ -30,7 +31,7 @@ let nextId = 0;
               <app-icon [name]="icon(c)" [size]="20" />
               <span>{{ svc.labelOf(c) }}</span>
               @if (on) {
-                <app-icon class="tick" name="check" [size]="16" />
+                <app-tick class="tick" [size]="16" />
               }
             </button>
           }

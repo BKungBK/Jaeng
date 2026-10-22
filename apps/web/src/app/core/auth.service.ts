@@ -7,7 +7,15 @@ import { I18nService } from './i18n.service';
 import { ServerConfigService } from './server-config.service';
 import { SupabaseService } from './supabase.service';
 
-export type Profile = { id: string; display_name: string; role: 'user' | 'admin'; locale: 'th' | 'en' };
+export type Profile = {
+  id: string;
+  display_name: string;
+  role: 'user' | 'admin';
+  locale: 'th' | 'en';
+  avatar_path: string | null;
+  /** null until the member has chosen a nickname (and maybe a picture) after signing up */
+  onboarded_at: string | null;
+};
 
 export type AuthErrorKey = keyof typeof th.auth.error;
 
@@ -119,7 +127,11 @@ export class AuthService {
   private async loadProfile(id: string): Promise<void> {
     try {
       const client = await this.supabase.client();
-      const { data, error } = await client.from('profiles').select('id, display_name, role, locale').eq('id', id).maybeSingle();
+      const { data, error } = await client
+        .from('profiles')
+        .select('id, display_name, role, locale, avatar_path, onboarded_at')
+        .eq('id', id)
+        .maybeSingle();
       if (error) throw error;
       // ignore a stale answer if the user changed meanwhile
       if (this.sessionSig()?.user.id !== id) return;
@@ -137,7 +149,12 @@ export class AuthService {
 
   /** After the API accepted a new display name: what the app shows follows without another read. */
   setDisplayName(name: string): void {
-    this.profileSig.update((p) => (p ? { ...p, display_name: name } : p));
+    this.setProfile({ display_name: name });
+  }
+
+  /** After the API changed part of the profile (name, picture, set up): the app follows without another read. */
+  setProfile(patch: Partial<Pick<Profile, 'display_name' | 'avatar_path' | 'onboarded_at'>>): void {
+    this.profileSig.update((p) => (p ? { ...p, ...patch } : p));
   }
 
   async sendCode(email: string): Promise<void> {

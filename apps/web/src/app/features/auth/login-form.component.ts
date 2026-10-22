@@ -19,6 +19,7 @@ import { TPipe } from '../../i18n/t.pipe';
 import { SupabaseService } from '../../core/supabase.service';
 import { IconComponent } from '../../shared/icon.component';
 import { TickComponent } from '../../shared/tick.component';
+import { ProfileFormComponent } from './profile-form.component';
 
 /** Supabase's minimum gap between two codes for one email. */
 export const RESEND_AFTER_MS = 60_000;
@@ -34,12 +35,13 @@ type Busy = 'send' | 'verify' | 'resend' | DemoWho;
 let nextId = 0;
 
 // Email OTP in two steps (email, then the 6 digit code), plus one-tap demo users when the API offers them.
+// A member who has not set up their profile yet (a new sign-up) goes on to a third step for it.
 @Component({
   selector: 'app-login-form',
   templateUrl: 'login-form.component.html',
   styleUrls: ['login-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, NgTemplateOutlet, TickComponent, TPipe],
+  imports: [IconComponent, NgTemplateOutlet, ProfileFormComponent, TickComponent, TPipe],
 })
 export class LoginFormComponent {
   private auth = inject(AuthService);
@@ -52,7 +54,7 @@ export class LoginFormComponent {
   readonly done = output<void>();
 
   protected readonly id = `login-${++nextId}`;
-  protected readonly step = signal<'email' | 'code'>('email');
+  protected readonly step = signal<'email' | 'code' | 'profile'>('email');
   protected readonly email = signal('');
   protected readonly code = signal('');
   protected readonly sentTo = signal('');
@@ -153,7 +155,7 @@ export class LoginFormComponent {
     if (ok) {
       // the digits turn to the accent and a tick draws; only then does the sheet close
       this.verified.set(true);
-      this.finishTimer = setTimeout(() => this.done.emit(), VERIFIED_HOLD_MS);
+      this.finishTimer = setTimeout(() => void this.finish(), VERIFIED_HOLD_MS);
     } else {
       this.shaking.set(true);
       this.shakeTimer = setTimeout(() => this.shaking.set(false), SHAKE_MS);
@@ -163,7 +165,14 @@ export class LoginFormComponent {
 
   protected async quick(who: DemoWho) {
     if (this.busy()) return;
-    if (await this.run(who, () => this.auth.quickLogin(who), this.demoError)) this.done.emit();
+    if (await this.run(who, () => this.auth.quickLogin(who), this.demoError)) void this.finish();
+  }
+
+  /** Signed in: a new member sets up their profile first, everyone else is done. A profile that could not be read is left to ProfileSetupService. */
+  private async finish() {
+    const profile = await this.auth.loadedProfile();
+    if (profile && !profile.onboarded_at) this.step.set('profile');
+    else this.done.emit();
   }
 
   protected back() {

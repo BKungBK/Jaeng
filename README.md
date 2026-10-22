@@ -52,7 +52,20 @@ bash scripts/test.sh
 
 บัญชีเดโม: `admin@jaeng.local` (แอดมิน), `reporter@jaeng.local` และ `neighbor1@jaeng.local` ถึง `neighbor40@jaeng.local` ทุกบัญชีใช้รหัสผ่าน `DEMO_PASSWORD` ใน `.env` ซึ่ง `scripts/gen-env.sh` สุ่มให้ต่อเครื่อง (เพราะมือถือต่อเซิร์ฟเวอร์นี้ผ่าน LAN) และเก็บค่าเดิมไว้ทุกครั้งที่รันซ้ำ ถ้า `gen-env.sh` บอกว่าสุ่มรหัสใหม่ ให้รัน `bash scripts/reset-db.sh` หนึ่งครั้งเพื่อสร้างผู้ใช้เดโมด้วยรหัสนั้น
 
-หน้าผู้ดูแลอยู่ที่ http://localhost:8000/admin (ล็อกอินเป็นแอดมินแล้วเข้าจากเมนูบัญชี "หน้าผู้ดูแล") ข้อมูลเดโมมีเรื่องรอตรวจ 2 เรื่อง และคำขอแจ้งว่าแก้แล้ว 4 รายการ · โควตาต่อ 24 ชั่วโมงตั้งได้ใน `.env` (`RATE_LIMIT_REPORTS_PER_DAY`, `RATE_LIMIT_COMMENTS_PER_DAY`, `RATE_LIMIT_PHOTOS_PER_DAY`, `RATE_LIMIT_FIX_CLAIMS_PER_DAY`, `RATE_LIMIT_FLAGS_PER_DAY`)
+### อีเมลรหัสเข้าใช้
+
+รหัส OTP ส่งผ่าน Resend จากโดเมน `bkungbk.online` (ผู้ส่ง `noreply@bkungbk.online`) ตั้งไว้ใน `[auth.email.smtp]` ของ `supabase/config.toml` คีย์อยู่ใน `supabase/.env` บรรทัด `RESEND_API_KEY=...` (ไฟล์นี้อยู่ใน `.gitignore` และ `gen-env.sh` ไม่แตะ)
+
+ตอนพัฒนาไม่อยากส่งอีเมลจริง ให้สลับไปใช้ Mailpit แล้วเริ่มสแตกใหม่:
+
+```bash
+bash scripts/mail-mode.sh mailpit
+bash scripts/dev-up.sh
+```
+
+`bash scripts/mail-mode.sh resend` สลับกลับ และ `bash scripts/mail-mode.sh status` ดูโหมดปัจจุบัน · แผนฟรีของ Resend ส่งได้วันละ 100 ฉบับ (ตรวจที่ resend.com/pricing) และ `[auth.rate_limit] email_sent` ใน `config.toml` จำกัด 100 ฉบับต่อชั่วโมง · ควรเพิ่มเรกคอร์ด DMARC (`_dmarc`) ที่ผู้ให้บริการ DNS ของโดเมน ไม่งั้นอีเมลมีโอกาสตกสแปม
+
+หน้าผู้ดูแลอยู่ที่ http://localhost:8000/admin (ล็อกอินเป็นแอดมินแล้วเข้าจากเมนูบัญชี "หน้าผู้ดูแล") ข้อมูลเดโมมีเรื่องรอตรวจ 2 เรื่อง และคำขอแจ้งว่าแก้แล้ว 4 รายการ · โควตาต่อ 24 ชั่วโมงตั้งได้ใน `.env` (`RATE_LIMIT_REPORTS_PER_DAY`, `RATE_LIMIT_COMMENTS_PER_DAY`, `RATE_LIMIT_PHOTOS_PER_DAY`, `RATE_LIMIT_FIX_CLAIMS_PER_DAY`, `RATE_LIMIT_FLAGS_PER_DAY`, `RATE_LIMIT_AVATARS_PER_DAY`)
 
 ### แอปแบบติดตั้งได้ (PWA)
 

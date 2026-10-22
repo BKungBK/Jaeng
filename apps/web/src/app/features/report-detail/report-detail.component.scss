@@ -263,6 +263,13 @@ h2 {
   }
 }
 
+// the author's face (24px) before "โดย …"
+.by {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .place {
   display: flex;
   gap: 4px;
@@ -472,6 +479,10 @@ h3 {
   align-items: baseline;
   font-size: 14px;
   line-height: 1.4;
+
+  app-avatar {
+    align-self: center;
+  }
 
   strong {
     font-weight: 500;

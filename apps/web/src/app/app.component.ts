@@ -9,6 +9,7 @@ import { ServerConfigService } from './core/server-config.service';
 import { ThemeService } from './core/theme.service';
 import { glassNav } from './core/motion';
 import { TPipe } from './i18n/t.pipe';
+import { ProfileSetupService } from './features/auth/profile-setup.service';
 import { IconComponent } from './shared/icon.component';
 import { IntroComponent } from './shared/intro.component';
 
@@ -35,6 +36,8 @@ export class AppComponent {
     // created at boot so <html lang>, the title and the theme are right from the first paint
     inject(I18nService);
     inject(ThemeService);
+    // a signed-in member who has not set up their profile gets the profile sheet, whatever page they are on
+    inject(ProfileSetupService);
     // category names in both languages, for the panel's tag and the report flow (a failure retries on use)
     inject(CategoriesService)
       .list()

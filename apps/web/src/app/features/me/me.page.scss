@@ -88,7 +88,15 @@ h2 {
 
 .name-text {
   display: grid;
+  flex: 1;
   min-width: 0;
+}
+
+// change / take off the picture, under the name, in the same buttons as "edit"
+.face-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .name {

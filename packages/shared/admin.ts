@@ -42,7 +42,14 @@ export type RejectBody = { reason: RejectReason; note?: string };
 export type PhotoRef = { path: string; width: number | null; height: number | null };
 export type AdminPhoto = PhotoRef & { url: string; thumb_url: string };
 export type AdminCounts = { reports: number; claims: number; flags: number };
-export type Person = { id: string; display_name: string; email: string | null; role: 'user' | 'admin'; banned: boolean };
+export type Person = {
+  id: string;
+  display_name: string;
+  email: string | null;
+  role: 'user' | 'admin';
+  banned: boolean;
+  avatar_path: string | null;
+};
 
 export type QueueReport<P = AdminPhoto> = {
   id: string;
@@ -99,6 +106,7 @@ export type AdminUser = {
   email: string | null;
   role: 'user' | 'admin';
   banned_at: string | null;
+  avatar_path: string | null;
   created_at: string;
   report_count: number;
   comment_count: number;
@@ -119,5 +127,5 @@ export type LogEntry = {
 
 export const LOG_ACTIONS = [
   'approve_report', 'reject_report', 'approve_claim', 'reject_claim', 'hide', 'restore',
-  'auto_hide', 'dismiss_flags', 'ban', 'unban',
+  'auto_hide', 'dismiss_flags', 'ban', 'unban', 'remove_avatar',
 ] as const;

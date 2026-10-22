@@ -3,7 +3,7 @@ import type { HiddenItem, Person, QueueFlag } from '@jaeng/shared/admin';
 import { AdminService } from './admin.service';
 import { FlagsQueueComponent } from './flags-queue.component';
 
-const owner: Person = { id: 'a', display_name: 'เจ้าของ', email: 'a@x.test', role: 'user', banned: false };
+const owner: Person = { id: 'a', display_name: 'เจ้าของ', email: 'a@x.test', role: 'user', banned: false, avatar_path: null };
 const f = (reason: QueueFlag['flags'][number]['reason'], name: string) => ({ reason, note: null, reporter_name: name, created_at: '2026-10-19T08:00:00Z' });
 
 function target(over: Partial<QueueFlag> = {}): QueueFlag {

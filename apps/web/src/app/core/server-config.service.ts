@@ -25,6 +25,11 @@ export function publicPhotoUrl(path: string): string {
   return `${serverOrigin()}/sb/storage/v1/object/public/photos-public/${path}`;
 }
 
+/** A profile picture in the public `avatars` bucket, by its path in the bucket. */
+export function avatarUrl(path: string): string {
+  return `${serverOrigin()}/sb/storage/v1/object/public/avatars/${path}`;
+}
+
 /** What the reader typed → `scheme://host[:port]`, or null when it cannot be a server address. */
 export function normalizeServerUrl(raw: string): string | null {
   const text = raw.trim();

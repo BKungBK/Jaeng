@@ -21,17 +21,17 @@ function menu(profile: Profile | null) {
 
 describe('ReportMenuComponent', () => {
   it('a member sees copy link and report, not hide', () => {
-    const { labels } = menu({ id: 'u', display_name: 'a', role: 'user', locale: 'th' });
+    const { labels } = menu({ id: 'u', display_name: 'a', role: 'user', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' });
     expect(labels()).toEqual(['คัดลอกลิงก์', 'รายงานเนื้อหาไม่เหมาะสม']);
   });
 
   it('an admin also sees hide', () => {
-    const { labels } = menu({ id: 'a', display_name: 'a', role: 'admin', locale: 'th' });
+    const { labels } = menu({ id: 'a', display_name: 'a', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' });
     expect(labels()).toEqual(['คัดลอกลิงก์', 'รายงานเนื้อหาไม่เหมาะสม', 'ซ่อนเรื่องนี้']);
   });
 
   it('dismisses with the chosen role; rows are 44 px buttons with words', () => {
-    const { rows, popovers } = menu({ id: 'a', display_name: 'a', role: 'admin', locale: 'th' });
+    const { rows, popovers } = menu({ id: 'a', display_name: 'a', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' });
     rows()[0].click();
     rows()[1].click();
     rows()[2].click();

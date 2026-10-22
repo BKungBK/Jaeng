@@ -19,5 +19,6 @@ test('moderation limits', () => {
 
 test('log actions are unique and complete', () => {
   expect(new Set(LOG_ACTIONS).size).toBe(LOG_ACTIONS.length);
-  expect(LOG_ACTIONS.length).toBe(10);
+  expect(LOG_ACTIONS.length).toBe(11);
+  expect(LOG_ACTIONS).toContain('remove_avatar');
 });

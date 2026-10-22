@@ -28,11 +28,17 @@ function setup(over: { store?: Partial<Store>; member?: Member | null; effect?: 
     restore: record('restore'),
     resolveFlags: record('resolveFlags'),
     setBan: record('setBan'),
+    adminRemoveAvatar: async (...args: unknown[]) => {
+      (calls.adminRemoveAvatar ??= []).push(args);
+      return 'u/old.webp';
+    },
     ...over.store,
   } as unknown as Store;
   const photos = {
     put: async () => {},
-    remove: async () => {},
+    remove: async (bucket: string, paths: string[]) => {
+      (calls.removed ??= []).push([bucket, paths]);
+    },
     promote: async (from: string, to: string) => {
       calls.promote.push([from, to]);
     },
@@ -79,6 +85,7 @@ const ACTIONS: [string, unknown, string][] = [
   ['/admin/restore', { target_type: 'report', target_id: ID }, 'restore'],
   [`/admin/users/${ID}/ban`, {}, 'setBan'],
   [`/admin/users/${ID}/unban`, {}, 'setBan'],
+  [`/admin/users/${ID}/remove-avatar`, {}, 'adminRemoveAvatar'],
 ];
 
 describe('every admin action needs an admin', () => {
@@ -222,6 +229,35 @@ describe('fix claims, flags, hide, restore, bans', () => {
     const res = await post(blocked.app, `/admin/users/${ID}/ban`);
     expect(res.status).toBe(409);
     expect(await code(res)).toBe('cannot_ban_admin');
+  });
+});
+
+describe('POST /admin/users/:id/remove-avatar', () => {
+  test('clears the picture and deletes its file', async () => {
+    const { app, calls } = setup();
+    const res = await post(app, `/admin/users/${ID}/remove-avatar`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    expect(calls.adminRemoveAvatar).toEqual([['admin-1', ID]]);
+    expect(calls.removed).toEqual([['avatars', ['u/old.webp']]]);
+  });
+
+  test('a member without a picture: fine, no file to delete', async () => {
+    const { app, calls } = setup({ store: { adminRemoveAvatar: async () => null } });
+    expect((await post(app, `/admin/users/${ID}/remove-avatar`)).status).toBe(200);
+    expect(calls.removed).toBeUndefined();
+  });
+
+  test('a member that does not exist -> 404; a bad id -> 404', async () => {
+    const gone = setup({
+      store: {
+        adminRemoveAvatar: async () => {
+          throw new ApiError('item_not_found');
+        },
+      },
+    });
+    expect((await post(gone.app, `/admin/users/${ID}/remove-avatar`)).status).toBe(404);
+    expect((await post(setup().app, '/admin/users/not-an-id/remove-avatar')).status).toBe(404);
   });
 });
 

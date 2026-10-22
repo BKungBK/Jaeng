@@ -65,6 +65,10 @@ export class AdminService {
     await this.api.post(`/admin/users/${id(userId)}/${banned ? 'ban' : 'unban'}`, {});
   }
 
+  async removeAvatar(userId: string): Promise<void> {
+    await this.api.post(`/admin/users/${id(userId)}/remove-avatar`, {});
+  }
+
   async log(before: number | null): Promise<LogEntry[]> {
     return (await this.api.get<{ entries: LogEntry[] }>(before === null ? '/admin/log' : `/admin/log?before=${before}`)).entries;
   }

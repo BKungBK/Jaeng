@@ -9,6 +9,7 @@ import { I18nService, type Said } from '../../core/i18n.service';
 import { playDone } from '../../core/motion';
 import type { MessageKey } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
+import { AvatarComponent } from '../../shared/avatar.component';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { TickComponent } from '../../shared/tick.component';
@@ -29,7 +30,7 @@ type LoadState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-review-queue',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TickComponent, LevelShapeComponent, PlaceMapComponent, ServerUrlPipe, TPipe],
+  imports: [AvatarComponent, IconComponent, TickComponent, LevelShapeComponent, PlaceMapComponent, ServerUrlPipe, TPipe],
   templateUrl: 'review-queue.component.html',
   styleUrl: 'review-queue.component.scss',
 })

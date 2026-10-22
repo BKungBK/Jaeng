@@ -9,7 +9,7 @@ import { fakeMap } from '../report-new/fake-map.testing';
 import { AdminService } from './admin.service';
 import { ReviewQueueComponent } from './review-queue.component';
 
-const author: Person = { id: 'u1', display_name: 'สมหญิง', email: 'som@x.test', role: 'user', banned: false };
+const author: Person = { id: 'u1', display_name: 'สมหญิง', email: 'som@x.test', role: 'user', banned: false, avatar_path: null };
 
 function item(over: Partial<QueueReport> = {}): QueueReport {
   return {

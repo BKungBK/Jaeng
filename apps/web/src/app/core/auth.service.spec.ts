@@ -46,7 +46,7 @@ describe('AuthService', () => {
 
   describe('loadedProfile', () => {
     it('waits for the profile that is still loading', async () => {
-      const profile = { id: 'u1', display_name: 'แอดมิน', role: 'admin', locale: 'th' };
+      const profile = { id: 'u1', display_name: 'แอดมิน', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
       const { service, maybeSingle } = setup({ session: session(), profile });
       let release!: (v: unknown) => void;
       maybeSingle.mockReturnValueOnce(new Promise((r) => (release = r)));
@@ -71,7 +71,7 @@ describe('AuthService', () => {
   });
 
   it('loads the own profile when a session appears and clears it on sign out', async () => {
-    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' };
+    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service, emit, from, eq } = setup({ profile });
     await service.ready;
     expect(service.signedIn()).toBe(false);
@@ -91,7 +91,7 @@ describe('AuthService', () => {
     const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'en' };
     const { service, select } = setup({ session: session(), profile });
     expect(await service.loadedProfile()).toEqual(profile);
-    expect(select).toHaveBeenCalledWith('id, display_name, role, locale');
+    expect(select).toHaveBeenCalledWith('id, display_name, role, locale, avatar_path, onboarded_at');
   });
 
   it("takes the account's language on a device that never chose one", async () => {
@@ -120,7 +120,7 @@ describe('AuthService', () => {
   });
 
   it('drops the previous profile when another user signs in, even if the new load fails', async () => {
-    const a = { id: 'u1', display_name: 'A', role: 'admin', locale: 'th' };
+    const a = { id: 'u1', display_name: 'A', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service, emit, maybeSingle } = setup({ profile: a });
     await service.ready;
     emit('SIGNED_IN', session());
@@ -134,7 +134,7 @@ describe('AuthService', () => {
   });
 
   it('keeps the profile when a reload for the same user fails (token refresh)', async () => {
-    const a = { id: 'u1', display_name: 'A', role: 'admin', locale: 'th' };
+    const a = { id: 'u1', display_name: 'A', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service, emit, maybeSingle } = setup({ profile: a });
     await service.ready;
     emit('SIGNED_IN', session());
@@ -151,7 +151,7 @@ describe('AuthService', () => {
   });
 
   it('reads the profile once for one user: not twice at start, not again on a token refresh', async () => {
-    const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' };
+    const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service, emit, maybeSingle } = setup({ session: session(), profile });
     await service.ready; // getSession() applied the session ...
     emit('INITIAL_SESSION', session()); // ... and so does the subscription's first event
@@ -164,7 +164,7 @@ describe('AuthService', () => {
   });
 
   it('reads the profile again for another user, and again after the first read failed', async () => {
-    const a = { id: 'u1', display_name: 'A', role: 'user', locale: 'th' };
+    const a = { id: 'u1', display_name: 'A', role: 'user', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service, emit, maybeSingle } = setup({ profile: a });
     await service.ready;
     maybeSingle.mockRejectedValueOnce(new Error('offline'));
@@ -181,7 +181,7 @@ describe('AuthService', () => {
   });
 
   it('picks up an existing session on start', async () => {
-    const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th' };
+    const profile = { id: 'u1', display_name: 'a', role: 'admin', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service } = setup({ session: session(), profile });
     await service.ready;
     await flush();
@@ -288,7 +288,7 @@ describe('AuthService', () => {
   });
 
   it('setDisplayName changes the name on the profile that is shown', async () => {
-    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th' };
+    const profile = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
     const { service, emit } = setup({ profile });
     await service.ready;
     emit('SIGNED_IN', session());

@@ -3,6 +3,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+mail=$(bash scripts/mail-mode.sh status | head -1)
+if [[ "$mail" == *Resend* ]] && ! grep -qs '^RESEND_API_KEY=.\+' supabase/.env; then
+  echo "dev-up: login codes are set to Resend but supabase/.env has no RESEND_API_KEY (see: bash scripts/mail-mode.sh)" >&2
+fi
 npx supabase start > /dev/null
 bash scripts/gen-env.sh
 docker compose up -d
@@ -13,7 +17,7 @@ for _ in $(seq 1 90); do
     bash scripts/smoke.sh
     echo
     echo "แจ้ง:      http://localhost:8000"
-    echo "Mailpit:   http://localhost:54324"
+    echo "Mailpit:   http://localhost:54324   ($mail)"
     exit 0
   fi
   sleep 2

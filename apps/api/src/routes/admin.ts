@@ -132,6 +132,12 @@ export function adminRoutes(deps: AppDeps) {
       await applyEffect(deps, await deps.store.setBan(me.id, parseItemId(params.id), false));
       return { ok: true };
     })
+    .post('/users/:id/remove-avatar', async ({ params, headers }) => {
+      const me = await admin(headers.authorization);
+      const previous = await deps.store.adminRemoveAvatar(me.id, parseItemId(params.id));
+      if (previous) await deps.photos.remove('avatars', [previous]).catch((e) => console.error('old avatar not removed', e));
+      return { ok: true };
+    })
     .get('/counts', async ({ headers }) => {
       await admin(headers.authorization);
       return deps.store.adminCounts();

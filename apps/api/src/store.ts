@@ -14,7 +14,7 @@ import type {
   QueueReport,
   RejectReason,
 } from '@jaeng/shared/admin';
-import type { PublicComment, ReportSignal } from '@jaeng/shared/api';
+import type { MeProfile, PublicComment, ReportSignal } from '@jaeng/shared/api';
 import type { CategorySlug } from '@jaeng/shared/categories';
 import type { Place } from '@jaeng/shared/places';
 import type { DuplicateCandidate, MyReport } from '@jaeng/shared/report';
@@ -60,11 +60,16 @@ export type Store = {
   ): Promise<{ confirmed: boolean; comment: PublicComment; report: ReportSignal; moved: { from: string; to: string }[] }>;
   /** Own reports, newest first, at most 100. No coordinates. */
   myReports(userId: string): Promise<(Omit<MyReport, 'thumb_url'> & { cover_path: string | null })[]>;
-  /** Updates only the fields given; returns both as stored. */
+  /**
+   * Updates only the fields given; returns the profile as stored. `complete` saves `display_name` as the
+   * nickname and marks the profile set up (the first time only).
+   */
   updateMe(
     userId: string,
-    patch: { display_name?: string; locale?: 'th' | 'en' },
-  ): Promise<{ display_name: string; locale: 'th' | 'en' }>;
+    patch: { display_name?: string; locale?: 'th' | 'en'; complete?: boolean },
+  ): Promise<MeProfile>;
+  /** Sets (or with null clears) the profile picture; returns the path it replaces. Throws rate_limited over `limit` new pictures per 24 h. */
+  setAvatar(userId: string, path: string | null, limit: number): Promise<string | null>;
   /** Districts and provinces whose name contains q, named in `lang` (source 'local'). */
   searchAreas(q: string, limit: number, lang: 'th' | 'en'): Promise<Place[]>;
   /** Deletes unattached photo rows older than the age and returns them (deleting is the claim). */
@@ -101,6 +106,8 @@ export type Store = {
   /** Acts on every open flag of the target of flagId. */
   resolveFlags(adminId: string, flagId: string, action: FlagAction): Promise<ModerationEffect>;
   setBan(adminId: string, userId: string, banned: boolean): Promise<ModerationEffect>;
+  /** Takes the picture off a member and logs it; returns the path so the file can be deleted. */
+  adminRemoveAvatar(adminId: string, userId: string): Promise<string | null>;
 
   // Admin reads: photos come without URLs; the route adds them.
   adminCounts(): Promise<AdminCounts>;

@@ -38,7 +38,7 @@ export async function commentAfterInsert(client: SupabaseClient, fallback: Publi
   try {
     const { data, error } = await client
       .from('public_comments')
-      .select('id, report_id, body, author_name, created_at, by_reporter, photo_path')
+      .select('id, report_id, body, author_name, created_at, by_reporter, photo_path, author_avatar')
       .eq('id', fallback.id)
       .single<PublicComment>();
     if (error || !data) throw new Error(error?.message ?? 'no row');
@@ -57,6 +57,7 @@ const insertedComment = (id: string, reportId: string, body: string): PublicComm
   created_at: new Date().toISOString(),
   by_reporter: false,
   photo_path: null,
+  author_avatar: null,
 });
 
 export const MERGE_COMMENT_BODY = 'เจอเหมือนกัน แนบรูปเพิ่ม';
@@ -260,14 +261,41 @@ export function createSupabaseStore(client: SupabaseClient): Store {
     },
 
     async updateMe(userId, patch) {
+      if (patch.complete) {
+        const { error } = await client.rpc('complete_profile', { p_user: userId, p_name: patch.display_name });
+        if (error) rethrow(error);
+      }
+      const fields: { display_name?: string; locale?: 'th' | 'en' } = {};
+      if (!patch.complete && patch.display_name !== undefined) fields.display_name = patch.display_name;
+      if (patch.locale !== undefined) fields.locale = patch.locale;
+      if (Object.keys(fields).length > 0) {
+        const { error } = await client.from('profiles').update(fields).eq('id', userId);
+        if (error) throw new Error(`profile update failed: ${error.message}`);
+      }
       const { data, error } = await client
         .from('profiles')
-        .update(patch)
+        .select('display_name, locale, avatar_path, onboarded_at')
         .eq('id', userId)
-        .select('display_name, locale')
         .single();
-      if (error) throw new Error(`profile update failed: ${error.message}`);
-      return { display_name: data.display_name as string, locale: data.locale === 'en' ? 'en' : 'th' };
+      if (error) throw new Error(`profile read failed: ${error.message}`);
+      return {
+        display_name: data.display_name as string,
+        locale: data.locale === 'en' ? 'en' : 'th',
+        avatar_path: (data.avatar_path as string | null) ?? null,
+        onboarded: data.onboarded_at != null,
+      };
+    },
+
+    async setAvatar(userId, path, limit) {
+      const { data, error } = await client.rpc('set_avatar', { p_user: userId, p_path: path, p_limit: limit });
+      if (error) rethrow(error);
+      return typeof data === 'string' ? data : null;
+    },
+
+    async adminRemoveAvatar(adminId, userId) {
+      const { data, error } = await client.rpc('admin_remove_avatar', { p_admin: adminId, p_user: userId });
+      if (error) rethrow(error);
+      return typeof data === 'string' ? data : null;
     },
 
     async searchAreas(q, limit, lang) {

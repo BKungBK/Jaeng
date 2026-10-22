@@ -11,6 +11,7 @@ function user(over: Partial<AdminUser> = {}): AdminUser {
     email: 'som@x.test',
     role: 'user',
     banned_at: null,
+    avatar_path: null,
     created_at: '2026-10-01T00:00:00Z',
     report_count: 2,
     comment_count: 5,
@@ -19,7 +20,12 @@ function user(over: Partial<AdminUser> = {}): AdminUser {
 }
 
 async function setup(list: AdminUser[] = [user(), user({ id: 'a1', display_name: 'แอดมิน', role: 'admin' })], over: Record<string, unknown> = {}) {
-  const admin = { users: vi.fn().mockResolvedValue(list), setBan: vi.fn().mockResolvedValue(undefined), ...over };
+  const admin = {
+    users: vi.fn().mockResolvedValue(list),
+    setBan: vi.fn().mockResolvedValue(undefined),
+    removeAvatar: vi.fn().mockResolvedValue(undefined),
+    ...over,
+  };
   TestBed.configureTestingModule({ providers: [{ provide: AdminService, useValue: admin }] });
   const fixture = TestBed.createComponent(UsersTabComponent);
   const settle = async () => {
@@ -87,6 +93,43 @@ describe('UsersTabComponent', () => {
     btn(rows()[0], 'แน่ใจ แบนเลย')!.click();
     await settle();
     expect(root.querySelector('[role="status"]')?.textContent).toContain('แบนบัญชีผู้ดูแลไม่ได้');
+  });
+
+  it('shows each member\'s face, and "remove picture" only for those who have one', async () => {
+    const { rows, btn } = await setup([user({ avatar_path: 'u1/a.webp' }), user({ id: 'u2', display_name: 'ไม่มีรูป' })]);
+    expect(rows()[0].querySelector('app-avatar img')?.getAttribute('src')).toContain('/avatars/u1/a.webp');
+    expect(btn(rows()[0], 'เอารูปโปรไฟล์ออก')).toBeDefined();
+    expect(rows()[1].querySelector('app-avatar .initial')?.textContent?.trim()).toBe('ม่');
+    expect(btn(rows()[1], 'เอารูปโปรไฟล์ออก')).toBeUndefined();
+  });
+
+  it('removing a picture needs a second press, then the row loses it and says so', async () => {
+    const { root, rows, btn, admin, settle } = await setup([user({ avatar_path: 'u1/a.webp' })]);
+    btn(rows()[0], 'เอารูปโปรไฟล์ออก')!.click();
+    await settle();
+    expect(admin.removeAvatar).not.toHaveBeenCalled();
+    btn(rows()[0], 'ยกเลิก')!.click(); // cancel keeps it
+    await settle();
+    expect(btn(rows()[0], 'เอารูปโปรไฟล์ออก')).toBeDefined();
+    btn(rows()[0], 'เอารูปโปรไฟล์ออก')!.click();
+    await settle();
+    btn(rows()[0], 'แน่ใจ เอารูปออก')!.click();
+    await settle();
+    expect(admin.removeAvatar).toHaveBeenCalledWith('u1');
+    expect(rows()[0].querySelector('app-avatar img')).toBeNull();
+    expect(btn(rows()[0], 'เอารูปโปรไฟล์ออก')).toBeUndefined();
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('เอารูปของ สมชาย ออกแล้ว');
+  });
+
+  it('a failed removal keeps the picture and says why', async () => {
+    const err = new ApiError(500, 'internal', 'ระบบขัดข้อง', 'Something went wrong');
+    const { root, rows, btn, settle } = await setup([user({ avatar_path: 'u1/a.webp' })], { removeAvatar: vi.fn().mockRejectedValue(err) });
+    btn(rows()[0], 'เอารูปโปรไฟล์ออก')!.click();
+    await settle();
+    btn(rows()[0], 'แน่ใจ เอารูปออก')!.click();
+    await settle();
+    expect(rows()[0].querySelector('app-avatar img')).not.toBeNull();
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('ระบบขัดข้อง');
   });
 
   it('says when nothing matched', async () => {

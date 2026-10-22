@@ -64,9 +64,14 @@
       }
 
       <div class="byline">
-        <p>
-          {{ 'detail.by' | t }} <strong>{{ d.author_name ?? ('common.anonymous' | t) }}</strong> ·
-          <time [attr.datetime]="d.created_at" [title]="date(d.created_at)">{{ ago(d.created_at) }}</time>
+        <p class="by">
+          @if (d.author_name) {
+            <app-avatar [name]="d.author_name" [path]="d.author_avatar" [size]="24" />
+          }
+          <span>
+            {{ 'detail.by' | t }} <strong>{{ d.author_name ?? ('common.anonymous' | t) }}</strong> ·
+            <time [attr.datetime]="d.created_at" [title]="date(d.created_at)">{{ ago(d.created_at) }}</time>
+          </span>
         </p>
         @if (d.place_name) {
           <p class="place"><app-icon name="mapPin" [size]="16" />{{ d.place_name }}</p>
@@ -133,6 +138,9 @@
             @for (c of comments(); track c.id) {
               <li [class.fresh]="isFresh(c.id)">
                 <p class="who">
+                  @if (c.author_name) {
+                    <app-avatar [name]="c.author_name" [path]="c.author_avatar" [size]="24" />
+                  }
                   <strong>{{ c.author_name ?? ('common.anonymous' | t) }}</strong>
                   @if (c.by_reporter) {
                     <span class="badge">{{ 'detail.reporter' | t }}</span>

@@ -1,0 +1,117 @@
+// The sign-up profile step. Title, fields and buttons come from the login form's kit.
+@use 'form-kit';
+
+.picture {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+// the picture, with the way to take it out at its lower right (a 32px chip inside a 44px target)
+.face {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+// working: the same quiet veil the report photos wear, with the ring turning
+.veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  color: var(--ink);
+}
+
+.ring {
+  animation: ring-spin 900ms linear infinite;
+}
+
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.remove {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+  color: #2e231c;
+
+  // press at 44 x 44 although it looks 32
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, #2e231c 10%, #fff);
+  }
+}
+
+.add {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+
+  .secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 359px) {
+  .add {
+    grid-template-columns: 1fr;
+  }
+}
+
+.caption {
+  margin: 0;
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.picture .caption {
+  text-align: center;
+}
+
+.count-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin: 0;
+  color: var(--ink2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.links {
+  align-items: center;
+}

@@ -32,6 +32,7 @@ function detail(over: Partial<ReportDetail> = {}): ReportDetail {
     lat: 13.7,
     place_name: 'ซอยลาดพร้าว 1',
     author_name: 'สมใจ',
+    author_avatar: null,
     tags: ['กลางคืน'],
     photos: [],
     created_at: '2026-10-13T08:00:00Z',
@@ -47,6 +48,7 @@ function comment(over: Partial<PublicComment> = {}): PublicComment {
     report_id: ID,
     body: 'เจอเหมือนกันเมื่อวาน',
     author_name: 'น้องบี',
+    author_avatar: null,
     by_reporter: false,
     created_at: '2026-10-14T08:00:00Z',
     photo_path: null,
@@ -203,6 +205,29 @@ describe('ReportDetailComponent', () => {
     expect(time.getAttribute('datetime')).toBe('2026-10-13T08:00:00Z');
     expect(time.getAttribute('title')).toContain('2569');
     expect(root.textContent).toContain('ซอยลาดพร้าว 1');
+  });
+
+  it('puts the reporter\'s face before the name, and no face for an anonymous reporter', async () => {
+    const named = await setup({ report: detail({ author_avatar: 'u9/a.webp' }) });
+    expect(named.root.querySelector('.byline app-avatar img')?.getAttribute('src')).toContain('/avatars/u9/a.webp');
+    TestBed.resetTestingModule();
+    const noPicture = await setup();
+    expect(noPicture.root.querySelector('.byline app-avatar .initial')?.textContent?.trim()).toBe('ส');
+    TestBed.resetTestingModule();
+    const anonymous = await setup({ report: detail({ author_name: null, author_avatar: null }) });
+    expect(anonymous.root.querySelector('.byline app-avatar')).toBeNull();
+  });
+
+  it('puts each commenter\'s face before their name; a hidden reporter\'s own comment has none', async () => {
+    const { root } = await setup({
+      comments: [
+        comment({ author_avatar: 'u2/b.webp' }),
+        comment({ id: 'c2', author_name: null, author_avatar: null, by_reporter: true, body: 'ขอบคุณค่ะ' }),
+      ],
+    });
+    const items = root.querySelectorAll('.comments li');
+    expect(items[0].querySelector('app-avatar img')?.getAttribute('src')).toContain('/avatars/u2/b.webp');
+    expect(items[1].querySelector('app-avatar')).toBeNull();
   });
 
   it('shows the category tile when there is no photo, and the photos when there are', async () => {

@@ -6,33 +6,26 @@ import { I18nService } from '../../core/i18n.service';
 import { LOCALE_NAMES, type Locale } from '../../i18n/keys';
 import { TPipe } from '../../i18n/t.pipe';
 import { MeService } from '../me/me.service';
+import { AvatarComponent } from '../../shared/avatar.component';
 import { IconComponent } from '../../shared/icon.component';
+import { initialOf } from '../../shared/initial-of';
 import { ReportDraftService } from '../report-new/report-draft.service';
 import { LoginPromptService } from './login-prompt.service';
 
 type MenuRole = 'mine' | 'admin' | 'switch' | 'signout' | 'about';
 
-// Thai leading vowels (เ แ โ ใ ไ) are written before the consonant they belong to; alone they are not a letter
-const THAI_LEADING_VOWEL = /^[\u0E40-\u0E44]$/u;
-const graphemes = new Intl.Segmenter('th', { granularity: 'grapheme' });
-
-/** The first letter of a name as one whole grapheme (a Thai consonant keeps its vowel and tone marks). */
-export function initialOf(name: string): string {
-  for (const { segment } of graphemes.segment(name.trim())) {
-    if (!THAI_LEADING_VOWEL.test(segment)) return segment.toLocaleUpperCase('th');
-  }
-  return '';
-}
+export { initialOf };
 
 /** The account popover: who you are, switch user, sign out. It only reports the choice. */
 @Component({
   selector: 'app-account-menu',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  imports: [IconComponent, TPipe],
+  imports: [AvatarComponent, IconComponent, TPipe],
   template: `
     <div class="account-menu-body">
       <p class="account-menu-who">
+        <app-avatar [name]="profile()?.display_name" [path]="profile()?.avatar_path" [size]="32" />
         <span class="account-menu-name">{{ profile()?.display_name ?? ('account.mine' | t) }}</span>
         @if (profile()?.role === 'admin') {
           <span class="tag">{{ 'account.admin' | t }}</span>
@@ -152,7 +145,7 @@ export class AccountMenuComponent {
 @Component({
   selector: 'app-account-button',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe],
+  imports: [AvatarComponent, IconComponent, TPipe],
   template: `
     <button
       type="button"
@@ -162,14 +155,14 @@ export class AccountMenuComponent {
       [attr.aria-label]="ariaLabel()"
       (click)="open($event)"
     >
-      <!-- signed in shows the name's initial, so the state is told by shape as well as colour -->
-      <span class="face" aria-hidden="true">
-        @if (initial(); as letter) {
-          <span class="initial">{{ letter }}</span>
-        } @else {
+      <!-- signed in shows the picture, else the name's initial, so the state is told by shape as well as colour -->
+      @if (auth.signedIn()) {
+        <app-avatar [name]="name()" [path]="auth.profile()?.avatar_path" [size]="variant() === 'tab' ? 26 : 32" />
+      } @else {
+        <span class="face" aria-hidden="true">
           <app-icon name="circleUser" [size]="variant() === 'tab' ? 24 : 20" />
-        }
-      </span>
+        </span>
+      }
       @if (variant() === 'tab') {
         <span class="word" aria-hidden="true">{{ 'nav.mine' | t }}</span>
       }
@@ -204,9 +197,6 @@ export class AccountMenuComponent {
       background: color-mix(in srgb, var(--ink) 10%, transparent);
       transition: background-color 160ms ease-out;
     }
-    .initial {
-      font: 600 15px/1 var(--font);
-    }
     .ctl:hover .face {
       background: color-mix(in srgb, var(--ink) 18%, transparent);
     }
@@ -215,11 +205,7 @@ export class AccountMenuComponent {
       outline-offset: -2px;
       border-radius: 50%;
     }
-    /* signed in: the circle takes the accent, so it differs by shape (initial) and colour */
-    .ctl.in .face {
-      background: color-mix(in srgb, var(--pri) 24%, transparent);
-      color: var(--ink);
-    }
+    /* signed in: an avatar (a picture, or the initial on the accent), so it differs by shape and colour */
     /* tab: icon over a 10 px word, like the other dock slots */
     .ctl.tab {
       width: 68px;
@@ -232,13 +218,6 @@ export class AccountMenuComponent {
       width: 26px;
       height: 26px;
       background: none;
-    }
-    .ctl.tab.in .face {
-      background: color-mix(in srgb, var(--pri) 24%, transparent);
-      color: var(--ink);
-    }
-    .ctl.tab .initial {
-      font-size: 14px;
     }
     .word {
       max-width: 68px;
@@ -276,11 +255,8 @@ export class AccountButtonComponent {
     this.variant() === 'tab' ? `${this.i18n.t('nav.mine')}: ${this.label()}` : this.label(),
   );
 
-  /** Empty while signed out or while the profile loads: the icon shows instead. */
-  protected readonly initial = computed(() => {
-    const name = this.auth.signedIn() ? this.auth.profile()?.display_name : undefined;
-    return name ? initialOf(name) : '';
-  });
+  /** Empty while the profile loads: the avatar shows the person icon instead. */
+  protected readonly name = computed(() => this.auth.profile()?.display_name);
 
   protected async open(event: Event) {
     if (!this.auth.signedIn()) {

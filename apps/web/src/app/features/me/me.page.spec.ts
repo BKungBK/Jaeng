@@ -44,17 +44,29 @@ const sixStatuses = () =>
     }),
   );
 
-async function setup(opts: { reports?: MyReport[] | Error; name?: string } = {}) {
+async function setup(opts: { reports?: MyReport[] | Error; name?: string; avatar?: string | null } = {}) {
   const reports = vi.fn();
   if (opts.reports instanceof Error) reports.mockRejectedValue(opts.reports);
   else reports.mockResolvedValue(opts.reports ?? []);
-  const svc = { reports, rename: vi.fn(), setLocale: vi.fn().mockResolvedValue(undefined) };
-  const profile = signal<{ id: string; display_name: string; role: 'user' }>({ id: 'u1', display_name: opts.name ?? 'พี่ปลา', role: 'user' });
+  const svc = {
+    reports,
+    rename: vi.fn(),
+    setLocale: vi.fn().mockResolvedValue(undefined),
+    uploadAvatar: vi.fn().mockResolvedValue('u1/new.webp'),
+    removeAvatar: vi.fn().mockResolvedValue(undefined),
+  };
+  const profile = signal<{ id: string; display_name: string; role: 'user'; avatar_path: string | null }>({
+    id: 'u1',
+    display_name: opts.name ?? 'พี่ปลา',
+    role: 'user',
+    avatar_path: opts.avatar ?? null,
+  });
   const order: string[] = [];
   const auth = {
     profile: profile.asReadonly(),
     signedIn: signal(true),
     setDisplayName: vi.fn((n: string) => profile.update((p) => ({ ...p, display_name: n }))),
+    setProfile: vi.fn((patch: Record<string, unknown>) => profile.update((p) => ({ ...p, ...patch }))),
     signOut: vi.fn(async () => void order.push('signOut')),
   };
   const nav = { navigateRoot: vi.fn().mockResolvedValue(true) };
@@ -81,7 +93,7 @@ async function setup(opts: { reports?: MyReport[] | Error; name?: string } = {})
   await settle();
   const root = fixture.nativeElement as HTMLElement;
   const button = (text: string) => [...root.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.includes(text));
-  const input = () => root.querySelector<HTMLInputElement>('input[aria-label="ชื่อที่แสดง"]');
+  const input = () => root.querySelector<HTMLInputElement>('input[aria-label="ชื่อเล่น"]');
   const type = (value: string) => {
     const el = input()!;
     el.value = value;
@@ -245,7 +257,7 @@ describe('MePage', () => {
       const { root, button } = await setup({ name: 'พี่ปลา' });
       expect(root.textContent).toContain('พี่ปลา');
       expect(button('แก้ชื่อ')).toBeDefined();
-      expect(root.querySelector('input')).toBeNull();
+      expect(root.querySelector('input[type="text"]')).toBeNull();
     });
 
     it('opens a field holding the current name, limited to 30', async () => {
@@ -312,7 +324,7 @@ describe('MePage', () => {
       expect(svc.rename).toHaveBeenCalledWith('น้องบี');
       expect(auth.setDisplayName).toHaveBeenCalledWith('น้องบี');
       expect(profile().display_name).toBe('น้องบี');
-      expect(root.querySelector('input')).toBeNull();
+      expect(root.querySelector('input[type="text"]')).toBeNull();
       expect(root.textContent).toContain('น้องบี');
     });
 
@@ -338,8 +350,60 @@ describe('MePage', () => {
       button('ยกเลิก')!.click();
       await settle();
       expect(svc.rename).not.toHaveBeenCalled();
-      expect(root.querySelector('input')).toBeNull();
+      expect(root.querySelector('input[type="text"]')).toBeNull();
     });
+  });
+});
+
+describe('MePage profile picture', () => {
+  const choose = async (root: HTMLElement, settle: () => Promise<void>, file: File) => {
+    const input = root.querySelector<HTMLInputElement>('.face-actions input[type="file"]')!;
+    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    input.dispatchEvent(new Event('change'));
+    await settle();
+  };
+
+  it('shows the face beside the name: the initial without a picture, the picture with one', async () => {
+    const without = await setup();
+    expect(without.root.querySelector('.name-row app-avatar .initial')?.textContent?.trim()).toBe('พี่');
+    expect(without.button('เอารูปออก')).toBeUndefined();
+    TestBed.resetTestingModule();
+    const withPicture = await setup({ avatar: 'u1/a.webp' });
+    expect(withPicture.root.querySelector('.name-row app-avatar img')?.getAttribute('src')).toContain('/avatars/u1/a.webp');
+    expect(withPicture.button('เอารูปออก')).toBeDefined();
+  });
+
+  it('changing the picture sends it and the page follows', async () => {
+    const { root, svc, auth, settle } = await setup();
+    await choose(root, settle, new File(['x'], 'me.jpg', { type: 'image/jpeg' }));
+    expect(svc.uploadAvatar).toHaveBeenCalledTimes(1);
+    expect(auth.setProfile).toHaveBeenCalledWith({ avatar_path: 'u1/new.webp' });
+    expect(root.querySelector('.name-row app-avatar img')?.getAttribute('src')).toContain('/avatars/u1/new.webp');
+  });
+
+  it('taking it off asks the API and the page goes back to the initial', async () => {
+    const { root, svc, button, settle } = await setup({ avatar: 'u1/a.webp' });
+    button('เอารูปออก')!.click();
+    await settle();
+    expect(svc.removeAvatar).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('.name-row app-avatar img')).toBeNull();
+    expect(root.querySelector('.name-row app-avatar .initial')).not.toBeNull();
+  });
+
+  it('a refused picture says why and keeps the old one', async () => {
+    const { root, svc, settle } = await setup({ avatar: 'u1/a.webp' });
+    svc.uploadAvatar.mockRejectedValue(new ApiError(415, 'invalid_photo', 'ไฟล์นี้ไม่ใช่รูปที่ใช้ได้ ลองเลือกรูปอื่นนะ', 'No'));
+    await choose(root, settle, new File(['x'], 'me.txt', { type: 'text/plain' }));
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('ไฟล์นี้ไม่ใช่รูปที่ใช้ได้');
+    expect(root.querySelector('.name-row app-avatar img')?.getAttribute('src')).toContain('/avatars/u1/a.webp');
+  });
+
+  it('the buttons are off while a picture is on its way (no double send)', async () => {
+    const { root, svc, button, settle } = await setup({ avatar: 'u1/a.webp' });
+    svc.uploadAvatar.mockReturnValue(new Promise(() => {}));
+    await choose(root, settle, new File(['x'], 'me.jpg', { type: 'image/jpeg' }));
+    expect(button('กำลังอัปโหลดรูป')!.disabled).toBe(true);
+    expect(button('เอารูปออก')!.disabled).toBe(true);
   });
 });
 

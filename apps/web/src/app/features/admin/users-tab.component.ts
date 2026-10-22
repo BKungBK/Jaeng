@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import type { AdminUser } from '@jaeng/shared/admin';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
+import { AvatarComponent } from '../../shared/avatar.component';
 import { IconComponent } from '../../shared/icon.component';
 import { AdminService } from './admin.service';
 
@@ -11,7 +12,7 @@ export const SEARCH_DEBOUNCE_MS = 300;
 @Component({
   selector: 'app-users-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TPipe],
+  imports: [AvatarComponent, IconComponent, TPipe],
   template: `
     <label class="search">
       <app-icon name="search" [size]="20" />
@@ -29,6 +30,7 @@ export const SEARCH_DEBOUNCE_MS = 300;
         @for (u of users(); track u.id) {
           <li class="user item">
             <div class="who">
+              <app-avatar [name]="u.display_name" [path]="u.avatar_path" [size]="32" />
               <strong>{{ u.display_name }}</strong>
               @if (u.role === 'admin') {
                 <span class="tag"><app-icon name="shieldCheck" [size]="16" />{{ 'account.admin' | t }}</span>
@@ -67,6 +69,21 @@ export const SEARCH_DEBOUNCE_MS = 300;
                 </div>
               }
             }
+            @if (u.avatar_path) {
+              <!-- a picture is public content: an admin can take it off, with a second press like a ban -->
+              <div class="decide">
+                @if (confirmingAvatar() === u.id) {
+                  <button type="button" class="btn" [disabled]="busy()" (click)="confirmingAvatar.set(null)">{{ 'common.cancel' | t }}</button>
+                  <button type="button" class="btn" [disabled]="busy()" (click)="removeAvatar(u)">
+                    <app-icon name="trash2" [size]="18" />{{ 'admin.users.sureRemoveAvatar' | t }}
+                  </button>
+                } @else {
+                  <button type="button" class="btn" [disabled]="busy()" (click)="confirmingAvatar.set(u.id)">
+                    <app-icon name="trash2" [size]="18" />{{ 'admin.users.removeAvatar' | t }}
+                  </button>
+                }
+              </div>
+            }
           </li>
         } @empty {
           <li class="empty-line">{{ 'admin.users.none' | t }}</li>
@@ -87,6 +104,7 @@ export class UsersTabComponent {
   protected readonly busy = signal(false);
   protected readonly message = signal<Said>(null);
   protected readonly confirming = signal<string | null>(null);
+  protected readonly confirmingAvatar = signal<string | null>(null);
 
   private timer?: ReturnType<typeof setTimeout>;
   /** Bumped per search, so a slow answer for an older query is dropped. */
@@ -128,6 +146,22 @@ export class UsersTabComponent {
       this.users.update((list) => list.map((x) => (x.id === u.id ? { ...x, banned_at: at } : x)));
       this.confirming.set(null);
       this.message.set({ key: banned ? 'admin.users.bannedDone' : 'admin.users.unbannedDone', params: { name: u.display_name } });
+    } catch (e) {
+      this.message.set({ error: e });
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async removeAvatar(u: AdminUser) {
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.message.set(null);
+    try {
+      await this.admin.removeAvatar(u.id);
+      this.users.update((list) => list.map((x) => (x.id === u.id ? { ...x, avatar_path: null } : x)));
+      this.confirmingAvatar.set(null);
+      this.message.set({ key: 'admin.users.avatarRemoved', params: { name: u.display_name } });
     } catch (e) {
       this.message.set({ error: e });
     } finally {

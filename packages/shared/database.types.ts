@@ -37,6 +37,26 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"avatar_uploads": {
+                  Row: {
+                    "created_at": string,"id": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: number,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "avatar_uploads_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"categories": {
                   Row: {
                     "default_level": number,"icon": string,"id": number,"name_en": string,"name_th": string,"slug": string,"sort": number
@@ -207,14 +227,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "banned_at": string | null,"created_at": string,"display_name": string,"id": string,"locale": string,"role": string
+                    "avatar_path": string | null,"banned_at": string | null,"created_at": string,"display_name": string,"id": string,"locale": string,"onboarded_at": string | null,"role": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "banned_at"?: string | null,"created_at"?: string,"display_name": string,"id": string,"locale"?: string,"role"?: string
+                    "avatar_path"?: string | null,"banned_at"?: string | null,"created_at"?: string,"display_name": string,"id": string,"locale"?: string,"onboarded_at"?: string | null,"role"?: string
                   }
                   Update: {
-                    "banned_at"?: string | null,"created_at"?: string,"display_name"?: string,"id"?: string,"locale"?: string,"role"?: string
+                    "avatar_path"?: string | null,"banned_at"?: string | null,"created_at"?: string,"display_name"?: string,"id"?: string,"locale"?: string,"onboarded_at"?: string | null,"role"?: string
                   }
                   Relationships: [
                     
@@ -328,7 +348,7 @@ isOneToOne: false
           Views: {
             "public_comments": {
                   Row: {
-                    "author_name": string | null,"body": string | null,"by_reporter": boolean | null,"created_at": string | null,"id": string | null,"photo_path": string | null,"report_id": string | null
+                    "author_avatar": string | null,"author_name": string | null,"body": string | null,"by_reporter": boolean | null,"created_at": string | null,"id": string | null,"photo_path": string | null,"report_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -348,7 +368,7 @@ isOneToOne: false
                   ]
                 },"public_reports": {
                   Row: {
-                    "approved_at": string | null,"author_name": string | null,"category": string | null,"comment_count": number | null,"confirm_count": number | null,"cover_photo_path": string | null,"created_at": string | null,"danger_level": number | null,"days_open": number | null,"description": string | null,"icon": string | null,"id": string | null,"lat": number | null,"lng": number | null,"photos": Json | null,"place_name": string | null,"resolved_at": string | null,"status": string | null,"tags": (string)[] | null,"title": string | null
+                    "approved_at": string | null,"author_avatar": string | null,"author_name": string | null,"category": string | null,"comment_count": number | null,"confirm_count": number | null,"cover_photo_path": string | null,"created_at": string | null,"danger_level": number | null,"days_open": number | null,"description": string | null,"icon": string | null,"id": string | null,"lat": number | null,"lng": number | null,"photos": Json | null,"place_name": string | null,"resolved_at": string | null,"status": string | null,"tags": (string)[] | null,"title": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -403,6 +423,9 @@ isOneToOne: false
 "admin_reject_report":
 { Args: { "p_admin": string,"p_note": string,"p_reason": string,"p_report": string }; Returns: Json
                            },
+"admin_remove_avatar":
+{ Args: { "p_admin": string,"p_user": string }; Returns: string
+                           },
 "admin_resolve_flags":
 { Args: { "p_action": string,"p_admin": string,"p_flag": string }; Returns: Json
                            },
@@ -426,6 +449,9 @@ isOneToOne: false
                            },
 "claim_photos":
 { Args: { "p_photo_ids": (string)[],"p_user": string }; Returns: undefined
+                           },
+"complete_profile":
+{ Args: { "p_name": string,"p_user": string }; Returns: undefined
                            },
 "create_fix_claim":
 { Args: { "p_limit": number,"p_note": string,"p_photo": string,"p_report": string,"p_user": string }; Returns: Json
@@ -490,6 +516,9 @@ isOneToOne: false
 { Args: { "p_limit"?: number,"q": string }; Returns: {
               "lat": number,"level": number,"lng": number,"max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number,"name_en": string,"name_th": string,"province_en": string,"province_th": string
             }[]
+                           },
+"set_avatar":
+{ Args: { "p_limit": number,"p_path": string,"p_user": string }; Returns: string
                            },
 "stats_in_bbox":
 { Args: { "max_lat": number,"max_lng": number,"min_lat": number,"min_lng": number }; Returns: {

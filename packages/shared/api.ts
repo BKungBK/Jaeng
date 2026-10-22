@@ -26,7 +26,12 @@ export type PublicComment = {
   by_reporter: boolean;
   created_at: string;
   photo_path: string | null;
+  /** null with the name: a hidden reporter shows no picture either */
+  author_avatar: string | null;
 };
+
+/** What `PATCH /me` answers: the member's own profile as stored. */
+export type MeProfile = { display_name: string; locale: 'th' | 'en'; avatar_path: string | null; onboarded: boolean };
 
 export type DemoWho = 'reporter' | 'neighbor1' | 'admin';
 export type DemoUser = { who: DemoWho; label_th: string; label_en: string };

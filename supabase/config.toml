@@ -235,15 +235,17 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# Login codes go out through Resend (domain bkungbk.online). The API key is RESEND_API_KEY in
+# supabase/.env (git-ignored). `bash scripts/mail-mode.sh mailpit` turns this off for local work:
+# codes then land in Mailpit (http://localhost:54324) instead of real inboxes.
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "noreply@bkungbk.online"
+sender_name = "แจ้ง"
 
 [auth.email.template.magic_link]
 subject = "รหัสเข้าใช้ แจ้ง"

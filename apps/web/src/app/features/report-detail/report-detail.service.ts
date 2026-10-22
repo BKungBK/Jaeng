@@ -31,7 +31,7 @@ export class ReportDetailService {
     const client = await this.supabase.client();
     const { data, error } = await client
       .from('public_comments')
-      .select('id, report_id, body, author_name, by_reporter, created_at, photo_path')
+      .select('id, report_id, body, author_name, author_avatar, by_reporter, created_at, photo_path')
       .eq('report_id', id)
       .order('created_at', { ascending: true })
       .limit(COMMENT_LIMIT);

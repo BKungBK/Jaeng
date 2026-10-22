@@ -17,6 +17,7 @@ export function fakeMap(zoom = 5.2) {
       cam.center = { lng: o.center[0], lat: o.center[1] };
       cam.zoom = o.zoom;
     }),
+    fitBounds: vi.fn(),
     addSource: vi.fn(),
     addLayer: vi.fn(),
     zoomIn: vi.fn(),

@@ -501,6 +501,64 @@ async function plan4() {
       check('profanity: editing display_name straight through PostgREST is refused', direct.status >= 400 && afterDirect === 'เพื่อนบ้านทดสอบ', `${direct.status} ${afterDirect}`);
     });
 
+    // ------------------------------------------------------------------ sign-up profile: nickname and picture
+    await section('sign-up profile', async () => {
+      const avatarPut = (file) => {
+        const form = new FormData();
+        form.append('file', new Blob([file], { type: 'image/png' }), 'me.png');
+        return fetch(`${BASE}/api/me/avatar`, { method: 'PUT', headers: { authorization: `Bearer ${token}` }, body: form }).then(async (res) => ({
+          status: res.status,
+          json: await res.json().catch(() => null),
+        }));
+      };
+      const publicUrl = (path) => `${BASE}/sb/storage/v1/object/public/avatars/${path}`;
+      const row = () => psql(`select coalesce(avatar_path, '-'), onboarded_at is not null from public.profiles where id = '${uid}'`).split('|');
+
+      check('profile: a member made through the Auth API is not set up yet', row()[1] === 'f', row().join('|'));
+      const noName = await api('/me', { method: 'PATCH', token, body: { complete_profile: true, locale: 'th' } });
+      check('profile: completing without a nickname is 400', noName.status === 400 && noName.json?.error?.code === 'invalid_request', JSON.stringify(noName));
+      const rude = await api('/me', { method: 'PATCH', token, body: { display_name: 'bitch ass', complete_profile: true } });
+      check('profile: a rude nickname is 422 and the profile stays unset', rude.status === 422 && row()[1] === 'f', JSON.stringify(rude));
+      const done = await api('/me', { method: 'PATCH', token, body: { display_name: 'น้องเมย์', complete_profile: true } });
+      const firstTime = psql(`select onboarded_at from public.profiles where id = '${uid}'`);
+      check('profile: a good nickname is 200, stored, and marks the profile set up', done.status === 200 && done.json?.onboarded === true && row()[1] === 't', JSON.stringify(done));
+      await api('/me', { method: 'PATCH', token, body: { display_name: 'เมย์', complete_profile: true } });
+      check('profile: completing again keeps the first time', psql(`select onboarded_at from public.profiles where id = '${uid}'`) === firstTime);
+
+      const text = await avatarPut(Buffer.from('not an image'));
+      check('avatar: a text file is 415 invalid_photo', text.status === 415 && text.json?.error?.code === 'invalid_photo', JSON.stringify(text));
+      const first = await avatarPut(makePng(900, 600, { exif: true }));
+      const path1 = first.json?.avatar_path;
+      const file1 = path1 ? await fetch(publicUrl(path1)) : null;
+      const bytes1 = file1 ? Buffer.from(await file1.arrayBuffer()) : Buffer.alloc(0);
+      check(
+        'avatar: PUT is 200 and the file is a public 256 x 256 WebP in the avatars bucket',
+        first.status === 200 && row()[0] === path1 && file1?.status === 200 && file1.headers.get('content-type') === 'image/webp' && bytes1.subarray(8, 12).toString() === 'WEBP',
+        JSON.stringify(first),
+      );
+      const second = await avatarPut(makePng(300, 300));
+      const path2 = second.json?.avatar_path;
+      const old = await fetch(publicUrl(path1));
+      check('avatar: a new picture replaces the path and deletes the old file', second.status === 200 && path2 !== path1 && row()[0] === path2 && !old.ok, `${second.status} ${old.status}`);
+      const direct = await fetch(`${BASE}/sb/rest/v1/profiles?id=eq.${uid}`, {
+        method: 'PATCH',
+        headers: { apikey: anon, authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ avatar_path: 'x/y.webp' }),
+      });
+      check('avatar: writing avatar_path straight through PostgREST is refused', direct.status >= 400 && row()[0] === path2, `${direct.status} ${row()[0]}`);
+      const asUser = await fetch(`${BASE}/sb/storage/v1/object/avatars/${uid}/own.webp`, {
+        method: 'POST',
+        headers: { apikey: anon, authorization: `Bearer ${token}`, 'content-type': 'image/webp' },
+        body: bytes1,
+      });
+      check('avatar: a member cannot write to the bucket directly', asUser.status >= 400, String(asUser.status));
+      const removed = await fetch(`${BASE}/api/me/avatar`, { method: 'DELETE', headers: { authorization: `Bearer ${token}` } });
+      const gone = await fetch(publicUrl(path2));
+      check('avatar: DELETE is 200, clears the path and deletes the file', removed.status === 200 && row()[0] === '-' && !gone.ok, `${removed.status} ${gone.status}`);
+      const again = await fetch(`${BASE}/api/me/avatar`, { method: 'DELETE', headers: { authorization: `Bearer ${token}` } });
+      check('avatar: DELETE twice is still 200', again.status === 200, String(again.status));
+    });
+
     // ------------------------------------------------------------------ Step 6: duplicates and merge
     await section('duplicates and merge', async () => {
       const dup = (body) => api('/reports/check-duplicate', { method: 'POST', token, body });

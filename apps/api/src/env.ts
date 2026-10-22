@@ -3,7 +3,7 @@ const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KE
 export type Env = Record<(typeof REQUIRED)[number], string> & {
   quickLogin: boolean;
   demoPassword: string | null;
-  rateLimits: { reports: number; comments: number; photos: number; fixClaims: number; flags: number };
+  rateLimits: { reports: number; comments: number; photos: number; fixClaims: number; flags: number; avatars: number };
   nominatimUrl: string;
   /** goes in the User-Agent, as the Nominatim usage policy asks; a URL, so nobody's email is published */
   nominatimContact: string;
@@ -36,6 +36,7 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
     photos: positiveInt(source, 'RATE_LIMIT_PHOTOS_PER_DAY', 40),
     fixClaims: positiveInt(source, 'RATE_LIMIT_FIX_CLAIMS_PER_DAY', 10),
     flags: positiveInt(source, 'RATE_LIMIT_FLAGS_PER_DAY', 20),
+    avatars: positiveInt(source, 'RATE_LIMIT_AVATARS_PER_DAY', 10),
   };
   const nominatimUrl = (source.NOMINATIM_URL || 'https://nominatim.openstreetmap.org').replace(/\/+$/, '');
   const nominatimContact = source.NOMINATIM_CONTACT || 'https://github.com/BKungBK/Jaeng';

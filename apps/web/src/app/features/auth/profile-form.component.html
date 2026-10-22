@@ -1,0 +1,70 @@
+<form class="steps" novalidate [attr.aria-labelledby]="id + '-title'" (submit)="submit($event)">
+  <h2 class="head" [id]="id + '-title'">{{ 'profile.title' | t }}</h2>
+  <p class="lede">{{ 'profile.lede' | t }}</p>
+
+  <div class="picture" role="group" [attr.aria-label]="'profile.photo' | t">
+    <div class="face" [class.busy]="uploading()">
+      <app-avatar [name]="name()" [path]="avatarPath()" [size]="80" />
+      @if (uploading()) {
+        <span class="veil" aria-hidden="true">
+          <svg class="ring" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" opacity="0.25" />
+            <path d="M12 3a9 9 0 0 1 9 9" />
+          </svg>
+        </span>
+      }
+      @if (avatarPath() && !uploading()) {
+        <button type="button" class="remove" [attr.aria-label]="'profile.removePhoto' | t" (click)="removePhoto()">
+          <app-icon name="x" [size]="16" />
+        </button>
+      }
+    </div>
+    <div class="add">
+      <button type="button" class="secondary" [disabled]="uploading() || saving()" (click)="openCamera(camera)">
+        <app-icon name="camera" [size]="20" />
+        {{ 'fixForm.camera' | t }}
+      </button>
+      <button type="button" class="secondary" [disabled]="uploading() || saving()" (click)="openGallery(gallery)">
+        <app-icon name="image" [size]="20" />
+        {{ 'fixForm.gallery' | t }}
+      </button>
+    </div>
+    <!-- the buttons above open these; they stay out of the tab order and the accessibility tree -->
+    <input #camera class="sr-only" type="file" accept="image/*" capture="user" tabindex="-1" aria-hidden="true" (change)="picked($event)" />
+    <input #gallery class="sr-only" type="file" accept="image/*" tabindex="-1" aria-hidden="true" (change)="picked($event)" />
+    <p class="caption" role="status">{{ uploading() ? ('profile.uploading' | t) : photoError() ? i18n.say(photoError()) : ('profile.photoOptional' | t) }}</p>
+  </div>
+
+  <label class="field" [for]="id + '-name'">{{ 'profile.nickname' | t }}</label>
+  <input
+    class="input"
+    type="text"
+    autocomplete="nickname"
+    autocapitalize="off"
+    [id]="id + '-name'"
+    [attr.maxlength]="max"
+    [attr.aria-describedby]="error() ? id + '-error' : id + '-hint'"
+    [attr.aria-invalid]="error() ? true : null"
+    [value]="name()"
+    (input)="onName($event)"
+  />
+  <div class="count-row">
+    <span class="caption" [id]="id + '-hint'">{{ 'me.nameHint' | t: { min, max } }}</span>
+    <span class="caption count">{{ nameLength() }}/{{ max }}</span>
+  </div>
+  <p class="note">{{ 'me.nameNote' | t }}</p>
+  @if (error(); as message) {
+    <p class="error" role="alert" [id]="id + '-error'">{{ i18n.say(message) }}</p>
+  }
+
+  <button type="submit" class="primary" [disabled]="!canStart()" [attr.aria-busy]="saving()">
+    {{ (saving() ? 'load.saving' : 'profile.start') | t }}
+  </button>
+
+  @if (signOutLink()) {
+    <div class="links">
+      <span class="caption">{{ 'profile.notYou' | t }}</span>
+      <button type="button" class="link" [disabled]="saving()" (click)="signOut()">{{ 'account.signOut' | t }}</button>
+    </div>
+  }
+</form>

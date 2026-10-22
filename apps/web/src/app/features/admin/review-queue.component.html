@@ -55,7 +55,8 @@
           }
         </ul>
 
-        <div class="cols">
+        <!-- while approving, the map moves down beside the choice of where to show the report -->
+        <div class="cols" [class.solo]="mode() === 'approve'">
           <div class="facts">
             @if (r.description) {
               <p class="desc">{{ r.description }}</p>
@@ -74,13 +75,14 @@
               <time [attr.datetime]="r.created_at" [title]="date(r.created_at)">{{ 'admin.review.reportedAgo' | t: { ago: ago(r.created_at) } }}</time>
             </p>
             <p class="who">
+              <app-avatar [name]="r.author.display_name" [path]="r.author.avatar_path" [size]="24" />
               {{ 'detail.reporter' | t }} <strong>{{ r.author.display_name }}</strong>
               @if (r.author.email) {
                 <span class="email">{{ r.author.email }}</span>
               }
             </p>
           </div>
-          @if (truePoint(); as tp) {
+          @if (mode() !== 'approve' && truePoint(); as tp) {
             <app-place-map class="small-map" [truePoint]="tp" [publicPoint]="shownPoint()!" [picking]="picking()" (picked)="point.set($event)" />
           }
         </div>
@@ -88,11 +90,11 @@
         @switch (mode()) {
           @case ('view') {
             <div class="decide">
-              <button type="button" class="btn" [disabled]="busy()" (click)="openReject()">
-                <app-icon name="circleX" [size]="18" />{{ 'admin.review.reject' | t }}
+              <button type="button" class="btn big" [disabled]="busy()" (click)="openReject()">
+                <app-icon name="circleX" [size]="20" />{{ 'admin.review.reject' | t }}
               </button>
-              <button type="button" class="btn primary" [disabled]="busy()" (click)="openApprove()">
-                <app-icon name="circleCheck" [size]="18" />{{ 'admin.review.approve' | t }}
+              <button type="button" class="btn primary big" [disabled]="busy()" (click)="openApprove()">
+                <app-icon name="circleCheck" [size]="20" />{{ 'admin.review.approve' | t }}
               </button>
             </div>
           }
@@ -154,6 +156,9 @@
                     </label>
                   }
                 </div>
+                @if (truePoint(); as tp) {
+                  <app-place-map class="small-map form-map" [truePoint]="tp" [publicPoint]="shownPoint()!" [picking]="picking()" (picked)="point.set($event)" />
+                }
                 @if (picking()) {
                   <p class="caption">{{ 'admin.review.pickHint' | t }}</p>
                 }
@@ -164,8 +169,8 @@
 
               <div class="row">
                 <button type="button" class="btn" [disabled]="busy()" (click)="cancel()">{{ 'common.cancel' | t }}</button>
-                <button type="submit" class="btn primary big" [disabled]="!canApprove()" [attr.aria-busy]="busy()">
-                  <app-icon name="circleCheck" [size]="20" />{{ 'admin.review.approveSend' | t }}
+                <button type="submit" class="btn primary big go" [disabled]="!canApprove()" [attr.aria-busy]="busy()">
+                  <app-icon name="circleCheck" [size]="20" />{{ (busy() ? 'admin.review.approving' : 'admin.review.approveSend') | t }}
                 </button>
               </div>
             </form>

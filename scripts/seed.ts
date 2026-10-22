@@ -57,6 +57,8 @@ for (let i = 1; i <= neighborCount; i++) neighbors.push(await ensureUser(`neighb
 
 await db`update public.profiles set role = 'admin', display_name = 'ผู้ดูแลแจ้ง' where id = ${adminId}`;
 await db`update public.profiles set display_name = 'เพื่อนบ้านใจดี' where id = ${reporterId}`;
+// demo members already have their names: they never see the sign-up profile step
+await db`update public.profiles set onboarded_at = coalesce(onboarded_at, now())`;
 
 // Demo photos (plan 4, task 8): CC0 files in supabase/seed-photos, pushed through the API's own pipeline.
 // Category -> pool of file name prefixes. 'other' has no pool, so it gets no photo.

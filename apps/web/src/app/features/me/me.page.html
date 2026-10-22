@@ -39,6 +39,7 @@
         </form>
       } @else {
         <div class="name-row">
+          <app-avatar [name]="auth.profile()?.display_name" [path]="auth.profile()?.avatar_path" [size]="64" />
           <div class="name-text">
             <span class="caption">{{ 'me.name' | t }}</span>
             <strong class="name">{{ auth.profile()?.display_name ?? ('account.mine' | t) }}</strong>
@@ -47,6 +48,20 @@
             <app-icon name="pencil" [size]="18" />{{ 'me.edit' | t }}
           </button>
         </div>
+        <div class="face-actions">
+          <button type="button" class="btn" [disabled]="photoBusy()" [attr.aria-busy]="photoBusy()" (click)="picker.click()">
+            <app-icon name="camera" [size]="18" />{{ (photoBusy() ? 'profile.uploading' : 'profile.changePhoto') | t }}
+          </button>
+          @if (auth.profile()?.avatar_path) {
+            <button type="button" class="btn" [disabled]="photoBusy()" (click)="removePhoto()">
+              <app-icon name="trash2" [size]="18" />{{ 'profile.removePhoto' | t }}
+            </button>
+          }
+          <input #picker class="sr-only" type="file" accept="image/*" tabindex="-1" aria-hidden="true" (change)="photoPicked($event)" />
+        </div>
+        @if (photoError(); as message) {
+          <p class="error" role="alert">{{ i18n.say(message) }}</p>
+        }
         <p class="caption">{{ 'me.nameNote' | t }}</p>
       }
     </section>

@@ -6,6 +6,8 @@ export const PHOTOS_PER_REPORT_MAX = 4;
 export const PHOTO_MAX_BYTES = 3 * 1024 * 1024;
 export const PHOTO_MAX_SIDE = 1600;
 export const THUMB_SIDE = 400;
+/** A profile picture is stored as a square of this many pixels. */
+export const AVATAR_SIDE = 256;
 
 export const TITLE_MAX = 120;
 export const DESCRIPTION_MAX = 1000;

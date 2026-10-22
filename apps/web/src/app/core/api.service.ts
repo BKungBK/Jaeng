@@ -23,7 +23,7 @@ function own(status: number, code: ErrorCode, key: OwnError): ApiError {
   return new ApiError(status, code, th.errors[key], en.errors[key]);
 }
 
-type Method = 'GET' | 'POST' | 'PATCH';
+type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 type Payload = { json: unknown } | { form: FormData } | undefined;
 
 @Injectable({ providedIn: 'root' })
@@ -46,6 +46,15 @@ export class ApiService {
   /** multipart: no Content-Type here, the browser adds it together with the boundary */
   upload<T>(path: string, form: FormData): Promise<T> {
     return this.request<T>('POST', path, { form });
+  }
+
+  /** multipart PUT: replaces a thing that has one place (the profile picture) */
+  putForm<T>(path: string, form: FormData): Promise<T> {
+    return this.request<T>('PUT', path, { form });
+  }
+
+  delete<T>(path: string): Promise<T> {
+    return this.request<T>('DELETE', path, undefined);
   }
 
   private async request<T>(method: Method, path: string, payload: Payload): Promise<T> {

@@ -17,6 +17,7 @@ import { DISPLAY_NAME_MAX, DISPLAY_NAME_MIN, type MyReport } from '@jaeng/shared
 import { AuthService } from '../../core/auth.service';
 import { I18nService, type Said } from '../../core/i18n.service';
 import { TPipe } from '../../i18n/t.pipe';
+import { AvatarComponent } from '../../shared/avatar.component';
 import { ServerUrlPipe } from '../../shared/server-url.pipe';
 import { LanguageChoiceComponent } from '../../shared/language-choice.component';
 import { ServerLinkComponent } from '../../shared/server-link.component';
@@ -39,7 +40,7 @@ type State = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-me',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BackdropComponent, IconComponent, LevelShapeComponent, NgTemplateOutlet, RouterLink, ServerLinkComponent, ServerUrlPipe, TPipe, LanguageChoiceComponent, ThemeChoiceComponent],
+  imports: [AvatarComponent, BackdropComponent, IconComponent, LevelShapeComponent, NgTemplateOutlet, RouterLink, ServerLinkComponent, ServerUrlPipe, TPipe, LanguageChoiceComponent, ThemeChoiceComponent],
   templateUrl: 'me.page.html',
   styleUrl: 'me.page.scss',
   host: { class: 'ion-page' },
@@ -62,6 +63,8 @@ export class MePage {
   protected readonly saving = signal(false);
   protected readonly nameError = signal<Said>(null);
   protected readonly signingOut = signal(false);
+  protected readonly photoBusy = signal(false);
+  protected readonly photoError = signal<Said>(null);
 
   protected readonly min = DISPLAY_NAME_MIN;
   protected readonly max = DISPLAY_NAME_MAX;
@@ -141,6 +144,35 @@ export class MePage {
       this.nameError.set({ error: e });
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  /** A picture sent or taken off: the API does the work, the page follows with the new path. */
+  protected async photoPicked(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // the same file can be picked again
+    if (!file) return;
+    await this.changePhoto(async () => this.auth.setProfile({ avatar_path: await this.svc.uploadAvatar(file) }));
+  }
+
+  protected removePhoto() {
+    return this.changePhoto(async () => {
+      await this.svc.removeAvatar();
+      this.auth.setProfile({ avatar_path: null });
+    });
+  }
+
+  private async changePhoto(job: () => Promise<void>) {
+    if (this.photoBusy()) return;
+    this.photoBusy.set(true);
+    this.photoError.set(null);
+    try {
+      await job();
+    } catch (e) {
+      this.photoError.set({ error: e });
+    } finally {
+      this.photoBusy.set(false);
     }
   }
 

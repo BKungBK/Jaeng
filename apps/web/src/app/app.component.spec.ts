@@ -4,12 +4,13 @@ import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
 import { AppUpdateService } from './core/app-update.service';
 import { glassNav } from './core/motion';
+import { ProfileSetupService } from './features/auth/profile-setup.service';
 
 describe('AppComponent', () => {
   async function setup() {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([])]
+      providers: [provideRouter([]), { provide: ProfileSetupService, useValue: {} }]
     }).compileComponents();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -26,7 +27,7 @@ describe('AppComponent', () => {
     const reload = vi.fn();
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([]), { provide: AppUpdateService, useValue: { ready: signal(true), dismiss, reload } }],
+      providers: [provideRouter([]), { provide: ProfileSetupService, useValue: {} }, { provide: AppUpdateService, useValue: { ready: signal(true), dismiss, reload } }],
     }).compileComponents();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();

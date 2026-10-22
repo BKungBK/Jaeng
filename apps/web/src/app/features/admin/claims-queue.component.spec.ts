@@ -11,7 +11,7 @@ function claim(over: Partial<QueueClaim> = {}): QueueClaim {
     id: 'c1',
     note: 'ซ่อมเสร็จแล้วนะ',
     created_at: '2026-10-19T08:00:00Z',
-    claimant: { id: 'n1', display_name: 'เพื่อนบ้าน', email: 'n1@x.test', role: 'user', banned: false },
+    claimant: { id: 'n1', display_name: 'เพื่อนบ้าน', email: 'n1@x.test', role: 'user', banned: false, avatar_path: null },
     photo: photo('n1/after.webp'),
     report: { id: 'r1', title: 'ท่อแตก', category: 'water', danger_level: 2, place_name: 'บางนา', days_open: 12, photos: [photo('r1/before.webp')] },
     ...over,

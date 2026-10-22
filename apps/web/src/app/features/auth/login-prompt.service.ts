@@ -12,6 +12,7 @@ import {
 import { ModalController } from '@ionic/angular';
 import { TPipe } from '../../i18n/t.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { liftAboveKeyboard } from './keyboard-lift';
 import { LoginFormComponent } from './login-form.component';
 
 /**
@@ -32,80 +33,7 @@ import { LoginFormComponent } from './login-form.component';
       <app-login-form (done)="finish()" />
     </div>
   `,
-  styles: `
-    ion-modal.login-sheet {
-      --width: 100%;
-      --height: auto;
-      --max-height: calc(100% - 24px - env(safe-area-inset-top, 0px));
-      --border-radius: 24px 24px 0 0;
-      --background: var(--surf);
-      --box-shadow: var(--glass-shadow);
-      --backdrop-opacity: 0.32;
-      align-items: flex-end;
-    }
-    /* Ionic gives the component .ion-page (absolute, full size); auto height needs it in the flow */
-    ion-modal.login-sheet .ion-page {
-      position: relative;
-      display: block;
-      contain: content;
-    }
-    ion-modal.login-sheet::part(content) {
-      margin-bottom: var(--kb, 0px);
-      transition: margin-bottom 120ms ease-out;
-    }
-    @media (min-width: 820px) {
-      ion-modal.login-sheet {
-        --width: 420px;
-        --border-radius: 24px;
-        align-items: center;
-      }
-    }
-    .login-sheet-body {
-      position: relative;
-      max-height: calc(100dvh - 24px - var(--kb, 0px) - env(safe-area-inset-top, 0px));
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-      box-sizing: border-box;
-      color: var(--ink);
-    }
-    @media (min-width: 820px) {
-      .login-sheet-body {
-        padding: 28px 28px 24px;
-      }
-      .login-sheet-close {
-        top: 18px;
-        right: 18px;
-      }
-    }
-    .login-sheet-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 1;
-      display: grid;
-      place-items: center;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--surf);
-      color: var(--ink);
-      cursor: pointer;
-    }
-    .login-sheet-close:hover {
-      background: var(--bg);
-    }
-    .login-sheet-close:focus-visible {
-      outline: 3px solid var(--pri);
-      outline-offset: 2px;
-    }
-    /* the title keeps clear of the close button */
-    .login-sheet-body app-login-form .head {
-      padding-right: 52px;
-    }
-  `,
+  styleUrl: 'login-sheet.scss',
 })
 export class LoginSheetComponent {
   private modals = inject(ModalController);
@@ -113,28 +41,9 @@ export class LoginSheetComponent {
   private form = viewChild(LoginFormComponent);
 
   constructor() {
+    // Ionic focuses the modal itself once it is shown; then move on to the email field
     const destroyRef = inject(DestroyRef);
-    // browsers that overlay the keyboard (Android Chrome's default) shrink only the visual
-    // viewport, so lift the sheet by the part the keyboard covers
-    afterNextRender(() => {
-      const vv = window.visualViewport;
-      const modal = this.host.nativeElement.closest<HTMLElement>('ion-modal');
-      if (!modal) return;
-      // Ionic focuses the modal itself once it is shown; then move on to the email field
-      modal.addEventListener('ionModalDidPresent', () => this.form()?.focusFirst(), { once: true });
-      if (!vv) return;
-      const update = () => {
-        const covered = Math.max(0, innerHeight - vv.height - vv.offsetTop);
-        modal.style.setProperty('--kb', `${Math.round(covered)}px`);
-      };
-      vv.addEventListener('resize', update);
-      vv.addEventListener('scroll', update);
-      update();
-      destroyRef.onDestroy(() => {
-        vv.removeEventListener('resize', update);
-        vv.removeEventListener('scroll', update);
-      });
-    });
+    afterNextRender(() => liftAboveKeyboard(this.host.nativeElement, destroyRef, () => this.form()?.focusFirst()));
   }
 
   close() {
@@ -156,6 +65,11 @@ export class LoginPromptService {
   ask(): Promise<boolean> {
     this.pending ??= this.open().finally(() => (this.pending = undefined));
     return this.pending;
+  }
+
+  /** Resolves once no login sheet is open (at once when none is). */
+  whenIdle(): Promise<void> {
+    return this.pending ? this.pending.then(() => undefined) : Promise.resolve();
   }
 
   private async open(): Promise<boolean> {

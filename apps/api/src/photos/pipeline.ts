@@ -1,4 +1,4 @@
-import { PHOTO_MAX_SIDE, THUMB_SIDE } from '@jaeng/shared/report';
+import { AVATAR_SIDE, PHOTO_MAX_SIDE, THUMB_SIDE } from '@jaeng/shared/report';
 import sharp from 'sharp';
 import { ApiError } from '../errors';
 
@@ -31,6 +31,22 @@ export async function reencode(bytes: Uint8Array): Promise<{ image: Buffer; widt
       .webp({ quality: 80 })
       .toBuffer({ resolveWithObject: true });
     return { image: data, width: info.width, height: info.height };
+  } catch {
+    throw new ApiError('invalid_photo');
+  }
+}
+
+/**
+ * A profile picture: the middle square of the photo, AVATAR_SIDE px, WebP. Like reencode, nothing of the
+ * original metadata is kept. No face or plate blur: it is the member's own picture, chosen by them.
+ */
+export async function makeAvatar(bytes: Uint8Array): Promise<Buffer> {
+  try {
+    return await sharp(bytes, { limitInputPixels: 40_000_000, failOn: 'error' })
+      .rotate()
+      .resize(AVATAR_SIDE, AVATAR_SIDE, { fit: 'cover', position: 'centre' })
+      .webp({ quality: 80 })
+      .toBuffer();
   } catch {
     throw new ApiError('invalid_photo');
   }

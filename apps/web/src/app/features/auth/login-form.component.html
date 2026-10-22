@@ -1,3 +1,6 @@
+@if (step() === 'profile') {
+  <app-profile-form (done)="done.emit()" />
+} @else {
 <form class="steps" novalidate [attr.aria-labelledby]="id + '-title'" (submit)="submit($event)">
   @if (step() === 'email') {
     <h2 class="head" [id]="id + '-title'">{{ 'auth.login' | t }}</h2>
@@ -95,4 +98,5 @@
       <p class="error" role="alert">{{ i18n.say(message) }}</p>
     }
   </section>
+}
 }

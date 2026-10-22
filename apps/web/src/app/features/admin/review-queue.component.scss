@@ -69,15 +69,48 @@ h3 {
   height: 200px;
 }
 
+// the map in the approve form sits under the choice of location, so it gets more room
+.form-map {
+  height: 260px;
+}
+
 @media (min-width: 820px) {
   .cols {
     grid-template-columns: 1fr 300px;
     align-items: start;
+
+    &.solo {
+      grid-template-columns: 1fr;
+    }
   }
 
   .small-map {
     height: 240px;
   }
+
+  .form-map {
+    height: 300px;
+  }
+}
+
+// reject and approve: two equal, thumb-sized halves, the warm one a little wider
+.decide {
+  flex-wrap: nowrap;
+  gap: 10px;
+
+  .btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .primary {
+    flex-grow: 1.4;
+  }
+}
+
+// the submit button of the approve form: the same weight as the choice it confirms
+.go {
+  min-width: 56%;
 }
 
 @media (max-width: 819px) {
@@ -123,6 +156,10 @@ h3 {
   gap: 2px 8px;
   align-items: baseline;
   font-size: 14px;
+
+  app-avatar {
+    align-self: center;
+  }
 
   strong {
     font-weight: 500;

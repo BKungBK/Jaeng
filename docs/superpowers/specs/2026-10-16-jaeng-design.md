@@ -475,6 +475,8 @@ Jaeng/
 | role | text | `user` / `admin` |
 | locale | text | `th` / `en` |
 | banned_at | timestamptz null | |
+| avatar_path | text null | (แผน 9) รูปโปรไฟล์ใน bucket สาธารณะ `avatars` เส้นทาง `{user_id}/{uuid}.webp` 256×256 เปลี่ยนผ่าน `PUT/DELETE /api/me/avatar` เท่านั้น |
+| onboarded_at | timestamptz null | (แผน 9) ว่างจนกว่าผู้สมัครใหม่จะตั้งชื่อเล่น (ชื่อที่แสดง) ผ่านขั้น "ตั้งโปรไฟล์" หลังใส่รหัส สมาชิกเดิมตั้งเป็นเวลาที่สมัคร |
 | created_at | timestamptz | |
 
 **`categories`**: `id smallint PK`, `slug`, `name_th`, `name_en`, `icon`, `default_level smallint`, `sort` (seed 8 แถวตามหัวข้อ 3.7)
@@ -570,7 +572,10 @@ base path `/api` ผ่าน Caddy ทุก endpoint ที่เขียน�
 | POST | `/api/reports/:id/merge` | (แผน 4) "ใช่ กดเจอเหมือนกันแทน" จากการ์ดเรื่องซ้ำ: นับ +1 ให้เรื่องเดิม และแนบรูปที่ผู้ใช้เพิ่งอัปโหลดเป็นความคิดเห็นในครั้งเดียวแบบ atomic (แยกจาก `confirm` เพราะ `confirm` สลับได้และไม่รับรูป) | สมาชิก |
 | POST | `/api/reports/:id/confirm` | สลับ "เจอเหมือนกัน" | สมาชิก |
 | GET | `/api/me/reports` | (แผน 4) เรื่องของฉันทุกสถานะสำหรับหน้า `/me` ผ่าน API เพราะรูปที่ยังรออยู่ใน `photos-private` ต้องใช้ signed URL และพิกัดจริงของ hazard ไม่เคยเดินทางผ่านเส้นทางนี้ | สมาชิก |
-| PATCH | `/api/me` | (แผน 4) แก้ชื่อที่แสดง (2–30 ตัวอักษร นับเป็น code point และกรองคำหยาบ) ผ่าน API เพราะ client เขียนตาราง `profiles` ตรงไม่ได้ แผน 6 รับ `{display_name?, locale?}` (`locale` เป็น `th` หรือ `en`) | สมาชิก |
+| PATCH | `/api/me` | (แผน 4) แก้ชื่อที่แสดง (2–30 ตัวอักษร นับเป็น code point และกรองคำหยาบ) ผ่าน API เพราะ client เขียนตาราง `profiles` ตรงไม่ได้ แผน 6 รับ `{display_name?, locale?}` (`locale` เป็น `th` หรือ `en`) แผน 9 รับ `complete_profile: true` คู่กับ `display_name` เพื่อบันทึกชื่อเล่นและตั้ง `onboarded_at` (ครั้งแรกเท่านั้น) | สมาชิก |
+| PUT | `/api/me/avatar` | (แผน 9) multipart ช่อง `file` (≤ 3 MB, ตรวจ magic bytes) ตัดกลางเป็น 256×256 WebP ลบ EXIF เก็บใน `avatars` แล้วลบไฟล์เก่า จำกัด `RATE_LIMIT_AVATARS_PER_DAY` (10) ต่อ 24 ชม. ตอบ `{avatar_path}` | สมาชิก |
+| DELETE | `/api/me/avatar` | (แผน 9) เอารูปออก ซ้ำได้ ตอบ `{avatar_path: null}` | สมาชิก |
+| POST | `/api/admin/users/:id/remove-avatar` | (แผน 9) ผู้ดูแลเอารูปโปรไฟล์ของสมาชิกออก ลบไฟล์และบันทึก `remove_avatar` ลงบันทึกผู้ดูแล | แอดมิน |
 | GET | `/api/places?q=&lang=&more=` | (แผน 6) ค้นสถานที่: อำเภอ/จังหวัดในเครื่องเสมอ ถาม Nominatim เฉพาะเมื่อ `more=1` ซึ่งเว็บส่งเมื่อผู้ใช้กดแถว "ค้นสถานที่อื่นใน OpenStreetMap" หรือกด Enter โดยไม่ได้เลือกแถว (นโยบาย OSM ห้ามค้นแบบพิมพ์ไปค้นไป) รอ OSM รวมเวลาเข้าคิวไม่เกิน 3.5 วินาที (คิวห่างกัน ≥ 1.1 วินาที, timeout 4 วินาที, cache 24 ชั่วโมง, จำความล้มเหลว 60 วินาที) คืน `{places: [{name, detail, lng, lat, bbox, source}], online}` (`online: false` เมื่อ Nominatim ล่มหรือช้า ผลในเครื่องยังมา) | ทุกคน |
 | POST | `/api/reports/:id/comments` | เพิ่มความคิดเห็น (photo_id ได้) | สมาชิก |
 | POST | `/api/reports/:id/fix-claims` | แจ้งว่าแก้แล้ว (note, photo_id) | สมาชิก |

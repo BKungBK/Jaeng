@@ -1,7 +1,7 @@
 import { thumbPath } from '@jaeng/shared/report';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export type Bucket = 'photos-private' | 'photos-public';
+export type Bucket = 'photos-private' | 'photos-public' | 'avatars';
 
 export type PhotoStorage = {
   put(bucket: Bucket, path: string, bytes: Uint8Array): Promise<void>;

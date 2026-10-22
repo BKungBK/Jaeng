@@ -9,6 +9,8 @@ export type ReportDetail = ReportProps & {
   lat: number;
   place_name: string | null;
   author_name: string | null;
+  /** the author's picture, null with the name (a hidden author shows neither) */
+  author_avatar: string | null;
   tags: string[];
   photos: ReportPhoto[];
   created_at: string;
@@ -18,6 +20,6 @@ export type ReportDetail = ReportProps & {
 
 export const DETAIL_COLUMNS =
   'id, category, icon, danger_level, title, description, status, lng, lat, place_name, confirm_count, comment_count, ' +
-  'days_open, author_name, cover_photo_path, tags, approved_at, resolved_at, photos, created_at';
+  'days_open, author_name, author_avatar, cover_photo_path, tags, approved_at, resolved_at, photos, created_at';
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

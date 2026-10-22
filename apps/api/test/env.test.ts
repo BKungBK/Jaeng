@@ -29,7 +29,7 @@ test('SUPABASE_JWT_SECRET is not required', () => {
 });
 
 test('rate limits default to 5 reports, 30 comments, 40 photos, 10 fix claims, 20 flags per day', () => {
-  expect(loadEnv(full).rateLimits).toEqual({ reports: 5, comments: 30, photos: 40, fixClaims: 10, flags: 20 });
+  expect(loadEnv(full).rateLimits).toEqual({ reports: 5, comments: 30, photos: 40, fixClaims: 10, flags: 20, avatars: 10 });
 });
 
 test('fix claim and flag limits reject non-positive values and can be overridden', () => {

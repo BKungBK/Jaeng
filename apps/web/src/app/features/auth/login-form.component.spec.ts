@@ -1,8 +1,11 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { DemoUser } from '@jaeng/shared/api';
 import { AuthError, AuthService } from '../../core/auth.service';
+import { DeviceService } from '../../core/device.service';
 import { I18nService } from '../../core/i18n.service';
 import { SupabaseService } from '../../core/supabase.service';
+import { MeService } from '../me/me.service';
 import { LoginFormComponent, VERIFIED_HOLD_MS } from './login-form.component';
 
 const DEMO: DemoUser[] = [
@@ -11,15 +14,29 @@ const DEMO: DemoUser[] = [
   { who: 'admin', label_th: 'ผู้ดูแล', label_en: 'Moderator' },
 ];
 
-async function setup(opts: { quickLogin?: DemoUser[]; configFails?: boolean } = {}) {
+/** a member whose profile is set up, so the login ends at the code step like it always did */
+const SET_UP = { id: 'u1', display_name: 'พี่ปลา', role: 'user', locale: 'th', avatar_path: null, onboarded_at: '2026-10-01T00:00:00Z' };
+
+async function setup(opts: { quickLogin?: DemoUser[]; configFails?: boolean; profile?: typeof SET_UP | null } = {}) {
+  const profile = signal<typeof SET_UP | null>(opts.profile === undefined ? SET_UP : opts.profile);
   const auth = {
     sendCode: vi.fn().mockResolvedValue(undefined),
     verifyCode: vi.fn().mockResolvedValue(undefined),
     quickLogin: vi.fn().mockResolvedValue(undefined),
+    loadedProfile: vi.fn(async () => profile()),
+    profile,
+    setProfile: vi.fn(),
+  };
+  const me = {
+    completeProfile: vi.fn().mockResolvedValue({ display_name: 'น้องเมย์', locale: 'th', avatar_path: null, onboarded: true }),
+    uploadAvatar: vi.fn().mockResolvedValue('u1/a.webp'),
+    removeAvatar: vi.fn().mockResolvedValue(undefined),
   };
   TestBed.configureTestingModule({
     providers: [
       { provide: AuthService, useValue: auth },
+      { provide: MeService, useValue: me },
+      { provide: DeviceService, useValue: { native: false } },
       {
         provide: SupabaseService,
         useValue: {
@@ -52,7 +69,7 @@ async function setup(opts: { quickLogin?: DemoUser[]; configFails?: boolean } = 
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     await stable();
   };
-  return { fixture, root, auth, done, type, button, submit, stable };
+  return { fixture, root, auth, me, done, type, button, submit, stable };
 }
 
 async function toCodeStep(t: Awaited<ReturnType<typeof setup>>) {
@@ -123,6 +140,53 @@ describe('LoginFormComponent', () => {
     expect(t.root.querySelector('.otp.ok .check app-tick svg.play')).not.toBeNull();
     await new Promise((r) => setTimeout(r, VERIFIED_HOLD_MS + 60));
     expect(t.done).toHaveBeenCalledTimes(1);
+  });
+
+  describe('a new member (profile not set up yet)', () => {
+    const NEW_MEMBER = { ...SET_UP, display_name: 'เพื่อนบ้าน0001', onboarded_at: null as string | null };
+
+    async function toProfileStep() {
+      const t = await setup({ profile: NEW_MEMBER as typeof SET_UP });
+      await toCodeStep(t);
+      await t.type('input[autocomplete="one-time-code"]', '123456');
+      await t.submit();
+      await new Promise((r) => setTimeout(r, VERIFIED_HOLD_MS + 60));
+      await t.stable();
+      return t;
+    }
+
+    it('goes on to the profile step after the right code, and is not done yet', async () => {
+      const t = await toProfileStep();
+      expect(t.done).not.toHaveBeenCalled();
+      expect(t.root.querySelector('app-profile-form')).not.toBeNull();
+      expect(t.root.querySelector('h2')?.textContent).toContain('ตั้งโปรไฟล์ของคุณ');
+      expect(t.root.querySelector('input[type="email"]')).toBeNull();
+    });
+
+    it('is done once the nickname is saved', async () => {
+      const t = await toProfileStep();
+      await t.type('input[autocomplete="nickname"]', 'น้องเมย์');
+      await t.submit();
+      expect(t.me.completeProfile).toHaveBeenCalledWith('น้องเมย์');
+      expect(t.done).toHaveBeenCalledTimes(1);
+    });
+
+    it('a quick login of a member without a profile also goes to the profile step', async () => {
+      const t = await setup({ quickLogin: DEMO, profile: NEW_MEMBER as typeof SET_UP });
+      t.button('คนแจ้ง')!.click();
+      await t.stable();
+      expect(t.done).not.toHaveBeenCalled();
+      expect(t.root.querySelector('app-profile-form')).not.toBeNull();
+    });
+
+    it('a profile that could not be read finishes the login (the profile sheet takes over later)', async () => {
+      const t = await setup({ profile: null });
+      await toCodeStep(t);
+      await t.type('input[autocomplete="one-time-code"]', '123456');
+      await t.submit();
+      await new Promise((r) => setTimeout(r, VERIFIED_HOLD_MS + 60));
+      expect(t.done).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('shows the six cells filling from the left, and shakes the row on a wrong code', async () => {

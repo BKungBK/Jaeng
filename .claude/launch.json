@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mocks",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", ".impeccable/mocks/decision"],
+      "port": 8765
+    },
+    {
+      "name": "remotion-studio",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd video && npx remotion studio src/index.ts --no-open --port 3300"],
+      "port": 3300
+    }
+  ]
+}

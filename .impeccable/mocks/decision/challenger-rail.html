@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>แจ้ง: เส้นสเปกตรัมบนถ่าน</title>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--coal:#121315;--plate:rgba(28,30,33,.78);--bone:#E8E4DA;--mute:#8A8C90;--hair:rgba(232,228,218,.18);--cyan:#3FD0E0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:390px;height:844px;overflow:hidden;background:var(--coal);font-family:"Bai Jamjuree",system-ui,sans-serif;color:var(--bone)}
+.coal{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 2px,transparent 2px 5px),radial-gradient(90% 60% at 50% 45%,#1B1D20,#0E0F11)}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);background-size:78px 78px;opacity:.35}
+.plate{background:var(--plate);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--hair);position:absolute}
+.br::before,.br::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--bone)}
+.br::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.br::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.top{top:52px;left:16px;right:16px;height:52px;display:flex;align-items:center;gap:12px;padding:0 14px}
+.logo{font-weight:600;font-size:20px;letter-spacing:1px}
+.search{flex:1;font-size:14px;color:var(--mute);letter-spacing:.3px}
+.av{width:34px;height:34px;border:1px solid var(--hair);display:grid;place-items:center;font-size:12px}
+.tabs{top:116px;left:16px;display:flex}
+.tabs span{padding:10px 14px;font-size:13px;color:var(--mute);border-bottom:1px solid var(--hair)}
+.tabs .on{color:var(--bone);border-bottom:2px solid var(--cyan);box-shadow:0 8px 14px -10px var(--cyan)}
+.pin{position:absolute;width:12px;height:12px;background:var(--bone);border:3px solid var(--coal);outline:1px solid var(--bone);transform:translate(-50%,-50%)}
+.tag{position:absolute;font-size:11px;letter-spacing:.6px;padding:3px 7px;background:#0E0F11;border:1px solid var(--hair);white-space:nowrap}
+.tag i{display:inline-block;width:6px;height:6px;margin-right:5px;background:var(--c);box-shadow:0 0 6px var(--c)}
+.line{position:absolute;width:1px;transform:translateX(-50%);background:var(--c);box-shadow:0 0 8px var(--c)}
+.line.d{background:repeating-linear-gradient(to top,var(--c) 0 5px,transparent 5px 9px)}
+.card{left:16px;right:16px;bottom:120px;padding:14px 16px}
+.card .row{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-top:8px}
+.card .row b{color:var(--bone);font-weight:500}
+.card h3{font-size:16px;font-weight:500;display:flex;align-items:center;gap:8px}
+.card h3 i{width:8px;height:8px;background:#E5484D;box-shadow:0 0 8px #E5484D}
+.bar{margin-top:12px;height:14px;background:repeating-linear-gradient(90deg,var(--bone) 0 2px,transparent 2px 5px);-webkit-mask:linear-gradient(90deg,#000 62%,rgba(0,0,0,.25) 62%);mask:linear-gradient(90deg,#000 62%,rgba(0,0,0,.25) 62%)}
+.dock{left:16px;right:16px;bottom:30px;height:68px;display:flex;align-items:center;justify-content:space-around}
+.dock span{font-size:12px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:4px}
+.dock .on{color:var(--bone)}
+.dock .ic{font-size:18px}
+.fab{width:54px;height:54px;border:1px solid var(--cyan);display:grid!important;place-items:center;color:var(--cyan)!important;font-size:26px!important;box-shadow:0 0 18px -4px var(--cyan),inset 0 0 12px -6px var(--cyan)}
+.home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#3a3b3e}
+</style></head><body>
+<div class="coal"></div><div class="grid"></div>
+<svg style="position:absolute;inset:0" viewBox="0 0 390 844" fill="none" stroke="#5A5C60">
+ <path d="M-20 320 C 90 350 160 300 240 350 S 360 430 420 410" stroke-width="1.4"/>
+ <path d="M120 -10 L150 260 L170 520 L140 860 M-10 560 L200 600 L420 540 M260 0 L300 340 L330 860" stroke-width="1"/>
+ <path d="M0 440 L390 470 M40 0 L70 844 M0 700 L390 740 M210 180 L390 220" stroke-width=".6" stroke-opacity=".6"/>
+</svg>
+<div class="line" style="--c:#E5484D;left:212px;top:240px;height:150px"></div><span class="pin" style="left:212px;top:390px"></span><span class="tag" style="--c:#E5484D;left:222px;top:232px"><i></i>วิกฤต · ไฟดับ 12 วัน</span>
+<div class="line" style="--c:#F59E62;left:96px;top:330px;height:110px"></div><span class="pin" style="left:96px;top:440px"></span><span class="tag" style="--c:#F59E62;left:104px;top:322px"><i></i>อันตราย · ท่อแตก</span>
+<div class="line d" style="--c:#F5C542;left:300px;top:420px;height:76px"></div><span class="pin" style="left:300px;top:496px"></span><span class="tag" style="--c:#F5C542;left:250px;top:398px"><i></i>ระวัง · รอยืนยันแก้</span>
+<div class="plate top br"><span class="logo">แจ้ง</span><span class="search">ค้นหา</span><span class="av">ฉัน</span></div>
+<div class="plate tabs"><span class="on">ทั้งหมด 27</span><span>วิกฤต 2</span><span>อันตราย 6</span><span>ระวัง 11</span></div>
+<div class="plate card br"><h3><i></i>ไฟถนนดับทั้งซอย</h3><div class="row">เจอเหมือนกัน<b>18 คน</b></div><div class="row">รอมาแล้ว<b>12 วัน</b></div><div class="bar"></div></div>
+<div class="plate dock br"><span class="on"><span class="ic">◈</span>แผนที่</span><span><span class="ic">☰</span>รายการ</span><span class="fab">+</span><span><span class="ic">◷</span>ของฉัน</span><span><span class="ic">⋯</span>อื่น ๆ</span></div>
+<span class="home"></span>
+</body></html>

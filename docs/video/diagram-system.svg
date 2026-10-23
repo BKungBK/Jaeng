@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" font-family="Anuphan, 'IBM Plex Sans Thai', 'Noto Sans Thai', Tahoma, sans-serif">
+  <title>สถาปัตยกรรมระบบ แจ้ง</title>
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFE3C4"/>
+      <stop offset="0.5" stop-color="#F4B49A"/>
+      <stop offset="1" stop-color="#C9A0DC"/>
+    </linearGradient>
+    <marker id="head-write" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#F4B49A"/>
+    </marker>
+    <marker id="head-read" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8FD3B6"/>
+    </marker>
+    <marker id="head-neutral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#F3EFF7"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#0F1F44"/>
+
+  <!-- Title -->
+  <g id="title">
+    <text x="80" y="110" font-size="52" font-weight="600" fill="#F3EFF7">ระบบ "แจ้ง" ทำงานต่อกันอย่างไร</text>
+    <rect x="80" y="132" width="360" height="6" rx="3" fill="url(#dawn)"/>
+  </g>
+
+  <!-- Legend -->
+  <g id="legend" font-size="28" fill="#B9B5CC">
+    <line x1="1180" y1="96" x2="1250" y2="96" stroke="#8FD3B6" stroke-width="6" stroke-linecap="round"/>
+    <text x="1268" y="106">อ่านข้อมูล</text>
+    <line x1="1470" y1="96" x2="1540" y2="96" stroke="#F4B49A" stroke-width="6" stroke-linecap="round"/>
+    <text x="1558" y="106">เขียนข้อมูล</text>
+  </g>
+
+  <!-- Step 1: users -->
+  <g id="step-1-users">
+    <rect x="80" y="400" width="320" height="280" rx="28" fill="#1B2A52" stroke="#2F3D66" stroke-width="3"/>
+    <text x="240" y="464" font-size="40" font-weight="600" fill="#F3EFF7" text-anchor="middle">ผู้ใช้</text>
+    <rect x="116" y="496" width="248" height="68" rx="34" fill="#0F1F44" stroke="#2F3D66" stroke-width="2"/>
+    <text x="240" y="541" font-size="30" fill="#F3EFF7" text-anchor="middle">เบราว์เซอร์</text>
+    <rect x="116" y="582" width="248" height="68" rx="34" fill="#0F1F44" stroke="#2F3D66" stroke-width="2"/>
+    <text x="240" y="627" font-size="30" fill="#F3EFF7" text-anchor="middle">แอป Android</text>
+  </g>
+
+  <!-- Step 1 arrow: users -> caddy -->
+  <g id="arrow-1">
+    <line x1="404" y1="540" x2="518" y2="540" stroke="#F3EFF7" stroke-width="6" stroke-linecap="round" marker-end="url(#head-neutral)"/>
+    <circle cx="461" cy="496" r="24" fill="url(#dawn)"/>
+    <text x="461" y="506" font-size="28" font-weight="700" fill="#2A1F3A" text-anchor="middle">1</text>
+  </g>
+
+  <!-- Caddy -->
+  <g id="caddy">
+    <rect x="530" y="450" width="270" height="180" rx="28" fill="#1B2A52" stroke="url(#dawn)" stroke-width="4"/>
+    <text x="665" y="520" font-size="42" font-weight="600" fill="#F3EFF7" text-anchor="middle">Caddy</text>
+    <text x="665" y="568" font-size="28" fill="#B9B5CC" text-anchor="middle">ทางเข้าเดียว</text>
+    <text x="665" y="604" font-size="28" fill="#B9B5CC" text-anchor="middle">พอร์ต 8000</text>
+  </g>
+
+  <!-- Step 2: caddy -> web -->
+  <g id="arrow-2">
+    <path d="M 700 446 C 700 300, 780 255, 916 255" fill="none" stroke="#F3EFF7" stroke-width="6" stroke-linecap="round" marker-end="url(#head-neutral)"/>
+    <circle cx="742" cy="318" r="24" fill="url(#dawn)"/>
+    <text x="742" y="328" font-size="28" font-weight="700" fill="#2A1F3A" text-anchor="middle">2</text>
+    <text x="735" y="410" font-size="26" fill="#B9B5CC">/ ส่งหน้าเว็บ</text>
+  </g>
+
+  <!-- Web box -->
+  <g id="web">
+    <rect x="930" y="160" width="400" height="190" rx="28" fill="#1B2A52" stroke="#2F3D66" stroke-width="3"/>
+    <text x="1130" y="224" font-size="38" font-weight="600" fill="#F3EFF7" text-anchor="middle">หน้าเว็บ</text>
+    <text x="1130" y="272" font-size="28" fill="#B9B5CC" text-anchor="middle">Angular + Ionic</text>
+    <text x="1130" y="312" font-size="28" fill="#B9B5CC" text-anchor="middle">MapLibre วาดแผนที่</text>
+  </g>
+
+  <!-- Step 4: read direct caddy -> supabase -->
+  <g id="arrow-4-read">
+    <line x1="804" y1="540" x2="1428" y2="540" stroke="#8FD3B6" stroke-width="6" stroke-linecap="round" marker-end="url(#head-read)"/>
+    <circle cx="880" cy="496" r="24" fill="url(#dawn)"/>
+    <text x="880" y="506" font-size="28" font-weight="700" fill="#2A1F3A" text-anchor="middle">4</text>
+    <text x="1120" y="500" font-size="30" fill="#8FD3B6" text-anchor="middle">/sb อ่านตรง (มี RLS คุมสิทธิ์)</text>
+    <text x="1120" y="590" font-size="26" fill="#B9B5CC" text-anchor="middle">เร็ว และรับข้อมูลเรียลไทม์ได้</text>
+  </g>
+
+  <!-- Step 3: caddy -> elysia (write) -->
+  <g id="arrow-3-write">
+    <path d="M 700 634 C 700 780, 780 805, 916 805" fill="none" stroke="#F4B49A" stroke-width="6" stroke-linecap="round" marker-end="url(#head-write)"/>
+    <circle cx="742" cy="740" r="24" fill="url(#dawn)"/>
+    <text x="742" y="750" font-size="28" font-weight="700" fill="#2A1F3A" text-anchor="middle">3</text>
+    <text x="770" y="662" font-size="26" fill="#F4B49A">/api เขียนทั้งหมด</text>
+  </g>
+
+  <!-- Elysia box -->
+  <g id="elysia">
+    <rect x="930" y="690" width="400" height="260" rx="28" fill="#1B2A52" stroke="#F4B49A" stroke-width="3"/>
+    <text x="1130" y="752" font-size="38" font-weight="600" fill="#F3EFF7" text-anchor="middle">Elysia บน Bun</text>
+    <text x="1130" y="796" font-size="28" fill="#B9B5CC" text-anchor="middle">API ที่รับคำสั่งเขียน</text>
+    <text x="1130" y="850" font-size="27" fill="#F3EFF7" text-anchor="middle">โควตาต่อวัน · กรองคำหยาบ</text>
+    <text x="1130" y="890" font-size="27" fill="#F3EFF7" text-anchor="middle">กันเรื่องซ้ำ · ประมวลผลรูป</text>
+  </g>
+
+  <!-- Step 5: elysia -> supabase -->
+  <g id="arrow-5-write">
+    <line x1="1334" y1="820" x2="1428" y2="820" stroke="#F4B49A" stroke-width="6" stroke-linecap="round" marker-end="url(#head-write)"/>
+    <circle cx="1381" cy="772" r="24" fill="url(#dawn)"/>
+    <text x="1381" y="782" font-size="28" font-weight="700" fill="#2A1F3A" text-anchor="middle">5</text>
+  </g>
+
+  <!-- Supabase -->
+  <g id="supabase">
+    <rect x="1440" y="190" width="420" height="790" rx="32" fill="#16254B" stroke="#2F3D66" stroke-width="3"/>
+    <text x="1650" y="256" font-size="44" font-weight="600" fill="#F3EFF7" text-anchor="middle">Supabase</text>
+
+    <rect x="1472" y="290" width="356" height="150" rx="22" fill="#1B2A52" stroke="#2F3D66" stroke-width="2"/>
+    <text x="1650" y="344" font-size="32" font-weight="600" fill="#F3EFF7" text-anchor="middle">Postgres + PostGIS</text>
+    <text x="1650" y="388" font-size="26" fill="#B9B5CC" text-anchor="middle">เก็บเรื่อง คำนวณระยะ</text>
+    <text x="1650" y="420" font-size="26" fill="#B9B5CC" text-anchor="middle">หาเรื่องในกรอบแผนที่</text>
+
+    <rect x="1472" y="460" width="356" height="116" rx="22" fill="#1B2A52" stroke="#2F3D66" stroke-width="2"/>
+    <text x="1650" y="512" font-size="32" font-weight="600" fill="#F3EFF7" text-anchor="middle">Auth</text>
+    <text x="1650" y="552" font-size="26" fill="#B9B5CC" text-anchor="middle">ล็อกอิน ออก token</text>
+
+    <rect x="1472" y="596" width="356" height="236" rx="22" fill="#1B2A52" stroke="#2F3D66" stroke-width="2"/>
+    <text x="1650" y="648" font-size="32" font-weight="600" fill="#F3EFF7" text-anchor="middle">Storage</text>
+    <rect x="1490" y="672" width="124" height="64" rx="16" fill="#0F1F44" stroke="#F4B49A" stroke-width="2"/>
+    <text x="1552" y="713" font-size="26" fill="#F3EFF7" text-anchor="middle">ส่วนตัว</text>
+    <rect x="1686" y="672" width="124" height="64" rx="16" fill="#0F1F44" stroke="#8FD3B6" stroke-width="2"/>
+    <text x="1748" y="713" font-size="26" fill="#F3EFF7" text-anchor="middle">สาธารณะ</text>
+    <g id="step-6-approve">
+      <line x1="1620" y1="704" x2="1680" y2="704" stroke="#F4B49A" stroke-width="5" stroke-linecap="round" marker-end="url(#head-write)"/>
+      <circle cx="1650" cy="776" r="24" fill="url(#dawn)"/>
+      <text x="1650" y="786" font-size="28" font-weight="700" fill="#2A1F3A" text-anchor="middle">6</text>
+      <text x="1650" y="822" font-size="24" fill="#B9B5CC" text-anchor="middle">ผู้ดูแลอนุมัติจึงย้ายรูป</text>
+    </g>
+
+    <rect x="1472" y="852" width="356" height="96" rx="22" fill="#1B2A52" stroke="#2F3D66" stroke-width="2"/>
+    <text x="1650" y="896" font-size="32" font-weight="600" fill="#F3EFF7" text-anchor="middle">Realtime</text>
+    <text x="1650" y="930" font-size="26" fill="#B9B5CC" text-anchor="middle">ส่งการเปลี่ยนแปลงทันที</text>
+  </g>
+
+  <!-- Resend: login code emails -->
+  <g id="resend">
+    <line x1="1650" y1="984" x2="1650" y2="1004" stroke="#F4B49A" stroke-width="5" stroke-linecap="round" marker-end="url(#head-write)"/>
+    <rect x="1440" y="1010" width="420" height="56" rx="28" fill="#1B2A52" stroke="#F4B49A" stroke-width="2"/>
+    <text x="1650" y="1047" font-size="26" fill="#F3EFF7" text-anchor="middle">Resend ส่งอีเมลรหัสถึงผู้ใช้</text>
+  </g>
+
+  <!-- Docker note -->
+  <g id="docker">
+    <rect x="80" y="880" width="740" height="70" rx="35" fill="none" stroke="#2F3D66" stroke-width="2" stroke-dasharray="10 10"/>
+    <text x="450" y="926" font-size="28" fill="#B9B5CC" text-anchor="middle">ทุกส่วนรันใน Docker ด้วยคำสั่งเดียว</text>
+  </g>
+</svg>

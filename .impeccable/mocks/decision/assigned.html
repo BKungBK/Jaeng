@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>แจ้ง: ลายรดน้ำบนกระจกรมควัน</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600&family=Noto+Serif+Thai:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--lacquer:#0B0A0D;--smoke:rgba(26,24,32,.62);--gold:#C9A45C;--gold-hi:#F2D79B;--bone:#F1E6CF;--mute:#9A927F;--line:rgba(201,164,92,.28)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:390px;height:844px;overflow:hidden;background:var(--lacquer);font-family:Anuphan,system-ui,sans-serif;color:var(--bone)}
+.map{position:absolute;inset:0;background:radial-gradient(120% 70% at 60% 45%,#16141b 0%,#0B0A0D 70%)}
+.map svg{position:absolute;inset:0}
+.beam{position:absolute;width:2px;transform:translateX(-50%);background:linear-gradient(to top,var(--c),transparent);filter:drop-shadow(0 0 6px var(--c));animation:breathe 3.2s ease-in-out infinite}
+.beam.dash{background:repeating-linear-gradient(to top,var(--c) 0 6px,transparent 6px 11px)}
+.beam::after{content:"";position:absolute;bottom:-7px;left:50%;width:14px;height:14px;transform:translateX(-50%);border-radius:50%;background:var(--c);box-shadow:0 0 18px var(--c),0 0 0 3px rgba(11,10,13,.9),0 0 0 4px var(--c)}
+.disc{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:rgba(11,10,13,.7);border:1px solid var(--c);backdrop-filter:blur(8px);display:grid;place-items:center;font-size:13px;box-shadow:0 0 24px -4px var(--c)}
+@keyframes breathe{50%{opacity:.6}}
+.glass{background:var(--smoke);backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(242,215,155,.12),0 20px 40px -20px #000}
+.sheen{position:relative;overflow:hidden}
+.sheen::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(110deg,transparent 30%,var(--gold-hi) 48%,transparent 62%) 0 0/250% 100%;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:sweep 6s linear infinite;pointer-events:none}
+@keyframes sweep{to{background-position:-250% 0}}
+.top{position:absolute;top:52px;left:16px;right:16px;height:52px;border-radius:26px;display:flex;align-items:center;gap:12px;padding:0 8px 0 18px}
+.logo{font-family:"Noto Serif Thai",serif;font-weight:700;font-size:22px;color:var(--gold);letter-spacing:.5px;text-shadow:0 0 18px rgba(201,164,92,.45)}
+.search{flex:1;font-size:15px;color:var(--mute);border-left:1px solid var(--line);padding-left:12px}
+.av{width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);display:grid;place-items:center;font-size:13px;color:var(--gold)}
+.levels{position:absolute;top:116px;left:16px;right:16px;height:44px;border-radius:22px;display:flex;padding:4px;gap:2px}
+.lv{flex:1;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--mute)}
+.lv i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.lv.on{background:rgba(201,164,92,.14);color:var(--bone);box-shadow:inset 0 0 0 1px var(--line)}
+.stat{position:absolute;top:174px;left:16px;padding:10px 14px;border-radius:16px;display:flex;gap:18px}
+.stat b{display:block;font-size:24px;font-weight:500;color:var(--bone);font-variant-numeric:tabular-nums;line-height:1}
+.stat span{font-size:12px;color:var(--mute)}
+.stat .g b{color:var(--gold)}
+.cross{position:absolute;width:9px;height:9px;opacity:.6}
+.cross::before,.cross::after{content:"";position:absolute;background:var(--gold)}
+.cross::before{left:4px;top:0;width:1px;height:9px}.cross::after{top:4px;left:0;height:1px;width:9px}
+.loc{position:absolute;right:16px;bottom:128px;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:18px;color:var(--bone)}
+.dock{position:absolute;left:16px;right:16px;bottom:30px;height:76px;border-radius:38px;display:flex;align-items:center;justify-content:space-around;padding:0 10px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--mute);width:64px}
+.tab .ic{font-size:20px;line-height:1}
+.tab.on{color:var(--gold)}
+.tab.on::after{content:"";width:18px;height:2px;border-radius:1px;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.fab{width:64px;height:64px;margin-top:-34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F6DFA8,#C9A45C 55%,#8E6D33);color:#1A1408;display:grid;place-items:center;font-size:30px;font-weight:300;box-shadow:0 0 0 6px rgba(11,10,13,.9),0 0 0 7px var(--line),0 12px 30px -6px rgba(201,164,92,.7)}
+.attr{position:absolute;left:24px;bottom:8px;font-size:10px;color:#4c473d}
+.home{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:#3a352c}
+</style></head><body>
+<div class="map">
+<svg viewBox="0 0 390 844" fill="none">
+ <path d="M-20 300 C 90 330 160 290 240 340 S 360 420 420 400" stroke="#2A2620" stroke-width="16"/>
+ <path d="M-20 300 C 90 330 160 290 240 340 S 360 420 420 400" stroke="#3A332A" stroke-width="1.2"/>
+ <path d="M120 -10 L150 260 L170 520 L140 860" stroke="#1F1C18" stroke-width="9"/>
+ <path d="M-10 560 L200 600 L420 540" stroke="#1F1C18" stroke-width="7"/>
+ <path d="M260 0 L300 340 L330 860" stroke="#1C1A16" stroke-width="5"/>
+ <path d="M0 440 L390 470 M40 0 L70 844 M0 700 L390 740 M210 180 L390 220" stroke="#17151A" stroke-width="2.5"/>
+ <path d="M-20 640 C 80 610 120 690 220 670 S 330 600 420 640" stroke="#13202A" stroke-width="22"/>
+ <path d="M-20 640 C 80 610 120 690 220 670 S 330 600 420 640" stroke="#1E3442" stroke-width="1"/>
+</svg>
+<div class="beam" style="--c:#E57373;left:212px;top:268px;height:150px"></div><div class="disc" style="--c:#E57373;left:212px;top:268px">⚠</div>
+<div class="beam" style="--c:#F4A582;left:96px;top:390px;height:112px"></div><div class="disc" style="--c:#F4A582;left:96px;top:390px">◆</div>
+<div class="beam dash" style="--c:#F6D983;left:300px;top:450px;height:78px"></div><div class="disc" style="--c:#F6D983;left:300px;top:450px">▲</div>
+<div class="beam" style="--c:#8FD3B6;left:160px;top:560px;height:58px"></div><div class="disc" style="--c:#8FD3B6;left:160px;top:560px">●</div>
+<div class="beam" style="--c:#F6D983;left:256px;top:610px;height:46px;height:22px;opacity:.5"></div>
+</div>
+<span class="cross" style="left:12px;top:48px"></span><span class="cross" style="right:12px;top:48px"></span>
+<div class="top glass sheen"><span class="logo">แจ้ง</span><span class="search">ค้นหาเรื่องหรือสถานที่</span><span class="av">ฉัน</span></div>
+<div class="levels glass">
+ <span class="lv on" style="--c:#8FD3B6"><i></i>ทั่วไป</span><span class="lv on" style="--c:#F6D983"><i></i>ระวัง</span><span class="lv on" style="--c:#F4A582"><i></i>อันตราย</span><span class="lv on" style="--c:#E57373"><i></i>วิกฤต</span>
+</div>
+<div class="stat glass"><div><b>27</b><span>เรื่องค้างอยู่</span></div><div class="g"><b>9</b><span>แก้แล้วเดือนนี้</span></div></div>
+<div class="loc glass">◎</div>
+<div class="dock glass sheen">
+ <span class="tab on"><span class="ic">◈</span>แผนที่</span>
+ <span class="tab"><span class="ic">☰</span>รายการ</span>
+ <span class="fab">+</span>
+ <span class="tab"><span class="ic">◷</span>ของฉัน</span>
+ <span class="tab"><span class="ic">⋯</span>อื่น ๆ</span>
+</div>
+<span class="attr">ⓘ OpenStreetMap</span><span class="home"></span>
+</body></html>

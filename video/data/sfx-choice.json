@@ -1,0 +1,5 @@
+{
+  "_doc": "Owner's pick 2026-10-23 from audio/audition.html: option 2 for the names listed in 'option2', option 1 for every other sound. Files: audio/sfx/<name>_<option>.wav",
+  "default": 1,
+  "option2": ["whoosh_big", "ui_pop", "camera_shutter", "pulse_loop", "check_stamp", "paper_slide", "shimmer_reveal", "outro_swell"]
+}

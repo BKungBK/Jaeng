@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=1440">
+<title>แจ้ง: กระจกฝ้า (คอม)</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#F3EFF7;--mute:rgba(243,239,247,.6);--faint:rgba(243,239,247,.4);--edge:rgba(255,255,255,.12);--sea:#11234A;
+--dawn:linear-gradient(135deg,#FFE3C4 0%,#F4B49A 45%,#C9A0DC 100%);
+--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden;background:var(--sea);font-family:Anuphan,system-ui,sans-serif;color:var(--ink)}
+.sea{position:absolute;inset:0;background:radial-gradient(60% 50% at 15% 10%,#22336A,transparent 70%),radial-gradient(50% 45% at 92% 100%,rgba(244,180,154,.18),transparent 70%),linear-gradient(160deg,#0E1D40,#13264D 50%,#0F1F44)}
+.thai{position:absolute;left:600px;top:40px;width:520px;height:820px;background:url(map-ref.webp) -785px -105px/1920px auto no-repeat;-webkit-mask:radial-gradient(closest-side,#000 82%,transparent);mask:radial-gradient(closest-side,#000 82%,transparent)}
+.grain{position:absolute;inset:0;background:var(--noise);opacity:.05;pointer-events:none}
+.glass{position:absolute;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 60%),rgba(16,26,54,.45);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);border:1px solid var(--edge);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 20px 44px -24px rgba(3,8,25,.9);overflow:hidden}
+.glass::after{content:"";position:absolute;inset:0;background:var(--noise);opacity:.15;mix-blend-mode:overlay;pointer-events:none}
+.panel{left:20px;top:20px;width:340px;border-radius:22px;padding:8px}
+.search{height:44px;border-radius:16px;display:flex;align-items:center;gap:10px;padding:0 6px;font-size:14px;color:var(--mute)}
+.mark{width:32px;height:32px;border-radius:50%;background:var(--dawn);display:grid;place-items:center;color:#2A1F3A;font-weight:600;font-size:14px}
+.search .av{margin-left:auto;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:11px;color:var(--ink)}
+.chips{display:flex;gap:4px;padding:6px 6px 10px;border-bottom:1px solid var(--edge)}
+.chip{height:28px;padding:0 10px;border-radius:14px;display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink);background:rgba(255,255,255,.06)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.sum{display:flex;align-items:center;gap:10px;padding:12px 10px 6px;font-size:13px}
+.ring{width:26px;height:26px;border-radius:50%;background:conic-gradient(#F4B49A 0 11%,rgba(255,255,255,.14) 11% 100%);-webkit-mask:radial-gradient(circle,transparent 9px,#000 10px);mask:radial-gradient(circle,transparent 9px,#000 10px)}
+.sum span{color:var(--mute)}.sum em{margin-left:auto;font-style:normal;font-size:12px;color:var(--faint)}
+.item{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px}
+.item.hl{background:rgba(255,255,255,.06)}
+.item i{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.item b{font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item span{font-size:12px;color:var(--faint);white-space:nowrap}
+.more{display:block;text-align:center;font-size:12px;color:var(--mute);padding:8px 0 4px}
+.ctrl{right:20px;bottom:96px;width:40px;border-radius:20px;display:flex;flex-direction:column;align-items:center}
+.ctrl span{width:40px;height:38px;display:grid;place-items:center;font-size:15px}
+.ctrl hr{width:18px;border:0;border-top:1px solid var(--edge)}
+.cta{position:absolute;right:20px;bottom:36px;height:46px;padding:0 20px;border-radius:23px;background:var(--dawn);color:#2A1F3A;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 0 0 1px rgba(255,255,255,.35) inset,0 12px 30px -10px rgba(244,180,154,.65)}
+.attr{position:absolute;right:20px;bottom:10px;font-size:10px;color:var(--faint)}
+.menu{right:20px;top:20px;height:40px;border-radius:20px;display:flex;align-items:center;padding:0 4px;font-size:13px;color:var(--mute)}
+.menu span{padding:0 12px;height:32px;display:grid;place-items:center;border-radius:16px}
+.menu .on{background:rgba(255,255,255,.1);color:var(--ink)}
+</style></head><body>
+<div class="sea"></div><div class="thai"></div><div class="grain"></div>
+<aside class="glass panel">
+ <div class="search"><span class="mark">แ</span>ค้นหาเรื่องหรือสถานที่<span class="av">ฉัน</span></div>
+ <div class="chips"><span class="chip" style="--c:#8FD3B6"><i></i>ทั่วไป</span><span class="chip" style="--c:#F6D983"><i></i>ระวัง</span><span class="chip" style="--c:#F4A582"><i></i>อันตราย</span><span class="chip" style="--c:#E57373"><i></i>วิกฤต</span></div>
+ <div class="sum"><span class="ring"></span><b>34 ค้างอยู่</b><span>· แก้แล้ว 4 เดือนนี้</span><em>ใหม่สุด ▾</em></div>
+ <div class="item hl" style="--c:#E57373"><i></i><b>สายไฟห้อยต่ำกลางซอย</b><span>18 คน · 12 วัน</span></div>
+ <div class="item" style="--c:#F4A582"><i></i><b>ท่อประปาแตกน้ำท่วมถนน</b><span>6 คน · 3 วัน</span></div>
+ <div class="item" style="--c:#F6D983"><i></i><b>ไฟทางม้าลายดับ</b><span>4 คน · 5 วัน</span></div>
+ <span class="more">ดูทั้งหมด 38 เรื่อง</span>
+</aside>
+<div class="glass menu"><span class="on">แผนที่</span><span>รายการ</span><span>ของฉัน</span><span>EN</span></div>
+<div class="glass ctrl"><span>+</span><hr><span>−</span><hr><span>◎</span></div>
+<div class="cta">＋ แจ้ง</div>
+<span class="attr">ⓘ</span>
+</body></html>

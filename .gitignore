@@ -14,3 +14,12 @@ supabase/.temp/
 e2e/node_modules/
 e2e/test-results/
 e2e/playwright-report/
+video/ANSWERS.md
+video/audio/
+video/demo/
+video/out/
+video/.venv/
+# owner's raw voice recordings (the finished clip is docs/media/jaeng-presentation.mp4)
+video/*.mp3
+.claude/scheduled_tasks.lock
+.claude/settings.local.json

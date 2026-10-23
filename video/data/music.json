@@ -1,0 +1,14 @@
+{
+  "_doc": "Music bed for a7_mix.py. Owner supplied D:\\Downloads\\soundtrack.mp3 (14:43, 44.1 kHz, I -19 LUFS, LRA 18) on 2026-10-22; clip mood stays 'clean tech launch' (D3). offset = seconds into the track where the clip starts.",
+  "file": "audio/music/synth-pulse.wav",
+  "_choice": "2026-10-23 owner picked the synthesized 'pulse' preset (114 BPM, scripts/a8_synth_music.py pulse) over groove/warm; soundtrack.mp3 no longer used",
+  "offset": 0,
+  "gain": 0.0,
+  "fade_in": 2,
+  "fade_out": 2,
+  "tail": 6.0,
+  "level": "linear",
+  "_ending": "2026-10-23 owner: music should follow each scene's mood and end smoothly. Tail 3 -> 6 s so the final chord rings out; synth fades itself, so a7 only fades the last 2 s and levels with one fixed gain",
+  "duck": "threshold=0.03:ratio=4:attack=30:release=500:knee=4",
+  "_tuning": "first mix (gain -2, ratio 8) left voice 25.1 dB over music while speaking (music barely audible); one adjustment to gain 0, ratio 4"
+}

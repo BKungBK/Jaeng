@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>แจ้ง: ฟ้าก่อนแจ้ง</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#F7F2FA;--mute:rgba(247,242,250,.62);--frost:rgba(255,255,255,.10);--edge:rgba(255,255,255,.22);--peach:#F4B49A;--dawn:#FFE3C4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:390px;height:844px;overflow:hidden;background:#0E1030;font-family:Anuphan,system-ui,sans-serif;color:var(--ink)}
+.sky{position:absolute;inset:-20%;background:
+ radial-gradient(40% 30% at 70% 95%,#FFC9A3 0%,transparent 70%),
+ radial-gradient(60% 40% at 20% 85%,#B57FA8 0%,transparent 70%),
+ radial-gradient(70% 50% at 80% 60%,#4B4A92 0%,transparent 70%),
+ linear-gradient(#0E1030,#22275E 55%,#5B4D8C);animation:drift 18s ease-in-out infinite alternate;filter:saturate(115%)}
+@keyframes drift{to{transform:translate(-4%,-3%) scale(1.06)}}
+.map{position:absolute;inset:0;opacity:.55;mix-blend-mode:screen}
+.grain{position:absolute;inset:0;opacity:.08;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:3px 3px}
+.beam{position:absolute;width:3px;transform:translateX(-50%);border-radius:2px;background:linear-gradient(to top,var(--c),transparent);filter:blur(.4px) drop-shadow(0 0 10px var(--c))}
+.beam::after{content:"";position:absolute;bottom:-9px;left:50%;width:18px;height:18px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#fff 0 20%,var(--c) 45%,transparent 72%)}
+.halo{position:absolute;width:120px;height:60px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(var(--c),transparent 65%);opacity:.35}
+.frost{background:var(--frost);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--edge);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 24px 48px -24px rgba(8,8,30,.8)}
+.top{position:absolute;top:52px;left:16px;right:16px;height:54px;border-radius:20px;display:flex;align-items:center;gap:12px;padding:0 8px 0 16px}
+.mark{width:30px;height:30px;border-radius:10px;background:linear-gradient(160deg,var(--dawn),var(--peach) 50%,#B57FA8);display:grid;place-items:center;font-weight:600;font-size:15px;color:#2A1F3A;box-shadow:0 0 20px rgba(244,180,154,.5)}
+.search{flex:1;font-size:15px;color:var(--mute)}
+.av{width:38px;height:38px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:13px}
+.levels{position:absolute;top:118px;left:16px;display:flex;gap:8px}
+.lv{height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;gap:7px;font-size:13px}
+.lv i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c)}
+.ring{position:absolute;left:16px;right:16px;bottom:126px;height:88px;border-radius:44px;display:flex;align-items:center;gap:16px;padding:0 14px}
+.g{width:62px;height:62px;border-radius:50%;background:conic-gradient(var(--peach) 0 34%,rgba(255,255,255,.1) 34% 100%);-webkit-mask:radial-gradient(circle,transparent 24px,#000 25px);mask:radial-gradient(circle,transparent 24px,#000 25px);filter:drop-shadow(0 0 10px var(--peach))}
+.ring .t b{font-size:28px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1}
+.ring .t span{display:block;font-size:13px;color:var(--mute);margin-top:4px}
+.ring .sep{width:1px;height:44px;background:var(--edge)}
+.dock{position:absolute;left:16px;right:16px;bottom:30px;height:72px;border-radius:26px;display:flex;align-items:center;justify-content:space-around}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--mute);width:60px}
+.tab .ic{font-size:19px}
+.tab.on{color:var(--ink)}
+.fab{height:52px;padding:0 22px;border-radius:26px;background:linear-gradient(135deg,var(--dawn),var(--peach));color:#2A1F3A;font-size:17px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 10px 30px -6px rgba(244,180,154,.8)}
+.home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,.4)}
+</style></head><body>
+<div class="sky"></div>
+<svg class="map" viewBox="0 0 390 844" fill="none" stroke="#A9B4FF">
+ <path d="M-20 320 C 90 350 160 300 240 350 S 360 430 420 410" stroke-width="10" stroke-opacity=".35"/>
+ <path d="M120 -10 L150 260 L170 520 L140 860 M-10 560 L200 600 L420 540 M260 0 L300 340 L330 860" stroke-width="5" stroke-opacity=".25"/>
+ <path d="M0 440 L390 470 M40 0 L70 844 M0 700 L390 740 M210 180 L390 220" stroke-width="1.5" stroke-opacity=".2"/>
+</svg>
+<div class="grain"></div>
+<div class="halo" style="--c:#FF8A8A;left:222px;top:438px"></div><div class="beam" style="--c:#FF8A8A;left:222px;top:282px;height:156px"></div>
+<div class="halo" style="--c:#FFB48A;left:94px;top:508px"></div><div class="beam" style="--c:#FFB48A;left:94px;top:396px;height:112px"></div>
+<div class="halo" style="--c:#FFE08A;left:304px;top:548px"></div><div class="beam" style="--c:#FFE08A;left:304px;top:470px;height:78px"></div>
+<div class="halo" style="--c:#9BF0C8;left:160px;top:640px"></div><div class="beam" style="--c:#9BF0C8;left:160px;top:584px;height:56px"></div>
+<div class="top frost"><span class="mark">แ</span><span class="search">ค้นหาเรื่องหรือสถานที่</span><span class="av">ฉัน</span></div>
+<div class="levels">
+ <span class="lv frost" style="--c:#9BF0C8"><i></i>ทั่วไป</span><span class="lv frost" style="--c:#FFE08A"><i></i>ระวัง</span><span class="lv frost" style="--c:#FFB48A"><i></i>อันตราย</span><span class="lv frost" style="--c:#FF8A8A"><i></i>วิกฤต</span>
+</div>
+<div class="ring frost"><div class="g"></div><div class="t"><b>9 / 27</b><span>แก้แล้วเดือนนี้</span></div><div class="sep"></div><div class="t"><b>12</b><span>วันที่รอนานสุด</span></div></div>
+<div class="dock frost">
+ <span class="tab on"><span class="ic">◈</span>แผนที่</span>
+ <span class="tab"><span class="ic">☰</span>รายการ</span>
+ <span class="fab">+ แจ้ง</span>
+ <span class="tab"><span class="ic">◷</span>ของฉัน</span>
+</div>
+<span class="home"></span>
+</body></html>
